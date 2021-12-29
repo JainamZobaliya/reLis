@@ -17,6 +17,10 @@ var userSchema = new Schema({
     password: {
         type: String,
         require: true
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false,
     }
 })
 
