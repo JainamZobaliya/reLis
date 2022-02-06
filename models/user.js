@@ -18,10 +18,119 @@ var userSchema = new Schema({
         type: String,
         require: true
     },
-    isAdmin: {
-        type: Boolean,
-        default: false,
-    }
+    userType: {
+        type: String,
+        default: "non-admin",
+    },
+    imageURL: {
+        type: String,
+        default: "assets/ReLis.gif",
+    },
+    userStatus: {
+        type: String,
+        default: "New to ReLis!!!",
+    },
+    favouriteBook: {
+        type: Array,
+        default: [],
+    },
+    wishListBook: {
+        type: Array,
+        default: [],
+    },
+    recommendedBook: {
+        type: Array,
+        default: [],
+    },
+    bookHistory: {
+        type: Array,
+        default: [],
+    },
+    personalBooks: {
+        type: Array,
+        default: [],
+    },
+    booksRented: {
+        type: Map,
+        default: {},
+        // {
+        //     book1["id"] : {
+        //       "id" : book1["id"],
+        //       "rentedOn": "${DateTime.now().subtract(Duration(days: 3))}",
+        //       "dueOn": "${DateTime.now().add(Duration(days: 5))}",
+        //     }
+        // }
+    },
+    booksBought: {
+        type: Map,
+        default: {},
+        // {
+        //     book1["id"] : {
+        //       "id" : book1["id"],
+        //       "purchasedOn": "${DateTime.now().subtract(Duration(days: 3))}",
+        //     }
+        // }
+    },
+    cart: {
+        type: Map,
+        default: {
+            toRent: {
+                type: Array,
+                of: String,
+                default: [],
+            },
+            toBuy: {
+                type: Array,
+                of: String,
+                default: [],
+            },
+        },
+        // {
+        //     book1["id"] : {
+        //       "id" : book1["id"],
+        //       "purchasedOn": "${DateTime.now().subtract(Duration(days: 3))}",
+        //     }
+        // }
+    },
+    credits: {
+        type: String,
+        default: "0",
+    },
+    booksRead: {
+        type: Map,
+        default: {},
+        // {
+        //     book1["id"] : {
+        //       "id" : book1["id"],
+        //       "lastReadAt": "${DateTime.now().subtract(Duration(days: 3))}",
+        //       "lastPageRead": "PgNo",
+        //     }
+        // }
+    },
+    dailyRecords: {
+        type: Map,
+        default: {
+            loginRecords: {
+                type: Array,
+                default: [],// store DateTime as String over here
+            },
+            pagesRead: {
+                type: Array,
+                default: [0,0,0,0,0,0,0], // store pageRead Day-wise: Mon to Sun
+            },
+        },
+    },
+    feedback: {
+        type: Map,
+        default: {},
+        // {
+        //     book1["id"] : {
+        //       "id" : book1["id"],
+        //       "comment" : "Book Comment here...",
+        //       "rating": "4.5",
+        //     }
+        // }
+    },
 })
 
 userSchema.pre('save', function (next) {
@@ -41,17 +150,34 @@ userSchema.pre('save', function (next) {
         })
     }
     else {
-        return next()
+        next()
     }
 })
 
-userSchema.methods.comparePassword = function (passw, cb) {
-    bcrypt.compare(passw, this.password, function (err, isMatch) {
-        if(err) {
-            return cb(err)
+userSchema.methods.comparePassword = function (passw, cb, redirect) {
+    console.log("redirect: ", redirect);
+    if(redirect=="true") {
+        console.log("User is tryting to redirect");
+        if(passw == this.password) {
+            cb(null, true)
         }
-        cb(null, isMatch)
-    })
+        else {
+            return cb("Password Dont Match")
+        }
+    }
+    else{
+        console.log("New Authentication");
+        bcrypt.compare(
+            passw,
+            this.password, 
+            function (err, isMatch) {
+                if(err) {
+                    return cb(err)
+                }
+                cb(null, isMatch)
+            }
+        )
+    }
 }
 
 module.exports = mongoose.model('User', userSchema)

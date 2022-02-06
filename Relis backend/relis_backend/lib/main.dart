@@ -14,10 +14,10 @@ import 'package:relis/view/splashScreen.dart';
 void main() async {
   // WidgetsFlutterBinding.ensureInitialized();
   // await Firebase.initializeApp();
-  runApp(MyApp());
+  runApp(ReLis());
 }
 
-class MyApp extends StatelessWidget {
+class ReLis extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -30,7 +30,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-//
-// TODO: 1. CarouselScrollIndicator
-// TODO: 2.

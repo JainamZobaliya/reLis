@@ -38,8 +38,10 @@ def get_database():
     
 db = get_database()
 booksCollection = db['books']
+print("booksCollection: ",booksCollection)
 
 item_details = booksCollection.find()
+print("item_details: ",item_details)
 # for item in item_details:
 #     # This does not give a very readable output
 #     print(item)

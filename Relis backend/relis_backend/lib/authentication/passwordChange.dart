@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'package:relis/authentication/authservice.dart';
+import 'package:relis/authentication/services.dart';
 import 'package:relis/authentication/otp.dart';
 import 'package:relis/authentication/signIn.dart';
 import 'package:relis/globals.dart';
@@ -95,6 +95,7 @@ class _PasswordChangeState extends State<PasswordChange> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 mainAxisSize: MainAxisSize.max,
                 children: [
+                  changingEmailID != "" ? Text("Password Changing for ReLis account: ${changingEmailID}") : SizedBox(),
                   widget.takeEmail ? EmailField() : PasswordFields(),
                   SizedBox(
                     height: 20,
@@ -291,15 +292,16 @@ class _PasswordChangeState extends State<PasswordChange> {
         else {
           widget.takeEmail = false;
           changingPassword = false;
-          Authservice().changePassword(emailId, password).then((val) {
+          Services().changePassword(changingEmailID, password).then((val) {
             print('Comes after authService');
             print('$val');
             if (val != null && val.data['success']) {
               // token = val.data['token'];
-              showMessageSnackBar(context, 'Password Changed Successfully');
+              showMessageSnackBar(context, 'Password Changed Successfully', Color(0xFF00FF88));
+              changingEmailID = "";
               Navigator.of(context).popUntil(ModalRoute.withName(SignInPage.routeName));
             } else {
-              showMessageSnackBar(context, 'Error');
+              showMessageSnackBar(context, 'Error', Color(0xFFFF0000));
             }
           });
         }

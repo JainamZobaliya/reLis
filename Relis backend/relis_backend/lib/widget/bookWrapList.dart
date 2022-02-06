@@ -3,10 +3,11 @@ import 'package:relis/globals.dart';
 import 'package:relis/widget/bookPreview.dart';
 
 class BookWrapList extends StatefulWidget {
-  BookWrapList({required this.bookHover, required this.controller, required this.currentBook});
+  BookWrapList({required this.bookHover, required this.controller, required this.currentBook, this.isCart});
   var currentBook;
   ScrollController controller;
   Map<String, ValueNotifier<bool>> bookHover;
+  bool? isCart = false;
 
 
   @override
@@ -53,7 +54,7 @@ class _BookWrapListState extends State<BookWrapList> {
                 verticalDirection: VerticalDirection.down,
                 clipBehavior: Clip.antiAliasWithSaveLayer,
                 children: [
-                  BookPreview(currentBook: curBook, bookHover: widget.bookHover,),
+                  BookPreview(currentBook: curBook, bookHover: widget.bookHover, isCart: widget.isCart),
                   SizedBox(width: 20,),
                 ],
               ),

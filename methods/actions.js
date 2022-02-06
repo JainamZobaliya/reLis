@@ -9,6 +9,8 @@ const request = require('request');
 const { Console } = require('console')
 const { type } = require('os')
 const utf8 = require('utf8')
+const path = require('path');
+var fs = require('fs');
 
 function bookRecommendation(userId, req, res) {
     console.log("")
@@ -73,42 +75,53 @@ var functions = {
         }
     },
     authenticate: function (req, res) {
-        User.findOne({
-            emailId: req.body.emailId
-        }, function (err, user) {
+        console.log("req.body.emailId: "+req.body.emailId)
+        User.findOne(
+            {
+                emailId: req.body.emailId
+            }, 
+            function (err, user) {
                 if (err) throw err
                 if (!user) {
                     res.status(403).send({success: false, msg: 'Authentication Failed, User not found'})
                 }
                 else {
-                    user.comparePassword(req.body.password, function (err, isMatch) {
-                        if (isMatch && !err) {
-                            var token = jwt.encode(user, config.secret)
-                            res.json({success: true, token: token, user: user})
-                            console.log(res.body)
-                        }
-                        else {
-                            return res.status(403).send({success: false, msg: 'Authentication failed, wrong password'})
-                        }
-                    })
+                    redirect = req.body.redirect ?? false;
+                    console.log("redirect: ", redirect)
+                    user.comparePassword(
+                        req.body.password,
+                        function (err, isMatch) {
+                            if (isMatch && !err) {
+                                var token = jwt.encode(user, config.secret)
+                                res.json({success: true, token: token, user: user})
+                            }
+                            else {
+                                return res.status(403).send({success: false, msg: 'Authentication Failed, Wrong Password'})
+                            }
+                        },
+                        redirect,
+                    )
                 }
         }
         )
     },
     changePassword: function (req, res) {
-        User.findOne({
-            emailId: req.body.emailId
-        }, function (err, user) {
-        if (err) throw err
-        if (!user) {
-            res.status(403).send({success: false, msg: 'Password Changing Failed, User not found', body:req.body})
-        }
-        else {
-            user.password = req.body.password;
-            user.save();
-            res.json({success: true, msg: 'Password Changed Successfully', body:req.body})
-        }
-        })
+        User.findOne(
+            {
+                emailId: req.body.emailId
+            },
+            function (err, user) {
+                if (err) throw err
+                if (!user) {
+                    res.status(403).send({success: false, msg: 'Password Changing Failed, User not found', body:req.body})
+                }
+                else {
+                    user.password = req.body.password;
+                    user.save();
+                    res.json({success: true, msg: 'Password Changed Successfully', body:req.body})
+                }
+            }
+        )
     },
     addBook: function (req, res) {
         if ((!req.body['id']) || (!req.body['isbn']) || (!req.body['bookName']) || (!req.body['url']) || (!req.body['authorName']) || (!req.body['publication']) || (!req.body['category']) || (!req.body['price']) || (!req.file) || (!req.body['description'])) {
@@ -158,6 +171,16 @@ var functions = {
                         res.status(403).send({success: false, msg: 'Book not found'})
                     }
                     else {
+                        var dir = path.join(__dirname, "../assets/books/")
+                        var imageName = book.imageName
+                        dir = path.join(dir,imageName)
+                        book["imagePng"] = {
+                            data: fs.readFileSync(dir),
+                            contentType: 'image/png'
+                        }
+                        // console.log("imagePng is here: ")
+                        // console.log(book["imagePng"])
+                        // console.log("Created Book Image")
                         res.json({success: true, book: book})
                     }
                 }
@@ -173,7 +196,7 @@ var functions = {
                 }
                 else {
                     console.log("book.toString: "+book);
-                    books.push(book)
+                    books = book
                 }
             }
         ).catch(error => {
@@ -183,6 +206,77 @@ var functions = {
             return res.json({success: true, books: books})
         }
         return res.status(403).send({success: false, msg: 'Book not found'})
+    },
+    getBookImage: async function (req, res) {
+        var bookId = req.body.bookId
+        if((!bookId) || (!req.body['emailId'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else {
+            await Book.findOne({
+                    id: bookId,
+                }).then(
+                book => {
+                    if (!book) {
+                        return res.status(403).send({success: false, msg: 'BookImage retrieving error'})
+                    }
+                    else {
+                        var dir = path.join(__dirname, "../assets/books/")
+                        var imageName = book.imageName
+                        dir = path.join(dir,imageName)
+                        // console.log("dir: "+dir);
+                        var options = {
+                            root: dir
+                        };
+                        // var imageBuffer = fs.readFileSync(dir);
+                        // var imageFile = fs.createWriteStream(imageName).write(imageBuffer);
+                        imagePng = {
+                            data: fs.readFileSync(dir),
+                            contentType: 'image/png'
+                        }
+                        // console.log("imagePng:")
+                        // console.log(imagePng)
+                        res.json({success: true, msg: 'BookImage retrieved', bookId: bookId, imagePng: imagePng});
+                        // res.sendFile(imageName, options, function (err) {
+                        //     if (err) {
+                        //         throw(err);
+                        //     } else {
+                        //         console.log('Sent:', imageName);
+                        //     }
+                        // });                 
+                        // res.sendFile(path.join(__dirname, "../assets/books/"+bookId+".png"));
+                        // fs.exists(filePath, function (exists) {
+                        //     if (!exists) {
+                        //         res.writeHead(404, {
+                        //             "Content-Type": "text/plain" });
+                        //         res.end("404 Not Found");
+                        //         return;
+                        //     }
+                        //     var ext = path.extname(action); // Extracting file extension
+                        //     var contentType = "text/plain"; // Setting default Content-Type
+                        //     // Checking if the extension of image is '.png'
+                        //     if (ext === ".png") {
+                        //         contentType = "image/png";
+                        //     }
+                        //     // Setting the headers
+                        //     res.writeHead(200, {
+                        //         "Content-Type": contentType });
+                        //     // Reading the file
+                        //     fs.readFile(filePath,
+                        //         function (err, content) {
+                        //             res.end(content); // Serving the image
+                        //         });
+                        // });
+                    }
+                }
+            ).catch(error => {
+                console.log(error);
+            })
+            // if(books.length>0) {
+            //     return res.json({success: true, bookImages: bookImages})
+            // }
+            // return res.status(403).send({success: false, msg: 'Book not found'})
+        }
     },
     getRecommendBook: async function (req, res) {
         userId = req.body["userId"]
@@ -296,6 +390,177 @@ var functions = {
                 }
             })
             console.log("Saved")
+        }
+    },
+    addToFavourites: function(req, res) {
+        if ((!req.body['bookId']) || (!req.body['emailId'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            User.findOne(
+                {
+                    emailId: req.body.emailId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Adding To Favourites Failed', body:req.body})
+                    }
+                    else {
+                        user.favouriteBook.push(req.body.bookId);
+                        user.save();
+                        res.json({success: true, msg: 'Book Added to Favourites Successfully', favouriteBook: user.favouriteBook})
+                    }
+                }
+            )
+        }
+    },
+    removeFromFavourites: function(req, res) {
+        if ((!req.body['bookId']) || (!req.body['emailId'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            User.findOne(
+                {
+                    emailId: req.body.emailId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Removing From Favourites Failed', body:req.body})
+                    }
+                    else {
+                        user.favouriteBook.pull(req.body.bookId);
+                        user.save();
+                        res.json({success: true, msg: 'Removed Book From Favourites Successfully', favouriteBook: user.favouriteBook})
+                    }
+                }
+            )
+        }
+    },
+    addToWishList: function(req, res) {
+        if ((!req.body['bookId']) || (!req.body['emailId'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            User.findOne(
+                {
+                    emailId: req.body.emailId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Adding To WishList Failed', body:req.body})
+                    }
+                    else {
+                        user.wishListBook.push(req.body.bookId);
+                        user.save();
+                        res.json({success: true, msg: 'Book Added to WishList Successfully', wishListBook: user.wishListBook})
+                    }
+                }
+            )
+        }
+    },
+    removeFromWishList: function(req, res) {
+        if ((!req.body['bookId']) || (!req.body['emailId'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            User.findOne(
+                {
+                    emailId: req.body.emailId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Removing From WishList Failed', body:req.body})
+                    }
+                    else {
+                        user.wishListBook.pull(req.body.bookId);
+                        user.save();
+                        res.json({success: true, msg: 'Removed Book From WishList Successfully', wishListBook: user.wishListBook})
+                    }
+                }
+            )
+        }
+    },
+    updateCart: function(req, res) {
+        if ((!req.body['cartMap']) || (!req.body['emailId'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            User.findOne(
+                {
+                    emailId: req.body.emailId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Updating Cart Info Failed, User not found', body:req.body})
+                    }
+                    else {
+                        try{
+                            // console.log("emailId: ",req.body.emailId)
+                            cartMap = JSON.parse(req.body.cartMap)
+                            // toBuy = cartMap["toBuy"]
+                            // toRent = cartMap["toRent"]
+                            user.cart = cartMap;
+                            // user.cart.toBuy = toBuy;
+                            // user.cart.toRent = toRent;
+                            // user.save();
+                            user.save(function(err) {
+                                if(!err) {
+                                    console.log("... Cart Updated. ");
+                                }
+                                else {
+                                    console.log("... Error: could not update user. ");
+                                }
+                            });
+                        }
+                        catch(err) {  
+                            res.status(403).send({success: false, msg: 'Error in organising cart', body:req.body})
+                        }
+                        res.json({success: true, msg: 'Cart Updated Successfully', body:req.body})
+                    }
+                }
+            )
+        }
+    },
+    addReward: function(req, res) {
+        if ((!req.body['dailyRecords']) || (!req.body['emailId']) || (!req.body['credits'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            User.findOne(
+                {
+                    emailId: req.body.emailId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Updating Cart Info Failed, User not found', body:req.body})
+                    }
+                    else {
+                        try{
+                            dailyRecords = JSON.parse(req.body.dailyRecords)
+                            user.dailyRecords = dailyRecords;
+                            user.credits = req.body.credits;
+                            user.save(function(err) {
+                                if(!err) {
+                                    console.log("... Daily Login Details Updated. ");
+                                }
+                                else {
+                                    console.log("... Error: could not update Daily Login Details. ");
+                                }
+                            });
+                        }
+                        catch(err) {  
+                            res.status(403).send({success: false, msg: 'Error in organising cart', body:req.body})
+                        }
+                        res.json({success: true, msg: 'Cart Updated Successfully', body:req.body})
+                    }
+                }
+            )
         }
     },
     getinfo: function (req, res) {

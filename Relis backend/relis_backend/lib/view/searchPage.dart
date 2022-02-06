@@ -169,7 +169,7 @@ class _SearchViewState extends State<SearchView> {
                         borderRadius: BorderRadius.circular(25.00),
                         onTap: () {
                           Navigator.of(context).pushNamed(
-                              BookView.routeName, arguments: BookArguments(currBook));
+                              BookView.routeName, arguments: BookArguments(currentBook: currBook));
                         },
                         onHover: (hover) {
                           if(hover) {
@@ -262,7 +262,7 @@ class _SearchViewState extends State<SearchView> {
                                                       color: Color(0xFFff0000), size: 25,),
                                                   ),
                                                   onTap: () async {
-                                                    favouriteBook(user, currBook);
+                                                    favouriteBook(context, user!, currBook);
                                                     // makeAllHoverOff();
                                                     this.setState(() {});
                                                   },
@@ -289,7 +289,7 @@ class _SearchViewState extends State<SearchView> {
                                                       Icons.bookmark_add_outlined, color: Color(0xFF0000FF), size: 25,),
                                                   ),
                                                   onTap: () async {
-                                                    wishListBook(user, currBook);
+                                                    wishListBook(context, user!, currBook);
                                                     this.setState(() {});
                                                   },
                                                 ),

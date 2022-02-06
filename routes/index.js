@@ -58,9 +58,37 @@ router.post('/getBookDetails', actions.getBookDetails)
 //@route POST /getRecommendBook
 router.post('/getRecommendBook', actions.getRecommendBook)
 
-//@desc Get Recommended Book
-//@route POST /getRecommendBook
+//@desc Get All Books
+//@route POST /getAllBook
 router.post('/getAllBooks', actions.getAllBooks)
+
+//@desc Get Book Image
+//@route POST /getBookImage
+router.post('/getBookImage', actions.getBookImage)
+
+//@desc Adding book to current users favourites
+//@route POST /addToFavourites
+router.post('/addToFavourites', actions.addToFavourites)
+
+//@desc Removing book from current users favourites
+//@route POST /removeFromFavourites
+router.post('/removeFromFavourites', actions.removeFromFavourites)
+
+//@desc Adding book to current users WishList
+//@route POST /addToWishList
+router.post('/addToWishList', actions.addToWishList)
+
+//@desc Removing book from current users WishList
+//@route POST /removeFromWishList
+router.post('/removeFromWishList', actions.removeFromWishList)
+
+//@desc Update User's Cart
+//@route POST /updateCart
+router.post('/updateCart', actions.updateCart)
+
+//@desc Update User's Reward
+//@route POST /addReward
+router.post('/addReward', actions.addReward)
 
 //@desc Adding new book image
 //@route POST /addBookImage

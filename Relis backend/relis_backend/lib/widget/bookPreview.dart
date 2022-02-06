@@ -6,10 +6,11 @@ import 'package:relis/view/bookView.dart';
 
 
 class BookPreview extends StatefulWidget {
-  BookPreview({required this.currentBook, required this.bookHover});
+  BookPreview({required this.currentBook, required this.bookHover, this.isCart});
 
   final Map<String, dynamic> currentBook;
   final Map<String, ValueNotifier<bool>> bookHover;
+  bool? isCart;
 
   @override
   _BookPreviewState createState() => _BookPreviewState();
@@ -22,7 +23,7 @@ class _BookPreviewState extends State<BookPreview> {
   void initState() {
     super.initState();
     isLoggedIn(context);
-    loadValues(user, widget.currentBook);
+    loadValues(user!, widget.currentBook);
   }
 
   @override
@@ -40,18 +41,18 @@ class _BookPreviewState extends State<BookPreview> {
           borderRadius: BorderRadius.circular(25.00),
           onTap: () {
             Navigator.of(context).pushNamed(
-                BookView.routeName, arguments: BookArguments(widget.currentBook));
+                BookView.routeName, arguments: BookArguments(currentBook: widget.currentBook));
           },
           onHover: (hover) {
             if(hover) {
-              print("......TRUE");
+              print("......TRUE - Hovering ${widget.currentBook["bookName"]}");
               widget.bookHover[widget.currentBook["id"]]!.value = true;
             } else {
-              print("......FALSE");
+              print("......FALSE - Hovering ${widget.currentBook["bookName"]}");
               widget.bookHover[widget.currentBook["id"]]!.value = false;
             }
 
-            print("\t --> ${widget.bookHover}");
+            // print("\t --> ${widget.bookHover}");
             // setState(() {});
           },
           child: Container(
@@ -63,20 +64,24 @@ class _BookPreviewState extends State<BookPreview> {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(25.00),
-                  child: Image.asset(
-                    widget.currentBook["image"],
-                    fit: BoxFit.fill,
-                    height: 300,
-                    width: double.infinity,
-                    repeat: ImageRepeat.noRepeat,
-                  ),
+                  child: widget.currentBook["image"],
+                  // child: Image.asset(
+                  //   widget.currentBook["image"],
+                  //   fit: BoxFit.fill,
+                  //   height: 300,
+                  //   width: double.infinity,
+                  //   repeat: ImageRepeat.noRepeat,
+                  // ),
                 ),
                 ValueListenableBuilder(
                   valueListenable: widget.bookHover[widget.currentBook["id"]]!,
                   builder: (context, value, child) =>
                   widget.bookHover[widget.currentBook["id"]]!.value ? Container(
                     decoration: innerBoxDecoration,
-                    height: 120,
+                    constraints: BoxConstraints(
+                      maxHeight: (user!["cart"]["toRent"].contains(widget.currentBook["id"])) ? 140 : 120,
+                    ),
+                    // height: (user!["cart"]["toRent"].contains(widget.currentBook["id"])) ? 160 : 120,
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.start,
                       mainAxisSize: MainAxisSize.max,
@@ -108,6 +113,41 @@ class _BookPreviewState extends State<BookPreview> {
                           textAlign: TextAlign.center,
                           maxLines: 1,
                         ),
+                        if(user!["cart"]["toRent"].contains(widget.currentBook["id"]))
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Text(
+                                "Rental Price: ",
+                                style: TextStyle(
+                                  fontSize: 12.00,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                              ),
+                              Text(
+                                "\u{20B9} 99/-",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 16.00,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                              ),
+                              Text(
+                                " for 7 days.",
+                                style: TextStyle(
+                                  fontSize: 12.00,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                maxLines: 1,
+                              ),
+                            ],
+                          ),
                         Container(
                           alignment: Alignment.center,
                           child: Row(
@@ -133,7 +173,7 @@ class _BookPreviewState extends State<BookPreview> {
                                         color: Color(0xFFff0000), size: 25,),
                                     ),
                                     onTap: () async {
-                                      favouriteBook(user, widget.currentBook);
+                                      favouriteBook(context, user!, widget.currentBook);
                                       // makeAllHoverOff();
                                       this.setState(() {});
                                     },
@@ -160,7 +200,7 @@ class _BookPreviewState extends State<BookPreview> {
                                         Icons.bookmark_add_outlined, color: Color(0xFF0000FF), size: 25,),
                                     ),
                                     onTap: () async {
-                                      wishListBook(user, widget.currentBook);
+                                      wishListBook(context, user!, widget.currentBook);
                                       this.setState(() {});
                                     },
                                   ),
@@ -184,9 +224,10 @@ class _BookPreviewState extends State<BookPreview> {
                         fontSize: 15.0,
                         color: Colors.white,
                       ),
-                      message: loadBookTooltip(widget.currentBook["id"]),
+                      message: widget.isCart ?? false ? "Remove from Cart" : loadBookTooltip(widget.currentBook["id"]),
                       padding: EdgeInsets.all(10.00),
                       child: Container(
+                        width: 50,
                         decoration: BoxDecoration(
                           color: Colors.transparent,
                           boxShadow: [
@@ -209,8 +250,26 @@ class _BookPreviewState extends State<BookPreview> {
                               spreadRadius: 2.0,
                             ),
                           ],
+                          borderRadius: BorderRadius.all(Radius.circular(1000.00)),
                         ),
-                        child: Icon(
+                        child: widget.isCart ?? false ? Container(
+                          width: 50,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.all(Radius.circular(1000.00)),
+                          ),
+                          child: MaterialButton(
+                            onPressed: () async {
+                              await removeFromCart(context, widget.currentBook["id"], widget.currentBook["bookName"]);
+                              this.setState(() {});
+                            },
+                            child: Icon(
+                              Icons.close_rounded,
+                              color: Colors.white,
+                            ),
+                            elevation: 2.0,
+                            color: Color(0xFFFF0000),
+                          )
+                        ) : Icon(
                           Icons.info_outline_rounded,
                           color: Colors.white,
                         ),

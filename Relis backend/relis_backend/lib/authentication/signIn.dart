@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:relis/authentication/passwordChange.dart';
 import 'package:relis/authentication/signUp.dart';
+import 'package:relis/authentication/user.dart';
 import 'package:relis/globals.dart';
 import 'package:relis/view/homePage.dart';
 import 'package:form_field_validator/form_field_validator.dart';
-import 'authservice.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'services.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({Key? key}) : super(key: key);
@@ -21,6 +23,13 @@ class _SignInPageState extends State<SignInPage> {
   bool _passwordVisible = false;
   final TextEditingController _password = TextEditingController();
   var token;
+
+  @override
+  void initState() {
+    super.initState();
+    changePage("SignIn");
+    checkStatus(context);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -439,11 +448,6 @@ class _SignInPageState extends State<SignInPage> {
     }
   }
 
-  void showMessageSnackBar(String message) {
-    final snackBar = new SnackBar(content: new Text('$message'));
-    // ignore: deprecated_member_use
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-  }
 
   Widget signInImage() {
     return Image.asset(
@@ -473,68 +477,18 @@ class _SignInPageState extends State<SignInPage> {
       ),
       onPressed: () async {
         if (_formKey.currentState!.validate()) {
-          print("EmailId: $emailId");
-          print("password: $password");
-          Authservice().login(emailId, password).then((val) {
-            print('Comes after Auth');
-            print('$val');
-            if (val != null && val.data['success']) {
-              token = val.data['token'];
-              loggedIn = true;
-              Fluttertoast.showToast(
-                  msg: 'Authenticated',
-                  toastLength: Toast.LENGTH_SHORT,
-                  gravity: ToastGravity.BOTTOM,
-                  timeInSecForIosWeb: 1,
-                  backgroundColor: appBackgroundColor,
-                  textColor: Colors.white,
-                  fontSize: 16.0);
-              while (Navigator.of(context).canPop())
-                Navigator.of(context).pop();
-              Navigator.of(context).popAndPushNamed(HomePage.routeName);
-            } else {
-              showMessageSnackBar("Please fill the valid Details!!");
-            }
-            // print("EmailId: $emailId");
-            // print("password: $password");
-            // Authservice().login(emailId, password).then((val) {
-            //   print('Comes after Auth');
-            //   print('$val');
-            //   if (val != null && val.data['success']) {
-            //     token = val.data['token'];
-            //     Fluttertoast.showToast(
-            //         msg: 'Authenticated',
-            //         toastLength: Toast.LENGTH_SHORT,
-            //         gravity: ToastGravity.BOTTOM,
-            //         timeInSecForIosWeb: 1,
-            //         backgroundColor: appBackgroundColor,
-            //         textColor: Colors.white,
-            //         fontSize: 16.0);
-            //     while (Navigator.of(context).canPop()) Navigator.of(context).pop();
-            //     Navigator.of(context).popAndPushNamed(HomePage.routeName);
-            //    } else {
-            //   Fluttertoast.showToast(
-            //       msg: 'Invalid Credentials',
-            //       toastLength: Toast.LENGTH_SHORT,
-            //       gravity: ToastGravity.BOTTOM,
-            //       timeInSecForIosWeb: 1,
-            //       backgroundColor: Colors.red,
-            //       textColor: Colors.white,
-            //       fontSize: 16.0);
-            // }
-          });
-          // Center(
-          //   child: CircularProgressIndicator(),
-          // );
-          // if (_key.currentState.validate()) {
-          //   _signInWithEmailAndPassword();
-          // } else {
-          //   showMessageSnackBar("Please fill the valid Details!!");
+          await getLoggedIn(context, emailId, password, "false");
+          // if(!loggedIn) {
+          //   showMessageSnackBar(context, "Please fill the valid Details!!");
+          // }
+          // else {
+          //   showMessageSnackBar(context, "Fetching Books, Please Wait!!");
           // }
         }
       },
     );
   }
+
 
   Widget ForgotPasswordButton() {
     return Align(

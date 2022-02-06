@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:relis/arguments/bookArguments.dart';
@@ -6,10 +9,13 @@ import 'package:relis/arguments/pagearguments.dart';
 import 'package:relis/bookInfo.dart';
 import 'package:relis/profile/profile.dart';
 import 'package:relis/view/bookView.dart';
+import 'package:relis/view/creditsPage.dart';
 import 'package:relis/view/pageView.dart';
 import 'package:relis/drawer.dart';
 import 'package:relis/globals.dart';
+import 'package:relis/view/payment.dart';
 import 'package:relis/view/searchPage.dart';
+import 'package:relis/view/statistics.dart';
 import 'package:relis/widget/bookPreview.dart';
 import 'package:relis/widget/bookScrollList.dart';
 
@@ -31,26 +37,75 @@ class _HomePageState extends State<HomePage> {
   List<PopupMenuEntry<dynamic>> popUpLists(BuildContext context) {
     return [
       PopupMenuItem(
+        padding: EdgeInsets.zero,
+        child: ListTile(
+          leading: Icon(Icons.shopping_cart),
+          title: Text("Cart"),
+          tileColor: mainAppAmber,
+          onTap: () {
+            changePage("Cart");
+            Navigator.of(context).popAndPushNamed(PaymentPage.routeName);
+           ;
+          },
+        ),
+      ),
+      PopupMenuItem(
+        padding: EdgeInsets.zero,
         child: ListTile(
           leading: Icon(Icons.stacked_bar_chart),
-          title: Text("Status"),
-          tileColor: Colors.redAccent,
-        ),
-      ),
-      PopupMenuItem(
-        child: ListTile(
-          leading: Icon(Icons.person),
-          title: Text("Profile"),
-          tileColor: Colors.redAccent,
-        ),
-      ),
-      PopupMenuItem(
-        child: ListTile(
-          leading: Icon(Icons.logout),
-          title: Text("Log Out"),
-          tileColor: Colors.redAccent,
+          title: Text("Statistic"),
+          tileColor: mainAppAmber,
           onTap: () {
-            logOut(context);
+            changePage("Statistic");
+            Navigator.of(context).popAndPushNamed(StatisticsPage.routeName);
+           ;
+          },
+        ),
+      ),
+      PopupMenuItem(
+        padding: EdgeInsets.zero,
+        child: ListTile(
+          leading: Icon(Icons.monetization_on_rounded),
+          title: Text("Credits"),
+          tileColor: mainAppAmber,
+          onTap: () {
+            Navigator.of(context).popAndPushNamed(CreditsPage.routeName);
+          },
+        ),
+      ),
+      PopupMenuItem(
+        padding: EdgeInsets.zero,
+        child: ListTile(
+          // leading: Icon(Icons.person),
+          leading: CircleAvatar(
+              backgroundImage: user?["imageURL"] != null ? NetworkImage(user?["imageURL"]) : Image.asset("ReLis.gif").image,
+              backgroundColor: Color(0xFF032f4b),
+              radius: 20.00,
+            ),
+          title: Text("Profile"),
+          tileColor: mainAppAmber,
+          onTap: () {
+            Navigator.of(context).popAndPushNamed(Profile.routeName);
+          },
+        ),
+      ),
+      PopupMenuItem(
+        padding: EdgeInsets.zero,
+        child: ListTile(
+          leading: Icon(
+            Icons.logout,
+            color: Color(0xFF800000),
+          ),
+          title: Text(
+            "Log Out",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF800000),
+            ),
+          ),
+          tileColor: mainAppAmber,
+          onTap: () async {
+            await logOut(context);
           },
         ),
       ),
@@ -116,33 +171,15 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-          PopupMenuButton(itemBuilder: popUpLists, color: Colors.purpleAccent,),
-          Tooltip(
-            message: "Your Profile",
-            child: Material(
-              shadowColor: Colors.black,
-              elevation: 0.0,
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(25.00),
-              type: MaterialType.card,
-              child: InkWell(
-                enableFeedback: true,
-                hoverColor: Colors.tealAccent.withOpacity(0.6),
-                splashColor: Color(0xFF032f4b).withOpacity(0.8),
-                borderRadius: BorderRadius.circular(1000.00),
-                onTap: () {
-                  Navigator.of(context).pushNamed(Profile.routeName);
-                },
-                child: Container(
-                  margin: EdgeInsets.only(left: 20.00, right: 20.00),
-                  child: CircleAvatar(
-                    backgroundImage: user["imageURL"] != null ? NetworkImage(user["imageURL"]) : Image.asset("ReLis.gif").image,
-                    backgroundColor: Color(0xFF032f4b),
-                    radius: 25.00,
-                  ),
-                ),
-              ),
+          PopupMenuButton(
+            itemBuilder: popUpLists,
+            color: mainAppAmber,
+            icon: CircleAvatar(
+              backgroundImage: user?["imageURL"] != null ? NetworkImage(user?["imageURL"]) : Image.asset("ReLis.gif").image,
+              backgroundColor: Color(0xFF032f4b),
+              radius: 50.00,
             ),
+            iconSize: 50.00,
           ),
         ],
       ),
@@ -176,12 +213,13 @@ class _HomePageState extends State<HomePage> {
         bookCarousel(),
         customDivider(),
         if(bookInfo["trendingBook"]!.length>0)
-          viewButton("Current Trends", "trending", bookScrollList(getBooksMap(bookInfo["trendingBook"]), trendingController, trendingHover),),
+          viewButton("Current Trends", "trending", bookScrollList(getBooksMap(bookInfo["trendingBook"], isList: true), trendingController, trendingHover, "No Current-Trends"),),
         customDivider(),
-        if(user["recommendedBook"].length > 0)
-          viewButton("Recommended For You", "recommendation", BookScrollList(currentBook: getBooksMap(user["recommendedBook"]), controller: recommendationController, bookHover:recommendationHover, type: pageType.recommendation),
+        if(user?["recommendedBook"].length > 0)
+          viewButton("Recommended For You", "recommendation", BookScrollList(currentBook: getBooksMap(user?["recommendedBook"], isList: true), controller: recommendationController, bookHover:recommendationHover, type: pageType.recommendation),
           ),
-        customDivider(),
+        if(user?["recommendedBook"].length > 0)
+          customDivider(),
         viewButton("Genre", "categories", Container(
           alignment: Alignment.topLeft,
           padding: EdgeInsets.symmetric(vertical: 10.00, horizontal: 20.00),
@@ -258,70 +296,60 @@ class _HomePageState extends State<HomePage> {
         ),
         ),
         customDivider(),
-        viewButton("Your Reading History", "history", bookScrollList(getBooksMap(user["bookHistory"]), historyController, historyHover),),
+        viewButton("Your Reading History", "history", bookScrollList(getBooksMap(user?["bookHistory"], isList: true), historyController, historyHover, "No Reading History"),),
         customDivider(),
-        Container(color: Colors.green, height: 150,),
-        Container(color: Colors.white, height: 20,),
-        Container(color: Colors.red, height: 150,),
-        customDivider(),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Row(
-              children: [
-                Container(color: Colors.teal, width: 500, height: 200,),
-                Container(color: Colors.deepOrange, width: 20, height: 150,),
-                Container(color: Colors.purple, width: 500, height: 200,),
-                Container(color: Colors.deepOrange, width: 20, height: 150,),
-                Container(color: Colors.teal, width: 500, height: 200,),
-                Container(color: Colors.deepOrange, width: 20, height: 150,),
-                Container(color: Colors.purple, width: 500, height: 200,),
-                Container(color: Colors.deepOrange, width: 20, height: 150,),
-              ],
-            ),
-          ),
-        ),
-        customDivider(),
-        Container(color: Colors.green, height: 150,),
-        Container(color: Colors.white, height: 20,),
-        Container(color: Colors.red, height: 150,),
-        Container(color: Colors.transparent, height: 20,),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Center(
-            child: Row(
-              children: [
-                Container(color: Colors.teal, width: 500, height: 200,),
-                Container(color: Colors.deepOrange, width: 20, height: 150,),
-                Container(color: Colors.purple, width: 500, height: 200,),
-                Container(color: Colors.deepOrange, width: 20, height: 150,),
-                Container(color: Colors.teal, width: 500, height: 200,),
-                Container(color: Colors.deepOrange, width: 20, height: 150,),
-                Container(color: Colors.purple, width: 500, height: 200,),
-                Container(color: Colors.deepOrange, width: 20, height: 150,),
-              ],
-            ),
-          ),
-        ),
-        customDivider(),
-        Container(color: Colors.green, height: 150,),
-        Container(color: Colors.white, height: 20,),
+        // Container(color: Colors.green, height: 150,),
+        // Container(color: Colors.white, height: 20,),
+        // Container(color: Colors.red, height: 150,),
+        // customDivider(),
+        // SingleChildScrollView(
+        //   scrollDirection: Axis.horizontal,
+        //   child: Center(
+        //     child: Row(
+        //       children: [
+        //         Container(color: Colors.teal, width: 500, height: 200,),
+        //         Container(color: Colors.deepOrange, width: 20, height: 150,),
+        //         Container(color: Colors.purple, width: 500, height: 200,),
+        //         Container(color: Colors.deepOrange, width: 20, height: 150,),
+        //         Container(color: Colors.teal, width: 500, height: 200,),
+        //         Container(color: Colors.deepOrange, width: 20, height: 150,),
+        //         Container(color: Colors.purple, width: 500, height: 200,),
+        //         Container(color: Colors.deepOrange, width: 20, height: 150,),
+        //       ],
+        //     ),
+        //   ),
+        // ),
+        // customDivider(),
+        // Container(color: Colors.green, height: 150,),
+        // Container(color: Colors.white, height: 20,),
+        // Container(color: Colors.red, height: 150,),
+        // Container(color: Colors.transparent, height: 20,),
+        // SingleChildScrollView(
+        //   scrollDirection: Axis.horizontal,
+        //   child: Center(
+        //     child: Row(
+        //       children: [
+        //         Container(color: Colors.teal, width: 500, height: 200,),
+        //         Container(color: Colors.deepOrange, width: 20, height: 150,),
+        //         Container(color: Colors.purple, width: 500, height: 200,),
+        //         Container(color: Colors.deepOrange, width: 20, height: 150,),
+        //         Container(color: Colors.teal, width: 500, height: 200,),
+        //         Container(color: Colors.deepOrange, width: 20, height: 150,),
+        //         Container(color: Colors.purple, width: 500, height: 200,),
+        //         Container(color: Colors.deepOrange, width: 20, height: 150,),
+        //       ],
+        //     ),
+        //   ),
+        // ),
+        // customDivider(),
+        // Container(color: Colors.green, height: 150,),
+        // Container(color: Colors.white, height: 20,),
       ],
     );
   }
 
   Widget mobileView() {
     return Container();
-  }
-
-  Widget customDivider() {
-    return Column(
-      children: [
-        Container(color: Color(0xFF032f4b), height: 5,),
-        Container(color: Colors.transparent, height: 2,),
-        Container(color: Color(0xFF032f4b), height: 5,),
-      ],
-    );
   }
 
   Widget viewButton(String containerName, String visibilityName, Widget containerChild) {
@@ -362,8 +390,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget bookScrollList(var currentBook, ScrollController controller, Map<String, ValueNotifier<bool>> bookHover) {
-    if(currentBook == null || currentBook.isEmpty){
+  Widget bookScrollList(var currentBook, ScrollController controller, Map<String, ValueNotifier<bool>> bookHover, String messageText) {
+    if(currentBook == null || currentBook.isEmpty || currentBook.length == 0){
       return Container(
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(vertical: 10.00, horizontal: 20.00),
@@ -371,7 +399,7 @@ class _HomePageState extends State<HomePage> {
         width: 600,
         height: 200,
         decoration: categoryDecoration,
-        child: Text("No History", style: TextStyle(color: Colors.white, fontSize: 30),),
+        child: Text("$messageText", style: TextStyle(color: Colors.white, fontSize: 30),),
       );
     }
     return Scrollbar(
@@ -401,9 +429,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget bookCarousel() {
+    Dio dio = Dio();
+    print("In bookCarousel");
     List<Widget> carouselList = [];
-    var bookList = getBooksMap(bookInfo["topPicks"]);
-    for(var currentBook in bookList.values){
+    var carouselBooks = getBooksMap(bookInfo["topPicks"], isList: true);
+    print("Got bookCarousel: ");
+    print("\n\n\n\n");
+    for(var currentBook1 in carouselBooks.values){
+      Map<String, dynamic> currentBook = Map<String, dynamic>.from(currentBook1);
       carouselList.add(Hero(
         tag: "book: ${currentBook["id"]}",
         child: Material(
@@ -418,8 +451,12 @@ class _HomePageState extends State<HomePage> {
             splashColor: Colors.red.withOpacity(0.8),
             borderRadius: BorderRadius.circular(25.00),
             onTap: () {
+              print("Going to BookView");
+              // var booky = jsonDecode(currentBook);
+              print("Type: ${currentBook.runtimeType}");
+              // print("Type: ${booky.runtimeType}");
               Navigator.of(context).pushNamed(
-                  BookView.routeName, arguments: BookArguments(currentBook));
+                  BookView.routeName, arguments: BookArguments(currentBook: currentBook));
             },
             child: Container(
               width: MediaQuery.of(context).size.width/2,
@@ -428,12 +465,20 @@ class _HomePageState extends State<HomePage> {
               alignment: Alignment.center,
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(25.00),
-                child: Image.asset(
-                  currentBook["image"],
-                  fit: BoxFit.fill,
-                  width: double.infinity,
-                  repeat: ImageRepeat.noRepeat,
-                ),
+                child: currentBook["image"],
+                // child: currentBook["image"].contains("ReLis") ?
+                // Image.asset(
+                //   currentBook["image"],
+                //   fit: BoxFit.fill,
+                //   width: double.infinity,
+                //   repeat: ImageRepeat.noRepeat,
+                // ) : 
+                // Image.file(
+                //   currentBook["image"], 
+                //   fit: BoxFit.fill,
+                //   width: double.infinity,
+                //   repeat: ImageRepeat.noRepeat,
+                // ),
               ),
             ),
           ),
@@ -441,6 +486,7 @@ class _HomePageState extends State<HomePage> {
       ));
     }
     int currentCarousel = 0;
+    print("Loading bookCarousel");
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10.00),
       child: Column(
@@ -465,10 +511,10 @@ class _HomePageState extends State<HomePage> {
               enlargeCenterPage: true,
               scrollDirection: Axis.horizontal,
               onPageChanged: (int pageNo, dynamic reason){
-                print("homePage: Auto: ");
-                print("\t currentCarousel was: ${currentCarousel}");
+                // print("homePage: Auto: ");
+                // print("\t currentCarousel was: ${currentCarousel}");
                 currentCarousel = pageNo;
-                print("\t New currentCarousel is: ${currentCarousel}");
+                // print("\t New currentCarousel is: ${currentCarousel}");
                 setState(() {});
               },
             ),
@@ -481,10 +527,10 @@ class _HomePageState extends State<HomePage> {
               return GestureDetector(
                 behavior: HitTestBehavior.translucent,
                 onTap: (){
-                  print("homePage: Tapped: ");
-                  print("\t currentCarousel was: ${currentCarousel}");
+                  // print("homePage: Tapped: ");
+                  // print("\t currentCarousel was: ${currentCarousel}");
                   currentCarousel = entry.key;
-                  print("\t New currentCarousel is: ${currentCarousel}");
+                  // print("\t New currentCarousel is: ${currentCarousel}");
                   setState(() {});
                   carouselController.animateToPage(entry.key);
                 },

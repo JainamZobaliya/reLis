@@ -234,6 +234,8 @@ class _PageTypeViewState extends State<PageTypeView> {
         ),
       );
     }
+    if(pageData.page == pageType.cart) {}
+    print("HOVERING: ${bookHover.length}");
     return Container(
       alignment: Alignment.topLeft,
       padding: EdgeInsets.symmetric(vertical: 10.00, horizontal: 20.00),
@@ -266,17 +268,21 @@ class _PageTypeViewState extends State<PageTypeView> {
           }
           pageTitle = "Genre: ${pageData.currentCategory["categoryName"]}";
           pageMessage = "No Books in this Genre";
-          currentBook = getBooksMap(pageData.currentCategory["bookList"]);
+          currentBook = getBooksMap(pageData.currentCategory["bookList"], isList: true);
           print("Reached Here.....");
+          print("pageData.currentCategory[bookList]: ");
+          print("${pageData.currentCategory["bookList"].length}");
           if (pageData.currentCategory["bookList"] != null) {
-            loadHover(pageData.currentCategory["bookList"].length,
-                pageData.currentCategory["bookList"], categoryBookHover,
-                "categoryBookList");
+            categoryBookHover = loadCategoryBooks(pageData.currentCategory["bookList"], categoryBookHover);
+            // loadHover(pageData.currentCategory["bookList"].length,
+            //     pageData.currentCategory["bookList"], categoryBookHover,
+            //     "categoryBookList");
+            bookHover = categoryBookHover;
             setState(() {});
             // printHover(categoryBookHover);
             // loadCategory();
             // setState(() {});
-            bookHover = categoryBookHover;
+            break;
           }
           else
             bookHover = {};
@@ -286,18 +292,28 @@ class _PageTypeViewState extends State<PageTypeView> {
       {
         pageTitle = "Current Trends";
         pageMessage = "No Trending Book";
-        currentBook = getBooksMap(bookInfo["trendingBook"]);
+        currentBook = getBooksMap(bookInfo["trendingBook"], isList: true);
         // loadHover(bookInfo["trendingBook"].length, bookInfo["trendingBook"], trendingHover, "trendingBook");
         // setState(() {});
         bookHover = trendingHover;
+      }
+      break;
+      case pageType.cart:
+      {
+        pageTitle = "Your Shopping Cart";
+        pageMessage = "No Books in Cart";
+        currentBook = getBooksMap(user?["cart"], isList: true);
+        // loadHover(user?["favouriteBook"].length, user?["favouriteBook"], favouriteHover, "favouriteBook");
+        // setState(() {});
+        bookHover = cartHover;
       }
       break;
       case pageType.favourite:
       {
         pageTitle = "Your Favourites";
         pageMessage = "No Favourite Book";
-        currentBook = getBooksMap(user["favouriteBook"]);
-        // loadHover(user["favouriteBook"].length, user["favouriteBook"], favouriteHover, "favouriteBook");
+        currentBook = getBooksMap(user?["favouriteBook"], isList: true);
+        // loadHover(user?["favouriteBook"].length, user?["favouriteBook"], favouriteHover, "favouriteBook");
         // setState(() {});
         bookHover = favouriteHover;
       }
@@ -306,8 +322,8 @@ class _PageTypeViewState extends State<PageTypeView> {
       {
         pageTitle = "Your Wish-List";
         pageMessage = "No Books in WishList";
-        currentBook = getBooksMap(user["wishListBook"]);
-        // loadHover(user["wishListBook"].length, user["wishListBook"], wishListHover, "wishListBook");
+        currentBook = getBooksMap(user?["wishListBook"], isList: true);
+        // loadHover(user?["wishListBook"].length, user?["wishListBook"], wishListHover, "wishListBook");
         // setState(() {});
         bookHover = wishListHover;
       }
@@ -316,8 +332,8 @@ class _PageTypeViewState extends State<PageTypeView> {
       {
         pageTitle = "History";
         pageMessage = "No History";
-        currentBook = getBooksMap(user["bookHistory"]);
-        // loadHover(user["bookHistory"].length, user["bookHistory"], historyHover, "bookHistory");
+        currentBook = getBooksMap(user?["bookHistory"], isList: true);
+        // loadHover(user?["bookHistory"].length, user?["bookHistory"], historyHover, "bookHistory");
         // setState(() {});
         bookHover = historyHover;
       }
@@ -326,8 +342,8 @@ class _PageTypeViewState extends State<PageTypeView> {
       {
         pageTitle = "Books Bought";
         pageMessage = "No Books Bought";
-        currentBook = getBooksMap(user["booksBought"].keys);
-        // loadHover(user["booksBought"].keys.length, user["booksBought"], boughtHover, "booksBought");
+        currentBook = getBooksMap(user?["booksBought"].keys, isList: true);
+        // loadHover(user?["booksBought"].keys.length, user?["booksBought"], boughtHover, "booksBought");
         // setState(() {});
         bookHover = boughtHover;
       }
@@ -336,8 +352,8 @@ class _PageTypeViewState extends State<PageTypeView> {
       {
         pageTitle = "Books Rented";
         pageMessage = "No Books Rented";
-        currentBook = getBooksMap(user["booksRented"].keys);
-        // loadHover(user["booksRented"].keys.length, user["booksRented"], rentedHover, "booksRented");
+        currentBook = getBooksMap(user?["booksRented"].keys, isList: true);
+        // loadHover(user?["booksRented"].keys.length, user?["booksRented"], rentedHover, "booksRented");
         // setState(() {});
         bookHover = rentedHover;
       }
@@ -346,8 +362,8 @@ class _PageTypeViewState extends State<PageTypeView> {
       {
         pageTitle = "Your Personal Books";
         pageMessage = "No Books in Personal Library";
-        currentBook = getBooksMap(user["personalBooks"]);
-        // loadHover(user["booksRented"].keys.length, user["booksRented"], rentedHover, "booksRented");
+        currentBook = getBooksMap(user?["personalBooks"], isList: true);
+        // loadHover(user?["booksRented"].keys.length, user?["booksRented"], rentedHover, "booksRented");
         // setState(() {});
         bookHover = personalBooksHover;
       }
@@ -360,12 +376,12 @@ class _PageTypeViewState extends State<PageTypeView> {
         // print("pageMessage: ${pageMessage}");
         // print("...currentCategory: ${pageData.currentCategory}");
         // print("...getBooksMap: ${getBooksMap(pageData.currentCategory)}");
-        // loadHover(user["booksRented"].keys.length, user["booksRented"], rentedHover, "booksRented");
+        // loadHover(user?["booksRented"].keys.length, user?["booksRented"], rentedHover, "booksRented");
         // setState(() {});
         bookHover = {};
         if (pageData.currentCategory != null) {
           print("pageData.currentCategory: ${pageData.currentCategory}");
-          currentBook = getBooksMap(pageData.currentCategory);
+          currentBook = getBooksMap(pageData.currentCategory, isList: true);
           loadHoverMap(
             currentBook,
             adminBookHover,
@@ -464,7 +480,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                   ),
                   onPressed: () {
                     bookList.add(newBook);
-                    user["personalBooks"].addLast(newBook["id"]);
+                    user?["personalBooks"].addLast(newBook["id"]);
                     Navigator.pop(context);
                   },
                 ),
@@ -745,7 +761,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                             decoration: InputDecoration(
                               contentPadding: EdgeInsets.all(20),
                               labelText: 'Author Name',
-                              hintText: "Your Name: ${user["firstName"] + " " + user["lastName"]}",
+                              hintText: "Your Name: ${user?["firstName"] + " " + user?["lastName"]}",
                               counterText: "",
                               labelStyle: TextStyle(
                                 color: mainAppAmber,

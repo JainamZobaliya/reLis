@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:relis/authentication/authservice.dart';
+import 'package:relis/authentication/services.dart';
 import 'package:relis/authentication/passwordChange.dart';
 import 'package:relis/authentication/signIn.dart';
 import 'package:relis/globals.dart';
@@ -92,9 +92,9 @@ class _OTPPageState extends State<OTPPage> {
     if (response.body == 'OK') {
       // using a void function because i am using a
       // stateful widget and seting the state from here.
-      showMessageSnackBar(context, 'OTP Sent to ${!changingPassword ? '${Registeration["emailId"]}': changingEmailID}');
+      showMessageSnackBar(context, 'OTP Sent to ${!changingPassword ? '${Registeration["emailId"]}': changingEmailID}', Color(0xFF00FF88));
     } else {
-      showMessageSnackBar(context, 'Error');
+      showMessageSnackBar(context, 'Error', Color(0xFFFF0000));
     }
   }
 
@@ -173,7 +173,7 @@ class _OTPPageState extends State<OTPPage> {
                         children: [
                           RichText(
                             text: TextSpan(
-                              text: invalidOTP ? "" : 'Enter OTP',
+                              text: !invalidOTP ? (!changingPassword ? 'Hello ${Registeration["firstName"]}, Please Enter OTP sent to ${Registeration["emailId"]}': "OTP Sent to $changingEmailID") : 'Enter OTP',
                               style: TextStyle(
                                 color: Colors.black,
                                 height: 2,
@@ -403,12 +403,12 @@ class _OTPPageState extends State<OTPPage> {
       print(" Now will enter in if-else");
       if(!changingPassword) {
         print("\t\t in IF");
-        Authservice().signUp(Registeration).then((val) {
+        Services().signUp(Registeration).then((val) {
           print('Comes after RegService');
           print('$val');
           if (val != null && val.data['success']) {
             // token = val.data['token'];
-            showMessageSnackBar(context, 'Account Verified');
+            showMessageSnackBar(context, 'Account Verified', Color(0xFF00FF88));
             while (Navigator.of(context).canPop()) Navigator.of(context).pop();
             Navigator.of(context).popAndPushNamed(SignInPage.routeName);
           } else {
@@ -417,7 +417,7 @@ class _OTPPageState extends State<OTPPage> {
             for (int i = 0; i < list.length; ++i) {
               otpText[i].clear();
             }
-            showMessageSnackBar(context, 'Error');
+            showMessageSnackBar(context, 'Error', Color(0xFFFF0000));
           }
         });
       }
@@ -432,7 +432,7 @@ class _OTPPageState extends State<OTPPage> {
       for (int i = 0; i < list.length; ++i) {
         otpText[i].clear();
       }
-      showMessageSnackBar(context, 'Invalid OTP');
+      showMessageSnackBar(context, 'Invalid OTP', Color(0xFFFF0000));
     }
   }
 

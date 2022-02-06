@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:relis/authentication/signUp.dart';
+import 'package:relis/authentication/signIn.dart';
 
 class SplashPage extends StatefulWidget {
   static const routeName = '/SplashPage';
@@ -48,7 +48,7 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   _checker() {
-    Navigator.of(context).popAndPushNamed(SignUpPage.routeName);
+    Navigator.of(context).popAndPushNamed(SignInPage.routeName);
   }
 
   background() {

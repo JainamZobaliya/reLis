@@ -49,7 +49,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
     isLoggedIn(context);
     print("Loading Data");
     loadData();
-    if(user["userType"] == "normal"){
+    if(user?["userType"] == "normal"){
       profileVisibility["userType"] = true;
     }
     adminTabController = new TabController(length: 2, vsync: this);
@@ -121,7 +121,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                         child: CircleAvatar(
                           radius: 180,
                           backgroundColor: Color(0xFF032f4b),
-                          backgroundImage: user["imageURL"] != null ? NetworkImage(user["imageURL"]) : Image.asset("ReLis.gif").image,
+                          backgroundImage: user?["imageURL"] != null ? NetworkImage(user?["imageURL"]) : Image.asset("ReLis.gif").image,
                           child: Material(
                             elevation: 0.0,
                             clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -131,7 +131,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                             child: InkWell(
                               splashColor: Colors.teal.withOpacity(0.5),
                               onTap: () {
-                                Navigator.of(context).pushNamed(ShowPhoto.routeName, arguments: PhotoArguments("Profile Photo", user["imageURL"] == null ? "" : user["imageURL"]));
+                                Navigator.of(context).pushNamed(ShowPhoto.routeName, arguments: PhotoArguments("Profile Photo", user?["imageURL"] == null ? "" : user?["imageURL"]));
                               },
                             ),
                           ),
@@ -189,7 +189,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                           child: TextFormField(
                             style: TextStyle(color: mainAppBlue, fontWeight: FontWeight.bold),
                             readOnly: true,
-                            initialValue: user["firstName"] + " " + user["lastName"],
+                            initialValue: user?["firstName"] + " " + user?["lastName"],
                             autofocus: false,
                             keyboardType: TextInputType.text,
                             cursorColor: Color(0xff164040),
@@ -220,7 +220,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                           child: TextFormField(
                             style: TextStyle(color: mainAppBlue, fontWeight: FontWeight.bold),
                             readOnly: true,
-                            initialValue: user["emailId"],
+                            initialValue: user?["emailId"],
                             autofocus: false,
                             keyboardType: TextInputType.emailAddress,
                             cursorColor: Color(0xff164040),
@@ -255,7 +255,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                             style: TextStyle(color: mainAppAmber, fontWeight: FontWeight.bold,),
                             maxLines: 1,
                             maxLength: 100,
-                            initialValue: user["userStatus"]!.toString(),
+                            initialValue: user?["userStatus"]!.toString(),
                             keyboardType: TextInputType.text,
                             cursorColor: mainAppAmber,
                             decoration: InputDecoration(
@@ -347,7 +347,9 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                     children: [
                       SizedBox(height: 10,),
                       viewButton("User", "normal", normalUser()),
-                      user["userType"] == "normal" ? SizedBox(width: 0,) : viewButton("Admin", "admin", adminUser()),
+                      // user?["userType"] == "normal" ? SizedBox(width: 0,) : viewButton("Admin", "admin", adminUser()),
+                      // SizedBox(height: 50,),
+                      user?["isAdmin"] ? viewButton("Admin", "admin", adminUser()) : SizedBox(width: 0,),
                       SizedBox(height: 50,),
                     ],
                   ),
@@ -437,7 +439,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
     //     updateUserStatusURL,
     //     data: statusMsg,
     //     options: Options(headers: {"token": widget.jwt_token}));
-    user["userStatus"] = status;
+    user?["userStatus"] = status;
     setState(() {});
   }
 
@@ -489,15 +491,15 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
 
   Widget viewButton(String containerName, String visibilityName, Widget containerChild) {
     // print("viewButton - ${containerName}");
-    // print("     userType - ${user["userType"]}");
+    // print("     userType - ${user?["userType"]}");
     // print("     visibilityName - ${visibilityName}");
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
         MaterialButton(
-          splashColor: user["userType"] == "normal" ? null : Color(0xff014b76),
-          onPressed: user["userType"] == "normal" ? null : (){
+          splashColor: user?["userType"] == "normal" ? null : Color(0xff014b76),
+          onPressed: user?["userType"] == "normal" ? null : (){
             profileVisibility[visibilityName] = !profileVisibility[visibilityName]!;
             setState(() {});
           },
@@ -509,12 +511,12 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               mainAxisAlignment: MainAxisAlignment.start,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                user["userType"] == "normal" ? SizedBox(width: 0,) : Icon(
+                user?["userType"] == "normal" ? SizedBox(width: 0,) : Icon(
                   profileVisibility[visibilityName]! ? Icons.keyboard_arrow_down_rounded : Icons.play_arrow_rounded,
                   size: 30,
                   color: mainAppBlue,
                 ),
-                user["userType"] == "normal" ? SizedBox(width: 0,) : SizedBox(width: 20.00,),
+                user?["userType"] == "normal" ? SizedBox(width: 0,) : SizedBox(width: 20.00,),
                 Text(
                   containerName,
                   style: TextStyle(
@@ -547,7 +549,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
         runSpacing: 15.0,
         children: [
           viewCard(
-              user["booksBought"]!.keys.length,
+              user?["booksBought"]!.keys.length,
               "Books Bought",
               pageType.bought,
               Icon(
@@ -558,7 +560,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Color(0xFF00ff00)
           ),
           viewCard(
-              user["booksRented"]!.keys.length,
+              user?["booksRented"]!.keys.length,
               "Books Rented",
               pageType.rented,
               Icon(
@@ -569,7 +571,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Colors.white
           ),
           viewCard(
-              user["favouriteBook"]!.length,
+              user?["favouriteBook"]!.length,
               "Favourite Books",
               pageType.favourite,
               Icon(
@@ -580,7 +582,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Color(0xFFff0000)
           ),
           viewCard(
-              user["wishListBook"]!.length,
+              user?["wishListBook"]!.length,
               "Books in Wish-List",
               pageType.wishList,
               Icon(
@@ -591,7 +593,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Color(0xFFffff00)
           ),
           viewCard(
-              user["booksRead"]!.length,
+              user?["booksRead"]!.length,
               "Books Read",
               pageType.wishList,
               Icon(
@@ -602,7 +604,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Colors.cyanAccent
           ),
           viewCard(
-              user["personalBooks"]!.length,
+              user?["personalBooks"]!.length,
               "My Books",
               pageType.personalBooks,
               Icon(
@@ -785,7 +787,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
       runSpacing: 15.0,
       children: [
         viewCard(
-            user["booksBought"]!.keys.length,
+            user?["booksBought"]!.keys.length,
             "Books Bought",
             pageType.bought,
             Icon(
@@ -796,7 +798,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
             Color(0xFF00ff00)
         ),
         viewCard(
-            user["booksRented"]!.keys.length,
+            user?["booksRented"]!.keys.length,
             "Books Rented",
             pageType.rented,
             Icon(
@@ -807,7 +809,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
             Colors.white
         ),
         viewCard(
-            user["favouriteBook"]!.length,
+            user?["favouriteBook"]!.length,
             "Favourite Books",
             pageType.favourite,
             Icon(
@@ -818,7 +820,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
             Color(0xFFff0000)
         ),
         viewCard(
-            user["wishListBook"]!.length,
+            user?["wishListBook"]!.length,
             "Books in Wish-List",
             pageType.wishList,
             Icon(
@@ -829,7 +831,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
             Color(0xFFffff00)
         ),
         viewCard(
-            user["booksRead"]!.length,
+            user?["booksRead"]!.length,
             "Books Read",
             pageType.wishList,
             Icon(
@@ -840,7 +842,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
             Colors.cyanAccent
         ),
         viewCard(
-            user["personalBooks"]!.length,
+            user?["personalBooks"]!.length,
             "My Books",
             pageType.personalBooks,
             Icon(
@@ -881,7 +883,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                 String userType, name, emailId, imageURL;
                 var booksBought, booksRented, personalBooks;
                 if(searchUserTextController.text.isNotEmpty && finalSearchUserResult.length > 0) {
-                  // String userId = getData(globalUser[index]["id"]);
+                  // String userId = getData(globaluser?[index]["id"]);
                   userType = getData(finalSearchUserResult[index]["userType"]);
                   name = getData(finalSearchUserResult[index]["firstName"]) + " " +
                       getData(finalSearchUserResult[index]["lastName"]);
@@ -891,7 +893,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                   booksRented = finalSearchUserResult[index]["booksRented"];
                   personalBooks = finalSearchUserResult[index]["personalBooks"];
                 } else {
-                  // String userId = getData(globalUser[index]["id"]);
+                  // String userId = getData(globaluser?[index]["id"]);
                   userType = getData(globalUser[index]["userType"]);
                   name = getData(globalUser[index]["firstName"]) + " " +
                       getData(globalUser[index]["lastName"]);

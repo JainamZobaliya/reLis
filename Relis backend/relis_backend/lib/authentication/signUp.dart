@@ -28,6 +28,13 @@ class _SignUpPageState extends State<SignUpPage> {
   bool _passwordVisible = false, _confirmPasswordVisible = false;
 
   @override
+  void initState() {
+    super.initState();
+    changePage("SignUp");
+    checkStatus(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: appBackgroundColor,

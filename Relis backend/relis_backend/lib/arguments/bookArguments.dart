@@ -1,4 +1,5 @@
 class BookArguments{
   Map<String, dynamic> currentBook;
-  BookArguments(this.currentBook);
+  // var currentBook;
+  BookArguments({required this.currentBook});
 }
