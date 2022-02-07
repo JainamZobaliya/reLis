@@ -32,7 +32,7 @@ dependencies:
   carousel_slider: ^4.0.0
   flutter_rating_bar: ^4.0.0
   file_picker: ^4.1.4
-  flutter_pdfview: ^1.2.1
+  flutter_pdfview: ^1.2.1 # For android and ios only
   path: ^1.8.0
   path_provider:
   http:
@@ -41,6 +41,8 @@ dependencies:
   shared_preferences: ^2.0.12
   fl_chart: ^0.41.0
   intl:
+  native_pdf_view: ^5.0.0
+  # pdf: ^3.7.1 # For creating pdf's
   # flutter_svg: ^1.0.2
 
 dev_dependencies:

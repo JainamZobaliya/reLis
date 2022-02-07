@@ -332,7 +332,7 @@ class _BookViewState extends State<BookView> {
                             addToHistory(user!, currentBook);
                             print("url: ${currentBook["url"]}");
                             Navigator.of(context).push(
-                              MaterialPageRoute(builder: (context) => PDFViewer(url: currentBook["url"])),
+                              MaterialPageRoute(builder: (context) => PDFViewer(path: "/book/book1.pdf")),
                             );
                             // Navigator.of(context).pushNamed(OTPPage.routeName);
                             // Center(
