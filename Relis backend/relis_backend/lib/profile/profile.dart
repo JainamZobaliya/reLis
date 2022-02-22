@@ -443,7 +443,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
     setState(() {});
   }
 
-  Widget viewCard(dynamic cardData, String cardName, pageType type,Widget leadingIcon, Color color) {
+  Widget viewCard(dynamic? cardData, String cardName, pageType type,Widget leadingIcon, Color color) {
     print("\t Building ${cardName}");
     return Container(
       width: MediaQuery.of(context).size.width/8,
@@ -456,7 +456,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
       child: ListTile(
         focusColor: color.withOpacity(0.6),
         title: Text(
-          cardData !=null ? cardData.toString() : "0",
+          cardData !=null  ? cardData.toString() : "0",
           textAlign: TextAlign.center,
           overflow: TextOverflow.ellipsis,
           maxLines: 1,
@@ -549,7 +549,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
         runSpacing: 15.0,
         children: [
           viewCard(
-              user?["booksBought"]!.keys.length,
+              user?["booksBought"]!= null && user?["booksBought"]!.length ? 0 : user?["booksBought"]!.length,
               "Books Bought",
               pageType.bought,
               Icon(
@@ -560,7 +560,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Color(0xFF00ff00)
           ),
           viewCard(
-              user?["booksRented"]!.keys.length,
+              user?["booksRented"]!= null && user?["booksRented"]!.length ? 0 : user?["booksRented"]!.length,
               "Books Rented",
               pageType.rented,
               Icon(
@@ -571,7 +571,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Colors.white
           ),
           viewCard(
-              user?["favouriteBook"]!.length,
+              user?["favouriteBook"]!= null && user?["favouriteBook"]!.length ? 0 : user?["favouriteBook"]!.length,
               "Favourite Books",
               pageType.favourite,
               Icon(
@@ -582,7 +582,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Color(0xFFff0000)
           ),
           viewCard(
-              user?["wishListBook"]!.length,
+              user?["wishListBook"]!= null && user?["wishListBook"]!.length ? 0 : user?["wishListBook"]!.length,
               "Books in Wish-List",
               pageType.wishList,
               Icon(
@@ -593,7 +593,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Color(0xFFffff00)
           ),
           viewCard(
-              user?["booksRead"]!.length,
+              user?["booksRead"]!= null && user?["booksRead"]!.length ? 0 : user?["booksRead"]!.length,
               "Books Read",
               pageType.wishList,
               Icon(
@@ -604,7 +604,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Colors.cyanAccent
           ),
           viewCard(
-              user?["personalBooks"]!.length,
+              user?["personalBooks"]!= null && user?["personalBooks"]!.length ? 0 : user?["personalBooks"]!.length,
               "My Books",
               pageType.personalBooks,
               Icon(

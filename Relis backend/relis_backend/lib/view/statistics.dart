@@ -32,7 +32,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
   final Color barBackgroundColor = const Color(0xff78ffbf);
   final Duration animDuration = const Duration(milliseconds: 250);
   var pieChartData = [];
-  List<double> weeklyVal = [0, 0, 0, 0, 0, 0, 0];
+  // List<double> weeklyVal = [0, 0, 0, 0, 0, 0, 0];
+  List<double> weeklyVal = [2, 8, 10, 5, 15, 0, 6];
   List<String> weekDay = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
   Map<String, double>? weekData;
  
@@ -40,14 +41,17 @@ class _StatisticsPageState extends State<StatisticsPage> {
   void initState() {
     super.initState();
     getGenreWiseReadBooksStats();
-    // weeklyVal = user!["dailyRecords"]["pagesRead"].cast<double>();
+    if(user!["dailyRecords"].containsKey("pagesRead")) {
+      print("++++ ${user!["dailyRecords"]["pagesRead"].runtimeType}");
+      weeklyVal = user!["dailyRecords"]["pagesRead"].values.toList();// user!["dailyRecords"]["pagesRead"];
+    }
     getPieChartData();
     getData();
   }
 
   getPieChartData() {
     for(var key in category.keys)
-      if(category[key]["pagesRead"] > 0) {
+      if(category[key].containsKey("pagesRead") && category[key]["pagesRead"] > 0) {
         pieChartData.add(key);
       }
   }
@@ -97,7 +101,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   Widget Stats1() {
-    return Container(
+    return pieChartData.length > 0 ? Container(
       height: MediaQuery.of(context).size.height / 2,
       // width: MediaQuery.of(context).size.width,
       // width: MediaQuery.of(context).size.width > 700 ? MediaQuery.of(context).size.width / 2 : MediaQuery.of(context).size.width,
@@ -146,8 +150,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
                   centerSpaceRadius: MediaQuery.of(context).size.width / 30,
                   sections: showingSections(),
                 ),
-              ),
-            ),
+              )
+            )
           ),
           Expanded(
             flex: 1,
@@ -182,6 +186,14 @@ class _StatisticsPageState extends State<StatisticsPage> {
           ),
         ],
       ),
+    ) : Container(
+      alignment: Alignment.center,
+      padding: EdgeInsets.symmetric(vertical: 10.00, horizontal: 20.00),
+      margin: EdgeInsets.symmetric(vertical: 20.00, horizontal: 20.00),
+      width: 600,
+      height: 200,
+      decoration: categoryDecoration,
+      child: Text("No Books Read Yet!!", style: TextStyle(color: Colors.white, fontSize: 30),),
     );
   }
 

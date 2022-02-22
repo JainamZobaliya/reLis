@@ -6,6 +6,7 @@ const passport = require('passport')
 const bodyParser = require('body-parser')
 const routes = require('./routes/index')
 const multer = require('multer');
+const uploadFile = require('express-fileupload');
 
 connectDB()
 
@@ -15,8 +16,10 @@ if (process.env.NODE_ENV === 'development') {
     app.use(morgan('dev'))
 }
 
+// app.use(uploadFile())
 app.use(cors())
 app.use(bodyParser.urlencoded({ extended: false }))
+app.use(express.urlencoded({extended: true}))
 app.use(bodyParser.json())
 app.use(routes)
 app.use(passport.initialize())

@@ -23,31 +23,31 @@ function bookRecommendation(userId, req, res) {
     result = []
     error = []
     // listy = [1,2,3,4,5,6]
-    const childPython = spawn('python', ['./models/mongoDB_bookRecommendation.py','Jainam']);
+    const childPython = spawn('python', ['./models/mongoDB_bookRecommendation.py', userId]);
     // const childPython = spawn('python', ['./models/book_recommendation.py','Jainam',books]);
     // const childPython = spawn('python', ['./models/recommendation.py','Jainam',data.toString()]);
     childPython.stdout.on('data', function(data) {
         console.log(data.toString());
     });
     childPython.stdout.on('data', (data)=>{
-        console.log(`stdout: ${data}`);
+        console.log("...stdout: ", data.toString());
         if(!result.includes(data)) {
-            console.log("Data pushed in result is: ", data.toString());
+            console.log("...Data pushed in result is: ", data.toString());
             result.push(data.toString())
         }
     });
     childPython.stderr.on('data', (data)=>{
-        console.error(`stderr: ${data}`);
+        console.error("...stderr: ", data.toString());
         if(!error.includes(data)) {
-            console.log("Data pushed in error is: ", data.toString());
+            console.log("...Data pushed in error is: ", data.toString());
             error.push(data.toString())
         }
     });
     childPython.stdout.on('end', function(){
-        console.log('Sum of numbers=',dataString);
-        });
+        console.log("...Sum of numbers=",dataString);
+    });
     childPython.on('close', (code)=>{
-        console.log(`Child Process exited with code: ${code}`);
+        console.log("...Child Process exited with code: ", code.toString());
         return res.json({success: true, msg: 'Got Recommended Books', result: result, error: error})
     });
 }
@@ -124,10 +124,12 @@ var functions = {
         )
     },
     addBook: function (req, res) {
-        if ((!req.body['id']) || (!req.body['isbn']) || (!req.body['bookName']) || (!req.body['url']) || (!req.body['authorName']) || (!req.body['publication']) || (!req.body['category']) || (!req.body['price']) || (!req.file) || (!req.body['description'])) {
-            res.json({success: false, msg: 'Enter all fields', body:req.body})
+        // console.log("Got req: ", req.body);
+        if ((!req.body['id']) || (!req.body['isbn']) || (!req.body['bookName']) || (!req.body['url']) || (!req.body['authorName']) || (!req.body['publication']) || (!req.body['category']) || (!req.body['price']) || (!req.body['description'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
         }
         else {
+            // console.log("req: ", req);
             var newBook = Book({ 
                 id: req.body.id,
                 isbn: req.body.isbn,
@@ -140,11 +142,15 @@ var functions = {
                 image: req.file,
                 description: req.body.description,
                 feedback: req.body.feedback,
+                noOfChapters: req.body.noOfChapters,
+                language: req.body.language,
                 ratings: req.body.ratings,
                 imagePath: req.file.path,
                 imageSize: req.file.size,
-                imageName: req.file.filename
+                imageName: req.file.filename,
+                // bookFile: req.file.bookFile,
             });
+            // console.log("newBook: ",newBook);
             newBook.save(function (err, newBook) {
                 if (err) {
                     res.json({success: false, msg: 'Failed to add book'})
@@ -280,8 +286,8 @@ var functions = {
     },
     getRecommendBook: async function (req, res) {
         userId = req.body["userId"]
-        console.log("userId: "+userId)
-        console.log("getRecommendBook-1");
+        console.log("...userId: "+userId)
+        console.log("...getRecommendBook-1");
         data = [1,2,3,4,5,6,7,8,9]
         dataString = 'No Xata'
         // let url = "http://localhost:3000/getAllBooks"

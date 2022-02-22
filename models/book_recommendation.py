@@ -51,9 +51,9 @@ print("books: ",books)
 
 # print('Imported from ReLis',str(sys.argv[1]))
 # #Printing the datasets
-# # ratings.head()
-# # books.head()
-# # users.head()
+# ratings.head()
+# books.head()
+# users.head()
 
 # # print(ratings.head(5))
 # # print(books.head(5))

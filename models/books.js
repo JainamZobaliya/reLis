@@ -38,6 +38,10 @@ var bookSchema = new Schema({
         data: Buffer,
         contentType: String
     },
+    bookFile: {
+        data: Buffer,
+        contentType: String
+    },
     description: {
         type: String,
         require: true
@@ -118,13 +122,12 @@ var bookSchema = new Schema({
         type: Number,
         require: true
     },
+    boughtBy: [],
+    rentedBy: [],
 })
 
 bookSchema.pre('save', function (next) {
     next();
 });
-
-
-
 
 module.exports = mongoose.model('Book', bookSchema)

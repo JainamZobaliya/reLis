@@ -2,18 +2,58 @@ const express = require('express')
 const actions = require('../methods/actions')
 const router = express.Router()
 const multer = require('multer');
+// const uploadFile = require('express-fileupload');
 
 // set up multer for storing uploaded files
-var storage = multer.diskStorage({
-    destination: (req, file, callback) => {
-        callback(null, './assets/books')
-    },
-    filename: (req, file, callback) => {
-        callback(null, req.body.bookId+'.png')
-    }
-});
+// var storage = multer.diskStorage({
+//     destination: (req, file, callback) => {
+//         callback(null, './assets/books')
+//     },
+//     filename: (req, file, callback) => {
+//         callback(null, req.body.bookId+'.png')
+//     }
+// });
   
-var upload = multer({ storage: storage });
+// var upload = multer({ storage: storage });
+
+// var storeBookFile = multer.diskStorage({
+//     destination: (req, file, callback) => {
+//         callback(null, './assets/books')
+//     },
+//     filename: (req, file, callback) => {
+//         // console.log("...file: ",file.length);
+//         // console.log("...file: ",file);
+//         // console.log("...mimetype: ",file.mimetype);
+//         // // console.log("...req: ",req.file);
+//         // const imageMatch = ["image/png", "image/jpeg", "image/jpg"];
+//         // const pdfMatch = ["application/pdf", "file/pdf"];
+//         // if (imageMatch.indexOf(file.mimetype) === 1) {
+//         //     return callback(null, req.body.id+'.png');
+//         // }
+//         // else if (pdfMatch.indexOf(file.mimetype) === 1) {
+//         //     // var file = file;
+//         //     file.mv(
+//         //         './assets/books',
+//         //         req.body.id+'.pdf',
+//         //         function(err) {
+//         //             if(err) {
+//         //                 console.log("Error: ",err)
+//         //             }
+//         //         }
+//         //     );
+//         //     return
+//         //     // return callback(null, req.body.id+'.pdf');
+//         // }
+//         // else {
+//         //     return
+//         // }
+//         callback(null, req.body.id+'.png')
+//     }
+// });
+  
+// var uploadBookFile = multer({ storage: storeBookFile });
+// // var uploadFilesMiddleware = util.promisify(uploadBookFile);
+// var fileUploads = uploadBookFile.fields([{ name: 'image', maxCount: 1 }]) //, { name: 'bookFile', maxCount: 1 }])
 
 var storeBookImage = multer.diskStorage({
     destination: (req, file, callback) => {
@@ -25,6 +65,7 @@ var storeBookImage = multer.diskStorage({
 });
   
 var uploadBookImage = multer({ storage: storeBookImage });
+
 
 router.get('/', (req, res) => {
     res.send('Hello World')
@@ -49,6 +90,7 @@ router.post('/changePassword', actions.changePassword)
 //@desc Adding new book
 //@route POST /addBook
 router.post('/addBook', uploadBookImage.single('image'), actions.addBook)
+// router.post('/addBook', fileUploads, actions.addBook)
 
 //@desc Get Book Details
 //@route POST /getBookDetails
@@ -92,7 +134,7 @@ router.post('/addReward', actions.addReward)
 
 //@desc Adding new book image
 //@route POST /addBookImage
-router.post('/addBookImage', upload.single('img'), actions.addBookImage.bind(actions))
+// router.post('/addBookImage', upload.single('img'), actions.addBookImage.bind(actions))
 
 //@desc Get info on a user
 //@route GET /getinfo

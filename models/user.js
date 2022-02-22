@@ -1,6 +1,24 @@
 var mongoose = require('mongoose')
 var Schema = mongoose.Schema;
 var bcrypt = require('bcrypt')
+function  getDefaultPagesRead() {
+    console.log("In getDefaultPagesRead");
+    let map = new Map();
+    let date = new Date();
+    let day = date.getDate() - 7;
+    date.setDate(day);
+    for(let i=0; i<7; i+=1) {
+        day = date.getDate() + 1;
+        date.setDate(day);
+        day = date.getDate();
+        let month = date.getMonth() + 1;
+        let year = date.getFullYear();
+        let dateStr = (("0" + day).slice(-2)+"/"+("0" + month).slice(-2)+"/"+year).toString();
+        map[dateStr] = 0;
+    }
+    console.log("Map is ",map);
+    return map;
+}
 var userSchema = new Schema({
     firstName: {
         type: String,
@@ -74,16 +92,18 @@ var userSchema = new Schema({
     cart: {
         type: Map,
         default: {
-            toRent: {
-                type: Array,
-                of: String,
-                default: [],
-            },
-            toBuy: {
-                type: Array,
-                of: String,
-                default: [],
-            },
+            toRent: [],
+            // {
+            //     type: Array,
+            //     of: String,
+            //     default: [],
+            // },
+            toBuy: [],
+            // {
+            //     type: Array,
+            //     of: String,
+            //     default: [],
+            // },
         },
         // {
         //     book1["id"] : {
@@ -96,28 +116,32 @@ var userSchema = new Schema({
         type: String,
         default: "0",
     },
-    booksRead: {
-        type: Map,
-        default: {},
-        // {
-        //     book1["id"] : {
-        //       "id" : book1["id"],
-        //       "lastReadAt": "${DateTime.now().subtract(Duration(days: 3))}",
-        //       "lastPageRead": "PgNo",
-        //     }
-        // }
-    },
+    booksRead: {},
+    isAdmin: false,
+    // {
+    //     type: Map,
+    //     default: {},
+    //     // {
+    //     //     book1["id"] : {
+    //     //       "id" : book1["id"],
+    //     //       "lastReadAt": "${DateTime.now().subtract(Duration(days: 3))}",
+    //     //       "lastPageRead": "PgNo",
+    //     //     }
+    //     // }
+    // },
     dailyRecords: {
         type: Map,
         default: {
-            loginRecords: {
-                type: Array,
-                default: [],// store DateTime as String over here
-            },
-            pagesRead: {
-                type: Array,
-                default: [0,0,0,0,0,0,0], // store pageRead Day-wise: Mon to Sun
-            },
+            loginRecords: [],
+            // {
+            //     type: Array,
+            //     default: [],// store DateTime as String over here
+            // },
+            pagesRead: getDefaultPagesRead(), // [0,0,0,0,0,0,0],
+            // {
+            //     type: Array,
+            //     default: [0,0,0,0,0,0,0], // store pageRead Day-wise: Mon to Sun
+            // },
         },
     },
     feedback: {

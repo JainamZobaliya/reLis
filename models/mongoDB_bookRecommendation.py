@@ -2,7 +2,7 @@
 import subprocess
 import sys
 
-print('Hello from ReLis')
+print("\t...Hello from mongoDB_bookRecommendation.py")
 
 def install(package):
     try:
@@ -21,39 +21,96 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import pymongo
+from pandas import DataFrame
+pd.set_option("display.max_rows", None, "display.max_columns", None)
 
 def get_database():
     from pymongo import MongoClient
     import pymongo
-
     # Provide the mongodb atlas url to connect python to mongodb using pymongo
     CONNECTION_STRING = "mongodb+srv://Dev0308:Dev0308@cluster0.vtuto.mongodb.net/testdb?retryWrites=true&w=majority"
-
-    # Create a connection using MongoClient. You can import MongoClient or use pymongo.MongoClient
+    # Create a connection using MongoClient. We can import MongoClient or use pymongo.MongoClient
     from pymongo import MongoClient
     client = MongoClient(CONNECTION_STRING)
-
-    # Create the database for our example (we will use the same database throughout the tutorial
+    # Create the database
+    print("\t...Database Connected")
     return client['testdb']
     
 db = get_database()
+
 booksCollection = db['books']
-print("booksCollection: ",booksCollection)
-
-item_details = booksCollection.find()
-print("item_details: ",item_details)
-# for item in item_details:
+# print("\t...booksCollection: ",booksCollection)
+books_details = booksCollection.find()
+# print("\t...books_details: ",type(books_details))
+# print("books_details: ",books_details)
+# for book in books_details:
 #     # This does not give a very readable output
-#     print(item)
+#     print(book)
+books_columns = ['id', 'bookName', 'category', 'authorName', 'price', 'ratings']
+books_df = DataFrame(books_details, columns=books_columns)
+# print("\t...books_df: ",type(books_df))
+# # To print book details row-wise
+# for index, row in books_df.iterrows():
+#     print("index: ", index)
+#     print(row)
 
-from pandas import DataFrame
-# convert the dictionary objects to dataframe
-pd.set_option("display.max_rows", None, "display.max_columns", None)
-items_df = DataFrame(item_details)
+usersCollection = db['users']
+users_details = usersCollection.find()
+users_columns = ['emailId', 'favouriteBook', 'wishListBook', 'bookHistory', 'booksRead']
+users_df = DataFrame(users_details, columns=users_columns)
+currentUser =  sys.argv[1]
+ratings_columns = ['rate0', 'rate005', 'rate1', 'rate105', 'rate2', 'rate205', 'rate3', 'rate305', 'rate4', 'rate405', 'rate5']
+ratings_dict = {}
 
-# see the magic
-print(items_df)
-# print("Arg1: ",sys.argv[1])
+for book in books_df["ratings"]:
+    overallRate = 0*book["rate0"] + 0.5*book["rate005"] + 1*book["rate1"]+1.5*book["rate105"] + 2*book["rate2"] + 2.5*book["rate205"] + 3*book["rate3"] + 3.5*book["rate305"] + 4*book["rate4"] + 4.5*book["rate405"] + 5*book["rate5"]
+    if "overall" not in ratings_dict:
+        ratings_dict["overall"] = []
+    ratings_dict["overall"].append(overallRate)
+
+for index, row in books_df.iterrows():
+    if "id" not in ratings_dict:
+        ratings_dict["id"] = []
+    if "bookName" not in ratings_dict:
+        ratings_dict["bookName"] = []
+    ratings_dict["id"].append(row["id"])
+    ratings_dict["bookName"].append(row["bookName"])
+
+ratings_columns = ["id", "bookName", "overall"]
+ratings_df = DataFrame(ratings_dict, columns=ratings_columns)   
+
+# print("\t...ratings_df: ",type(ratings_df))
+# # To print ratings details row-wise
+# for index, row in ratings_df.iterrows():
+#     print("index: ", index)
+#     print(row)
+
+# # Printing the datasets
+# print("\n Ratings: ")
+# print(ratings_df.head())
+# print("\n Books: ")
+# print(books_df.head())
+# print("\n Users: ")
+# print(users_df.head())
+
+
+# Understand Rating information using shape.
+print("\n Ratings: ")
+print(ratings_df.shape) # (Total No. of data, Total No. of Coulmns)
+print(list(ratings_df.columns))
+
+# Understand Books information using shape.
+print("\n Books: ")
+print(books_df.shape) # (Total No. of data, Total No. of Coulmns)
+print(list(books_df.columns))
+
+# Understand User information using shape.
+print("\n Users: ")
+print(users_df.shape) # (Total No. of data, Total No. of Coulmns)
+print(list(users_df.columns))
+
+
+
 # print("")
 # print("")
 # print("Arg2: ",type(sys.argv[2]))

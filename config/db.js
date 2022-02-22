@@ -7,7 +7,7 @@ const connectDB = async() => {
             useNewUrlParser: true,
             useUnifiedTopology: true, 
         })
-        // await mongoose.set('debug', true);
+        await mongoose.set('debug', true);
         // Above command is useful to know the actual mongoose command processed
         console.log(`MongoDB Connected: ${conn.connection.host}`)
     }

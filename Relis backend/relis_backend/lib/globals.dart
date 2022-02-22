@@ -192,25 +192,27 @@ achievedDailyLoginStreakReward() {
 
 getGenreWiseReadBooksStats() {
   num totalPagesRead = 0;
-  for(var bookId in user!["booksRead"].keys)
-  {
-    var key = bookMap[bookId]["category"];
-    print("...0-> ${key.runtimeType}");
-    print("...1-> ${category[key]["pagesRead"].runtimeType}");
-    print("...2-> ${user!["booksRead"][bookId]["lastPageRead"].runtimeType}");
-    int currentCategoryRead = (category[key]["pagesRead"] ?? 0) + user!["booksRead"][bookId]["lastPageRead"] ?? 0;
-    category[key]["pagesRead"] = currentCategoryRead;
-    print("\t\t ~~~~~ ${category[key]["categoryName"]}: ${category[key]["pagesRead"]}");
-  }
-  for(var key in category.keys)
-  {
-    totalPagesRead = totalPagesRead + (category[key]["pagesRead"] ?? 0);
-  }
-  for(var key in category.keys)
-  {
-    category[key]["pagesRead"] = category[key]["pagesRead"] ?? 0;
-    category[key]["totalPagesRead"] = totalPagesRead;
-    print("\t\t #### ${category[key]["categoryName"]}: ${category[key]["totalPagesRead"]}");
+  if(user!.containsKey("booksRead")) {
+    for(var bookId in user!["booksRead"].keys)
+    {
+      var key = bookMap[bookId]["category"];
+      print("...0-> ${key.runtimeType}");
+      print("...1-> ${category[key]["pagesRead"].runtimeType}");
+      print("...2-> ${user!["booksRead"][bookId]["lastPageRead"].runtimeType}");
+      int currentCategoryRead = (category[key]["pagesRead"] ?? 0) + user!["booksRead"][bookId]["lastPageRead"] ?? 0;
+      category[key]["pagesRead"] = currentCategoryRead;
+      print("\t\t ~~~~~ ${category[key]["categoryName"]}: ${category[key]["pagesRead"]}");
+    }
+    for(var key in category.keys)
+    {
+      totalPagesRead = totalPagesRead + (category[key]["pagesRead"] ?? 0);
+    }
+    for(var key in category.keys)
+    {
+      category[key]["pagesRead"] = category[key]["pagesRead"] ?? 0;
+      category[key]["totalPagesRead"] = totalPagesRead;
+      print("\t\t #### ${category[key]["categoryName"]}: ${category[key]["totalPagesRead"]}");
+    }
   }
 }
 
@@ -936,53 +938,68 @@ var bookList = [];
 
 Map<String, dynamic> bookMap = {};
 
+Map<String, dynamic> categoryOther = {
+  "id": "ct-000",
+  "categoryName": "Other",
+  "categoryColor": Color(0xFFFF0000),
+  "bookList": null,
+};
 Map<String, dynamic> categoryNovel = {
   "id": "ct-001",
   "categoryName": "Novel",
   "categoryColor": Colors.lightGreen,
+  "bookList": null,
 };
 Map<String, dynamic> categoryThriller = {
   "id": "ct-002",
   "categoryName": "Thriller",
-  "bookList": ["bk-005", "bk-006"],
+  "bookList": null,
   "categoryColor": Colors.grey,
 };
 Map<String, dynamic> categoryFictional = {
   "id": "ct-003",
   "categoryName": "Fictional",
   "categoryColor": Color(0xff845bef),
+  "bookList": null,
 };
 Map<String, dynamic> categorySciFic = {
   "id": "ct-004",
   "categoryName": "Sci-Fic",
   "categoryColor": Colors.lightBlue,
-  "bookList": ["bk-002", "bk-007"],
+  "bookList": null,
 };
 Map<String, dynamic> categoryHistorical = {
   "id": "ct-005",
   "categoryName": "Historical",
   "categoryColor": Colors.orange,
-  "bookList": ["bk-001", "bk-003"],
+  "bookList": null,
 };
 Map<String, dynamic> categoryPoetry = {
   "id": "ct-006",
   "categoryName": "Poetry",
   "categoryColor": Colors.teal,
-  "bookList": ["bk-004"],
+  "bookList": null,
 };
 Map<String, dynamic> categoryRomance = {
   "id": "ct-007",
   "categoryName": "Romance",
   "categoryColor": Colors.pink,
-  "bookList": ["bk-006", "bk-009"],
+  "bookList": null,
 };
-Map<String, dynamic> categoryOther = {
+Map<String, dynamic> categoryAction = {
   "id": "ct-008",
-  "categoryName": "Other",
-  "categoryColor": Color(0xFFFF0000),
+  "categoryName": "Action",
+  "categoryColor": Colors.lime,
+  "bookList": null,
+};
+Map<String, dynamic> categoryHorror = {
+  "id": "ct-009",
+  "categoryName": "Horror",
+  "categoryColor": Colors.brown,
   "bookList": null,
 };
 var categoryList = [
+  categoryOther,
   categoryNovel,
   categoryThriller,
   categoryFictional,
@@ -990,7 +1007,8 @@ var categoryList = [
   categoryHistorical,
   categoryPoetry,
   categoryRomance,
-  categoryOther
+  categoryAction,
+  categoryHorror
 ];
 Map<String, dynamic> category = {};
 
@@ -1000,6 +1018,16 @@ void addItem(Map<String, dynamic> map, var list) {
     print("\n\n\n\n\n");
   for (var ls in list) {
     map[ls["id"]] = ls;
+  }
+}
+
+void loadBooksInCategory() {
+  for(var bookId in bookMap.keys) {
+    var catId = bookMap[bookId]["category"];
+    if (category[catId]["bookList"] == null) {
+      category[catId]["bookList"] = [];
+    }
+    category[catId]["bookList"].add(bookId);
   }
 }
 
@@ -1034,6 +1062,7 @@ void loadEachHover() {
 void loadData() {
   addItem(bookMap, bookList);
   addItem(category, categoryList);
+  loadBooksInCategory();
   bookMap.forEach((key, value) {
     favourite[key] = ValueNotifier<bool>(false);
     wishList[key] = ValueNotifier<bool>(false);
