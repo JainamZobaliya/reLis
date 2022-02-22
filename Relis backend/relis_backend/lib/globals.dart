@@ -9,6 +9,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:relis/arguments/pagearguments.dart';
+import 'package:relis/audioBook/audiobook.dart';
 import 'package:relis/authentication/otp.dart';
 import 'package:relis/authentication/passwordChange.dart';
 import 'package:relis/authentication/services.dart';
@@ -60,7 +61,8 @@ var appRoutes = {
   PasswordChange.routeName: (BuildContext context) => PasswordChange(),
   CreditsPage.routeName: (BuildContext context) => CreditsPage(),
   PaymentPage.routeName: (BuildContext context) => PaymentPage(), 
-  StatisticsPage.routeName: (BuildContext context) => StatisticsPage(), 
+  StatisticsPage.routeName: (BuildContext context) => StatisticsPage(),
+  AudioBook.routeName: (BuildContext context) => AudioBook()
 };
 
 bool changingPassword = false;

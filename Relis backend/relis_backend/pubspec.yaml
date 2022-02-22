@@ -42,6 +42,7 @@ dependencies:
   fl_chart: ^0.41.0
   intl:
   native_pdf_view: ^5.0.0
+  audioplayers: ^0.20.1
   # pdf: ^3.7.1 # For creating pdf's
   # flutter_svg: ^1.0.2
 

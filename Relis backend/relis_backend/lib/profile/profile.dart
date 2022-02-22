@@ -549,7 +549,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
         runSpacing: 15.0,
         children: [
           viewCard(
-              user?["booksBought"]!= null && user?["booksBought"]!.length ? 0 : user?["booksBought"]!.length,
+              user?["booksBought"]!= null ? user!["booksBought"]!.length : 0,
               "Books Bought",
               pageType.bought,
               Icon(
@@ -560,7 +560,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Color(0xFF00ff00)
           ),
           viewCard(
-              user?["booksRented"]!= null && user?["booksRented"]!.length ? 0 : user?["booksRented"]!.length,
+              user?["booksRented"]!= null ? user!["booksRented"]!.length : 0,
               "Books Rented",
               pageType.rented,
               Icon(
@@ -571,7 +571,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Colors.white
           ),
           viewCard(
-              user?["favouriteBook"]!= null && user?["favouriteBook"]!.length ? 0 : user?["favouriteBook"]!.length,
+              user?["favouriteBook"]!= null ? user!["favouriteBook"]!.length : 0,
               "Favourite Books",
               pageType.favourite,
               Icon(
@@ -582,7 +582,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Color(0xFFff0000)
           ),
           viewCard(
-              user?["wishListBook"]!= null && user?["wishListBook"]!.length ? 0 : user?["wishListBook"]!.length,
+              user?["wishListBook"]!= null ? user!["wishListBook"]!.length : 0,
               "Books in Wish-List",
               pageType.wishList,
               Icon(
@@ -593,7 +593,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Color(0xFFffff00)
           ),
           viewCard(
-              user?["booksRead"]!= null && user?["booksRead"]!.length ? 0 : user?["booksRead"]!.length,
+              user?["booksRead"]!= null ? user!["booksRead"]!.length : 0,
               "Books Read",
               pageType.wishList,
               Icon(
@@ -604,7 +604,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               Colors.cyanAccent
           ),
           viewCard(
-              user?["personalBooks"]!= null && user?["personalBooks"]!.length ? 0 : user?["personalBooks"]!.length,
+              user?["personalBooks"]!= null ? user!["personalBooks"]!.length : 0,
               "My Books",
               pageType.personalBooks,
               Icon(

@@ -43,7 +43,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
     getGenreWiseReadBooksStats();
     if(user!["dailyRecords"].containsKey("pagesRead")) {
       print("++++ ${user!["dailyRecords"]["pagesRead"].runtimeType}");
-      weeklyVal = user!["dailyRecords"]["pagesRead"].values.toList();// user!["dailyRecords"]["pagesRead"];
+      for(var val in user!["dailyRecords"]["pagesRead"].values)
+        weeklyVal.add(val);// user!["dailyRecords"]["pagesRead"];
     }
     getPieChartData();
     getData();

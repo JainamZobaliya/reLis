@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:relis/arguments/bookArguments.dart';
+import 'package:relis/audioBook/audiobook.dart';
 import 'package:relis/authentication/user.dart';
 import 'package:relis/drawer.dart';
 import 'package:relis/globals.dart';
@@ -408,15 +409,7 @@ class _BookViewState extends State<BookView> {
                                       child: Icon(Icons.multitrack_audio_rounded, color: Colors.white,),
                                     ),
                                     onPressed: () async {
-                                      // Navigator.of(context).pushNamed(OTPPage.routeName);
-                                      // Center(
-                                      //   child: CircularProgressIndicator(),
-                                      // );
-                                      // if (_key.currentState.validate()) {
-                                      //   _signInWithEmailAndPassword();
-                                      // } else {
-                                      //   showMessageSnackBar("Please fill the valid Details!!");
-                                      // }
+                                      Navigator.of(context).pushNamed(AudioBook.routeName);
                                     },
                                   ),
                                 ),
