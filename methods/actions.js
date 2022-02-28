@@ -86,7 +86,13 @@ var functions = {
                     res.status(403).send({success: false, msg: 'Authentication Failed, User not found'})
                 }
                 else {
-                    redirect = req.body.redirect ?? false;
+                    // redirect = req.body.redirect ?? false;
+                    if(req.body.redirect == null) {
+                        redirect = false
+                    }
+                    else {
+                        redirect = req.body.redirect
+                    }
                     console.log("redirect: ", redirect)
                     user.comparePassword(
                         req.body.password,
@@ -527,6 +533,156 @@ var functions = {
                             res.status(403).send({success: false, msg: 'Error in organising cart', body:req.body})
                         }
                         res.json({success: true, msg: 'Cart Updated Successfully', body:req.body})
+                    }
+                }
+            )
+        }
+    },
+    buyBooks: function(req, res) {
+        if ((!req.body['cartMap']) || (!req.body['booksBoughtMap']) || (!req.body['booksRentedMap']) || (!req.body['emailId'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            User.findOne(
+                {
+                    emailId: req.body.emailId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Buying Books Failed, User not found', body:req.body})
+                    }
+                    else {
+                        try{
+                            cartMap = JSON.parse(req.body.cartMap)
+                            booksBoughtMap = JSON.parse(req.body.booksBoughtMap)
+                            booksRentedMap = JSON.parse(req.body.booksRentedMap)
+                            user.cart = cartMap;
+                            user.booksBought = booksBoughtMap;
+                            user.booksRented = booksRentedMap;
+                            booksBoughtMap = Object.keys(booksBoughtMap);
+                            booksRentedMap = Object.keys(booksRentedMap);
+                            console.log("\n\n\n ");
+                            console.log("\n booksRentedMap: ",booksRentedMap);
+                            console.log("\n booksBoughtMap: ",booksBoughtMap);
+                            console.log("\n\n\n ");
+                            for(let i=0; i<booksRentedMap.length; ++i) {
+                                let bookId = booksRentedMap[i];
+                                console.log("\tbookId: ",bookId);
+                                Book.findOne(
+                                    {
+                                        id: bookId
+                                    },
+                                    function(err, book) {
+                                        var userId = req.body.emailId
+                                        if(err) throw err
+                                        if(!book) {
+                                            res.status(403).send({success: false, msg: 'Buying Books Failed, Book not found', body:req.body})
+                                        }
+                                        else {
+                                            var rentedByMap = book.rentedBy;
+                                            if(!rentedByMap.includes(bookId)) {
+                                                rentedByMap.push(userId)
+                                            }
+                                            console.log("rentedByMap: ",rentedByMap)
+                                            book.rentedBy = rentedByMap;
+                                            book.save(
+                                                function(err) {
+                                                    if(!err) {
+                                                        console.log("... Books Bought. ");
+                                                    }
+                                                    else {
+                                                        console.log("... Error: could not buy books. ");
+                                                    }
+                                                }
+                                            );
+                                        }
+                                    }
+                                );
+                            }
+                            for(let i=0; i<booksBoughtMap.length; ++i) {
+                                let bookId = booksBoughtMap[i];
+                                console.log("bookId: ",bookId);
+                                Book.findOne(
+                                    {
+                                        id: bookId
+                                    },
+                                    function(err, book) {
+                                        var userId = req.body.emailId
+                                        if(err) throw err
+                                        if(!book) {
+                                            res.status(403).send({success: false, msg: 'Buying Books Failed, Book not found', body:req.body})
+                                        }
+                                        else {
+                                            var boughtByMap = book.boughtBy;
+                                            if(!booksBoughtMap.includes(bookId)) {
+                                                boughtByMap.push(userId)
+                                            }
+                                            book.boughtBy = boughtByMap;
+                                            console.log("boughtByMap: ",boughtByMap)
+                                            book.save(
+                                                function(err) {
+                                                    if(!err) {
+                                                        console.log("... Books Bought. ");
+                                                    }
+                                                    else {
+                                                        console.log("... Error: could not buy books. ");
+                                                    }
+                                                }
+                                            );
+                                        }
+                                    }
+                                );
+                            }
+                            user.save(function(err) {
+                                if(!err) {
+                                    console.log("... Books Bought. ");
+                                }
+                                else {
+                                    console.log("... Error: could not buy books. ");
+                                }
+                            });
+                        }
+                        catch(err) {  
+                            res.status(403).send({success: false, msg: 'Error in buying books', body:req.body})
+                        }
+                        res.json({success: true, msg: 'Books Bought Successfully', body:req.body})
+                    }
+                }
+            )
+        }
+    },
+    changeLastPageRead: function(req, res) {
+        if ((!req.body['booksReadMap']) || (!req.body['emailId'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            User.findOne(
+                {
+                    emailId: req.body.emailId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Updating Last Page Read Info. Failed, User not found', body:req.body})
+                    }
+                    else {
+                        try{
+                            booksReadMap = JSON.parse(req.body.booksReadMap)
+                            user.booksRead = booksReadMap;
+                            user.save(function(err) {
+                                if(!err) {
+                                    console.log("... Updated Last Page Read Info. ");
+                                }
+                                else {
+                                    console.log("... Error: could not update last page read info. ");
+                                }
+                            });
+                        }
+                        catch(err) {  
+                            res.status(403).send({success: false, msg: 'Error in Updating Last Page Read Info.', body:req.body})
+                        }
+                        res.json({success: true, msg: 'Updated Last Page Read Info. Successfully', body:req.body})
                     }
                 }
             )

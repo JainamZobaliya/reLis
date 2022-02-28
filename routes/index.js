@@ -128,6 +128,14 @@ router.post('/removeFromWishList', actions.removeFromWishList)
 //@route POST /updateCart
 router.post('/updateCart', actions.updateCart)
 
+//@desc Buy Books
+//@route POST /buyBooks
+router.post('/buyBooks', actions.buyBooks)
+
+//@desc Change Last Page Read
+//@route POST /changeLastPageRead
+router.post('/changeLastPageRead', actions.changeLastPageRead)
+
 //@desc Update User's Reward
 //@route POST /addReward
 router.post('/addReward', actions.addReward)

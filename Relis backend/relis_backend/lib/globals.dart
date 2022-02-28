@@ -4,6 +4,7 @@ import 'dart:collection';
 import 'dart:math';
 import 'package:carousel_slider/carousel_controller.dart';
 import 'package:dio/dio.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
@@ -925,8 +926,11 @@ isBookBought(String bookId) {
 isBookRented(String bookId) {
   if(user!["booksRented"].containsKey(bookId)) {
     var dueDate = DateTime.parse(user!["booksRented"][bookId]["dueOn"]);
-    var daysLeft = dueDate.difference(DateTime.now());
-    if(daysLeft.toString()[0]=="-") {
+    var daysLeft = dueDate.difference(DateTime.now()).inMilliseconds;
+    print("\t dueDate: ${dueDate}");
+    print("\t now: ${DateTime.now()}");
+    print("\t\t daysLeft: ${daysLeft}");
+    if(daysLeft<=0) {
       return false;
     }
     else{
@@ -1251,7 +1255,6 @@ bool cameraSource(BuildContext context) {
 }
 
 Future<void> uploadImage(BuildContext context, File photo) async {
-  Navigator.of(context).pop();
   String fileName = photo.path.split('/').last;
   String extension = fileName.split('.').last;
   // var map = {
@@ -1274,16 +1277,51 @@ Future<void> uploadImage(BuildContext context, File photo) async {
 }
 
 Future<void> chooseImage(BuildContext context, bool imageSource) async {
-  cameraSource(context) ? () {} : Navigator.of(context).pop();
   // File _image;
   dynamic _image;
-  final pickedFile = await ImagePicker()
-      .getImage(source: imageSource ? ImageSource.camera : ImageSource.gallery);
+  final pickedFile = await ImagePicker().pickImage(source: imageSource ? ImageSource.camera : ImageSource.gallery);
   if (pickedFile != null) {
     _image = File(pickedFile.path);
     uploadImage(context, _image);
   } else {
     _image = null;
+  }
+}
+
+Future<void> uploadFile(BuildContext context, File file) async {
+  String fileName = file.path.split('/').last;
+  String extension = fileName.split('.').last;
+  print("Received file: ${fileName}.${extension}");
+  // var map = {
+  //   'name': fileName,
+  //   'photo': await MultipartFile.fromFile(
+  //     photo.path,
+  //     filename: fileName,
+  //     // contentType: new MediaType("image", extension),
+  //   ),
+  // };
+  // FormData formData = new FormData.fromMap(map,);
+  // var response = await dio.put(
+  //     uploadUserProfilePhotoURL,
+  //     data: formData,
+  //     options: Options(headers: {"token": widget.jwt_token}));
+  // if(response.data['success'])
+  // {
+  //   await getUserProfile(widget.u_id, widget.jwt_token);
+  // }
+}
+
+Future<void> chooseFile(BuildContext context) async {
+  FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+  if (result != null) {
+    print("result: ");
+    print(result);
+    File file = File(result.files.single.path!);
+    await uploadFile(context, file);
+  } else {
+    // User canceled the picker
+    print('Please Choose a File');
   }
 }
 
@@ -1294,14 +1332,15 @@ Future<void> chooseImage(BuildContext context, bool imageSource) async {
 // }
 
 String loadBookTooltip(String id) {
+  if(!(isRented(id) || isPurchased(id)))
+    return  "Not yet Purchased or Rented!!";
   String userBookDetails = "";
-  userBookDetails = isRented(id)
-      ? "Rented on: ${user?["booksRented"][id]["rentedOn"]}\Due on: ${user?["booksRented"][id]["dueOn"]}\n"
-      : "Rented on: Not Yet\n";
-  userBookDetails += "\n";
-  userBookDetails += isPurchased(id)
-      ? "Purchased on: ${user?["booksBought"][id]["purchasedOn"]}"
-      : "Purchased on: Not Yet";
+  if(isRented(id))
+    userBookDetails = "Rented on: ${user?["booksRented"][id]["rentedOn"]}\n\nDue on: ${user?["booksRented"][id]["dueOn"]}";
+  if(isRented(id) && isPurchased(id))
+    userBookDetails += "\n";
+  if(isPurchased(id))
+    userBookDetails += "Purchased on: ${user?["booksBought"][id]["purchasedOn"]}";
   return userBookDetails;
 }
 
@@ -1311,6 +1350,67 @@ isRented(String id) {
 
 isPurchased(String id) {
   return user?["booksBought"]!.keys.contains(id);
+}
+
+addCartToDb() async {
+  print("...Reached Here - 0");
+  dynamic cartTemp = {};
+  dynamic booksBoughtTemp = {};
+  dynamic booksRentedTemp = {};
+  if(user!.containsKey("cart") && user!["cart"].length>0) {
+    print("cart: ${user!["cart"]}");
+    cartTemp = new Map<dynamic,dynamic>.from(user!["cart"]);
+  }
+  print("...Reached Here - 1");
+  if(user!.containsKey("booksBought") && user!["booksBought"].length>0) {
+    print("booksBought: ${user!["booksBought"]}");
+    booksBoughtTemp = new Map<dynamic,dynamic>.from(user!["booksBought"]);
+  }
+  print("...Reached Here - 2");
+  if(user!.containsKey("booksRented") && user!["booksRented"].length>0) {
+    print("booksRented: ${user!["booksRented"]}");
+    booksRentedTemp = new Map<dynamic,dynamic>.from(user!["booksRented"]);
+  }
+  print("...Reached Here - 3");
+  var now = DateTime.now();
+  var due = DateTime.now().add(Duration(days: 7));
+  print("...Reached here - 4");
+  // Emptying Cart and adding books in booksBought and booksRented 
+  for(var bookId in user!["cart"]["toBuy"]) {
+    user!["booksBought"][bookId] = {
+      "id" : bookId,
+      "purchasedOn" : now.toString()
+    };
+    user!["cart"]["toBuy"].remove(bookId);
+  }
+  for(var bookId in user!["cart"]["toRent"]) {
+    user!["booksRented"][bookId] = {
+      "id" : bookId,
+      "rentedOn" : now.toString(),
+      "dueOn" : due.toString(),
+    };
+    user!["cart"]["toRent"].remove(bookId);
+  }
+  print("...Reached here - 5");
+  await Services().buyBooks(user!["emailId"], user!["cart"], user!["booksBought"], user!["booksRented"]).then((val){
+    if (val != null && val.data['success']) {
+      print("...Reached here - 6");
+      showMessageFlutterToast(
+        "Books Bought Successfully!!",
+        Colors.green,
+      );
+    }
+    else {
+      print("...Reached here - 7");
+      user!["cart"] = cartTemp;
+      user!["booksBought"] = booksBoughtTemp;
+      user!["booksRented"] = booksRentedTemp;
+      showMessageFlutterToast(
+        "Books Bought Failed!!",
+        Colors.red,
+      );
+    }
+  });
 }
 
 addToCart(BuildContext context, String bookId, String bookName, {bool isRent = false}) async {
@@ -1385,6 +1485,28 @@ removeFromCart(BuildContext context, String bookId, String bookName) async {
       );
     }
   });
+}
+
+changeLastPageRead(String bookId, int lastPageRead) async {
+  var temp = user!["booksRead"];
+  user!["booksRead"][bookId] = {
+    "id": bookId,
+    "lastReadAt": DateTime.now().toString(),
+    "lastPageRead": lastPageRead,
+  };
+  await Services().changeLastPageRead(user!["emailId"], user!["booksRead"]).then((val) async {
+    if (val != null && val.data['success']) {
+
+    }
+    else {
+      user!["booksRead"] = temp;
+      showMessageFlutterToast(
+        "Error in updating last page read...",
+        Color(0xFFFF0000),
+      );
+    }
+  });
+
 }
 
 Widget customDivider() {

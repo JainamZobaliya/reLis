@@ -1,98 +1,19 @@
-// import 'dart:async';
-// import 'dart:io';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_pdfview/flutter_pdfview.dart';
-// import 'package:path/path.dart';
-// import 'package:relis/globals.dart';
-// import 'package:relis/view/pdfLoader.dart';
+import 'dart:async';
 
-// class PDFViewer extends StatefulWidget {
-//   String? url;
-//   String? path;
-
-//   PDFViewer({
-//     this.url,
-//   });
-
-//   @override
-//   _PDFViewerState createState() => _PDFViewerState();
-// }
-
-// class _PDFViewerState extends State<PDFViewer> {
-//   ller controller;
-//   File? file;
-//   int pages = 0;
-//   int indexPage = 0;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     print("In PDFViewer - initState ");
-//     // widget.url ?? 
-//     loadFile(widget.path ?? "book/book1.pdf");
-//   }
-
-//   void loadFile(String url) async {
-//     print("In PDFViewer - Loading File, url: $url ");
-//     file = await PDFLoader.loadAsset(url);
-//     // file = await PDFLoader.loadNetwork(url);
-//     print("In PDFViewer - File Loaded, file: ${file!.path} ");
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     isLoggedIn(context);
-//     final name = basename(file!.path);
-//     final text = '${indexPage + 1} of $pages';
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Text('ReLis - $name'),
-//         actions: pages >= 2
-//         ? [
-//           Center(child: Text(text)),
-//           IconButton(
-//             icon: Icon(Icons.chevron_left, size: 32),
-//             onPressed: () {
-//               final page = indexPage == 0 ? pages : indexPage - 1;
-//               controller.setPage(page);
-//             },
-//           ),
-//           IconButton(
-//           icon: Icon(Icons.chevron_right, size: 32),
-//           onPressed: () {
-//             final page = indexPage == pages - 1 ? 0 : indexPage + 1;
-//             controller.setPage(page);
-//           },
-//         ),
-//         ]
-//         : null,
-//       ),
-//       body: PDFView(
-//         filePath: file!.path,
-//         // autoSpacing: false,
-//         // swipeHorizontal: true,
-//         // pageSnap: false,
-//         // pageFling: false,
-//         onRender: (pages) => setState(() => this.pages = pages!),
-//         onViewCreated: (controller) =>
-//             setState(() => this.controller = controller),
-//         onPageChanged: (indexPage, _) =>
-//             setState(() => this.indexPage = indexPage!),
-//       ),
-//     );
-//   }
-// }
 import 'package:flutter/material.dart';
 import 'package:native_pdf_view/native_pdf_view.dart';
+import 'package:relis/authentication/user.dart';
 import 'package:relis/globals.dart';
 
 class PDFViewer extends StatefulWidget {
   String? url;
   String? path;
+  String? bookId;
 
   PDFViewer({
     this.url,
     this.path,
+    this.bookId,
   });
 
   @override
@@ -100,9 +21,10 @@ class PDFViewer extends StatefulWidget {
 }
 
 class _PDFViewerState extends State<PDFViewer> {
-  static final int _initialPage = 1;
+  static int _initialPage = 1;
   int _actualPageNumber = _initialPage, _allPagesCount = 0;
   bool isSampleDoc = true;
+  int _lastPageRead = _initialPage;
   double viewportFraction = 1;
   PdfController _pdfController = PdfController(
     document: PdfDocument.openAsset('ReLis.gif'),
@@ -110,6 +32,9 @@ class _PDFViewerState extends State<PDFViewer> {
 
   @override
   void initState() {
+    _initialPage = getInitialPage();
+    _actualPageNumber = _initialPage;
+    _lastPageRead = _initialPage;
     _pdfController = PdfController(
       document: PdfDocument.openAsset(widget.path!),
       initialPage: _initialPage,
@@ -118,10 +43,22 @@ class _PDFViewerState extends State<PDFViewer> {
     super.initState();
   }
 
+  int getInitialPage() {
+    if(user!.containsKey("booksRead") && user!["booksRead"].containsKey(widget.bookId)) {
+      return user!["booksRead"][widget.bookId]["lastPageRead"];
+    }
+    return 1;
+  }
+
   @override
   void dispose() {
     _pdfController.dispose();
+    Timer(
+      Duration.zero,
+      changeLastPageRead(widget.bookId!, _lastPageRead)
+    );
     super.dispose();
+    print("...pdfViewer dispose runned");
   }
 
   @override
@@ -135,9 +72,7 @@ class _PDFViewerState extends State<PDFViewer> {
             icon: Icon(Icons.zoom_in),
             onPressed: () {
               viewportFraction = viewportFraction * 2;
-              WidgetsBinding.instance!.addPostFrameCallback((_){
-                setState(() {});
-              });
+              setState(() {});
             },
           ),
           IconButton(
@@ -190,9 +125,11 @@ class _PDFViewerState extends State<PDFViewer> {
           });
         },
         onPageChanged: (page) {
-          setState(() {
-            _actualPageNumber = page;
-          });
+          _actualPageNumber = page;
+          if(page > _lastPageRead) {
+            _lastPageRead = page;
+          }
+          setState(() {});
         },
         backgroundDecoration: BoxDecoration(
           color: appBarBackgroundColor,

@@ -650,8 +650,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                       borderOnForeground: true,
                       child: InkWell(
                         onTap: (){
-                          Navigator.pop(context, );
-                          cameraSource(context) ? chooseImage(context, false) : uploadMenu();
+                          chooseFile(context);
                           setState(() {});
                         },
                         borderRadius: BorderRadius.all(Radius.circular(50.0)),

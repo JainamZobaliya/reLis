@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:relis/globals.dart';
@@ -204,6 +203,54 @@ class Services {
     }
   }
   
+  buyBooks(emailId, cartMap, booksBoughtMap, booksRentedMap) async {
+    try {
+      return await dio.post(
+          'http://localhost:3000/buyBooks',
+          data: {
+            "emailId": emailId,
+            "cartMap": jsonEncode(cartMap),
+            "booksBoughtMap": jsonEncode(booksBoughtMap),
+            "booksRentedMap": jsonEncode(booksRentedMap),
+          },
+          options: Options(contentType: Headers.formUrlEncodedContentType),
+        );
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+          msg: e.response?.data['msg'],
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+    }
+  }
+
+  changeLastPageRead(emailId, booksReadMap) async {
+    try {
+      return await dio.post(
+          'http://localhost:3000/changeLastPageRead',
+          data: {
+            "emailId": emailId,
+            "booksReadMap": jsonEncode(booksReadMap),
+          },
+          options: Options(contentType: Headers.formUrlEncodedContentType),
+        );
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+          msg: e.response?.data['msg'],
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+          textColor: Colors.white,
+          fontSize: 16.0,
+        );
+    }
+  }
+
   addReward(emailId, dailyRecords, credits) async {
     try {
       print("dailyRecords: ");

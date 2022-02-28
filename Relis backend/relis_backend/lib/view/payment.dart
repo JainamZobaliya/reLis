@@ -89,8 +89,9 @@ class _PaymentPageState extends State<PaymentPage> {
                   ),
                 ],
               ),
-              onPressed: () {
-                showMessageSnackBar(context, "Payment Gateway Comming Soon!!!", Color(0xFFFF0000));
+              onPressed: () async {
+                // showMessageSnackBar(context, "Payment Gateway Comming Soon!!!", Color(0xFFFF0000));
+                await addCartToDb();
               },
               hoverColor: Colors.greenAccent[400],
               color: Colors.green[800],

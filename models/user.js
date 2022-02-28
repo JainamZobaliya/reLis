@@ -2,7 +2,7 @@ var mongoose = require('mongoose')
 var Schema = mongoose.Schema;
 var bcrypt = require('bcrypt')
 function  getDefaultPagesRead() {
-    console.log("In getDefaultPagesRead");
+    // console.log("In getDefaultPagesRead");
     let map = new Map();
     let date = new Date();
     let day = date.getDate() - 7;
@@ -16,7 +16,7 @@ function  getDefaultPagesRead() {
         let dateStr = (("0" + day).slice(-2)+"/"+("0" + month).slice(-2)+"/"+year).toString();
         map[dateStr] = 0;
     }
-    console.log("Map is ",map);
+    // console.log("Map is ",map);
     return map;
 }
 var userSchema = new Schema({

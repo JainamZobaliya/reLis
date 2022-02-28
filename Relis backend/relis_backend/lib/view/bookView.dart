@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:relis/arguments/bookArguments.dart';
@@ -40,21 +41,18 @@ class _BookViewState extends State<BookView> {
     if(feedbackMap.length>0)
       for(var userComment in feedbackMap.values)
         userCommentInfo = getUserInfo(userComment["userId"]);
-    addedToCart = (user["cart"]["toRent"].contains(currentBook["id"]) || user["cart"]["toBuy"].contains(currentBook["id"])) && (isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]));
-    print("\t addedToCart: $addedToCart");
+    addedToCart = (user["cart"]["toRent"].contains(currentBook["id"]) || user["cart"]["toBuy"].contains(currentBook["id"])) || (isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]));
     print("\t rentCart: ${user["cart"]["toRent"].contains(currentBook["id"])}");
     print("\t buyCart: ${user["cart"]["toBuy"].contains(currentBook["id"])}");
     print("\t isBookBought: ${isBookBought(currentBook["id"])}");
     print("\t isBookRented: ${isBookRented(currentBook["id"])}");
-    var and1 = (!isBookBought(currentBook["id"]) && !isBookRented(currentBook["id"]));
-    print("\t and-1: $and1");
-    var or1 = addedToCart || and1;
-    print("\t\t or-1: $or1");
-    var or2 = (!isBookBought(currentBook["id"]) || !isBookRented(currentBook["id"]));
-    print("\t or-2: $or2");
-    var and2 = addedToCart && or2;
-    print("\t\t and-2: $and2");
-    
+    print("\t addedToCart: $addedToCart");
+    var or1 = (isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]));
+    print("\t or-1: $or1");
+    var not1 = !or1; // && and1;
+    print("\t not1: $not1");
+    var and1 = not1 && addedToCart;
+    print("\t\t and1: $and1");
   }
   // AddedToCart is not working properly.
 
@@ -64,7 +62,7 @@ class _BookViewState extends State<BookView> {
     isLoggedIn(context);
     final book = ModalRoute.of(context)!.settings.arguments as BookArguments;
     print("\tIn Book View");
-    print("\tbookType: ${book.currentBook.runtimeType}");
+    // print("\tbookType: ${book.currentBook.runtimeType}");
     loadValues(user!, book.currentBook);
     print("Book Values Loaded");
     return Hero(
@@ -129,7 +127,8 @@ class _BookViewState extends State<BookView> {
                         ),
                       ), //Book-Image
                       SizedBox(height: 20,),
-                      if(addedToCart || (!isBookBought(currentBook["id"]) && !isBookRented(currentBook["id"])))
+                      // For Rent / Buy Button
+                      if(!addedToCart)// || (isBookBought(currentBook["id"]) && isBookRented(currentBook["id"])))
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -179,8 +178,11 @@ class _BookViewState extends State<BookView> {
                                 ),
                                 onPressed: () async {
                                   await addToCart(context, currentBook["id"], currentBook["bookName"], isRent: true);
-                                  addedToCart = !addedToCart;
-                                  setState(() {});
+                                  addedToCart = true;
+                                  loadValues(user!, currentBook);
+                                  setState((){
+                                    print("SetState Called");
+                                  });
                                 },
                               ),
                             ), // For Rent Button
@@ -230,14 +232,18 @@ class _BookViewState extends State<BookView> {
                                 ),
                                 onPressed: () async {
                                   await addToCart(context, currentBook["id"], currentBook["bookName"], isRent: false);
-                                  addedToCart = !addedToCart;
-                                  setState(() {});
+                                  addedToCart = true;
+                                  loadValues(user!, currentBook);
+                                  setState((){
+                                    print("SetState Called");
+                                  });
                                 },
                               ),
                             ), // For Buy Button
                           ],
-                        ), // For Rent / Buy Button
-                      if(addedToCart && (!isBookBought(currentBook["id"]) || !isBookRented(currentBook["id"])))
+                        ),
+                      // Added To Cart Button
+                      if(!(isBookBought(currentBook["id"]) || isBookRented(currentBook["id"])) && addedToCart)
                         MaterialButton(
                           elevation: 2.0,
                           padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 50),
@@ -281,11 +287,14 @@ class _BookViewState extends State<BookView> {
                           ),
                           onPressed: () async {
                             removeFromCart(context, currentBook["id"], currentBook["bookName"]);
-                            addedToCart = !addedToCart;
-                            setState(() {});
+                            addedToCart = false;
+                            loadValues(user!, currentBook);
+                            setState((){
+                              print("SetState Called");
+                            });
                           },
                         ), 
-                      if((!isBookBought(currentBook["id"]) || !isBookRented(currentBook["id"])))
+                      if(!isBookBought(currentBook["id"]) || !isBookRented(currentBook["id"]))
                         SizedBox(height: 20,),
                       if(isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]))
                         MaterialButton(
@@ -334,7 +343,7 @@ class _BookViewState extends State<BookView> {
                             print("url: ${currentBook["url"]}");
                             Navigator.of(context).push(
                               // MaterialPageRoute(builder: (context) => PDFViewer(path: "/book/"+currentBook["id"]+".pdf")),
-                              MaterialPageRoute(builder: (context) => PDFViewer(path: "/book/book1.pdf")),
+                              MaterialPageRoute(builder: (context) => PDFViewer(bookId: currentBook["id"], path: "/book/book1.pdf")),
                             );
                             // Navigator.of(context).pushNamed(OTPPage.routeName);
                             // Center(
