@@ -117,7 +117,10 @@ var userSchema = new Schema({
         default: "0",
     },
     booksRead: {},
-    isAdmin: false,
+    isAdmin: {
+        type: Boolean,
+        default: false,
+    },
     // {
     //     type: Map,
     //     default: {},

@@ -62,7 +62,8 @@ var functions = {
                 firstName: req.body.firstName,
                 lastName: req.body.lastName,
                 emailId: req.body.emailId,
-                password: req.body.password
+                password: req.body.password,
+                isAdmin: false,
             });
             newUser.save(function (err, newUser) {
                 if (err) {

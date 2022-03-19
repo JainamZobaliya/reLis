@@ -255,24 +255,25 @@ class _PageTypeViewState extends State<PageTypeView> {
       pageMessage = "";
       currentBook = null;
     }
+    categoryBookHover = {};
     switch(pageData.page) {
       case pageType.category:
       {
-          print("Reached Here... ${pageData.currentCategory}");
+          print("...1 Reached Here... ${pageData.currentCategory}");
           if(pageData.currentCategory == null) {
             pageTitle = "Genre";
             pageMessage = "No Genres";
             currentBook = null;
-            print("Reached Here...");
+            print("\t...in if...Reached Here...");
             break;
           }
           pageTitle = "Genre: ${pageData.currentCategory["categoryName"]}";
           pageMessage = "No Books in this Genre";
           currentBook = getBooksMap(pageData.currentCategory["bookList"], isList: true);
-          print("Reached Here.....");
-          print("pageData.currentCategory[bookList]: ");
-          print("${pageData.currentCategory["bookList"].length}");
+          print("...2 Reached Here.....");
           if (pageData.currentCategory["bookList"] != null) {
+            print("pageData.currentCategory[bookList]: ");
+            print("${pageData.currentCategory["bookList"].length}");
             categoryBookHover = loadCategoryBooks(pageData.currentCategory["bookList"], categoryBookHover);
             // loadHover(pageData.currentCategory["bookList"].length,
             //     pageData.currentCategory["bookList"], categoryBookHover,

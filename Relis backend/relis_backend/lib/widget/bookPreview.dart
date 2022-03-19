@@ -128,7 +128,7 @@ class _BookPreviewState extends State<BookPreview> {
                                 maxLines: 1,
                               ),
                               Text(
-                                "\u{20B9} 99/-",
+                                "\u{20B9} ${(double.parse(widget.currentBook["price"]) * (0.5))}/-",
                                 style: TextStyle(
                                   fontWeight: FontWeight.w800,
                                   fontSize: 16.00,

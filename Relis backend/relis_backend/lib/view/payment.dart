@@ -56,7 +56,7 @@ class _PaymentPageState extends State<PaymentPage> {
     for(var bk in user!["cart"]["toRent"]) {
       // double x = 0;
       // cost += ((x/100)* double.parse(bookMap[bk]["price"]));
-      cost += 99.00;
+      cost += (double.parse(bookMap[bk]["price"]) * (0.5));
     }
   }
 

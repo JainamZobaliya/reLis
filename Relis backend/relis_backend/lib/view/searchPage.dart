@@ -192,13 +192,14 @@ class _SearchViewState extends State<SearchView> {
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(25.00),
-                                child: Image.asset(
-                                  currBook["image"],
-                                  fit: BoxFit.fill,
-                                  height: 300,
-                                  width: double.infinity,
-                                  repeat: ImageRepeat.noRepeat,
-                                ),
+                                child: currBook["image"],
+                                // Image.asset(
+                                //   currBook["image"],
+                                //   fit: BoxFit.fill,
+                                //   height: 300,
+                                //   width: double.infinity,
+                                //   repeat: ImageRepeat.noRepeat,
+                                // ),
                               ),
                               ValueListenableBuilder(
                                 valueListenable: bookHover[currBook["id"]]!,
@@ -413,10 +414,11 @@ class _SearchViewState extends State<SearchView> {
   void loadSearchingData() {
     searchList = {};
     for(var book in bookList) {
-      var bookDetailsList = [];
+      var bookDetailsList = Set<dynamic>();
       bookDetailsList.add(book["bookName"].toLowerCase());
       bookDetailsList.add(book["authorName"].toLowerCase());
       String categoryName = getCategoryName(book["category"]);
+      print("\tCategory found: $categoryName");
       if(categoryName != "-")
         bookDetailsList.add(categoryName.toLowerCase());
       if(book.keys.contains("keywords")) {
