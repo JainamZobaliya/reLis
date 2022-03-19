@@ -499,7 +499,7 @@ class _BookViewState extends State<BookView> {
                     ), // authorName, category, price
                     showBookDescription(currentBook["description"]),
                     SizedBox(height: 20,),
-                    showCommentBox(),
+                    showCommentBox(currentBook),
                   ],
                 ),
               ),
@@ -674,7 +674,7 @@ class _BookViewState extends State<BookView> {
     // );
   }
 
-  Widget showCommentBox() {
+  Widget showCommentBox(var currentBook) {
     return Container(
       padding: EdgeInsets.all(10.0),
       decoration: commentBoxDecoration,
@@ -724,7 +724,9 @@ class _BookViewState extends State<BookView> {
               bookRatingBar(0, true), // Rating bar
               SizedBox(width: 20,),
               IconButton(
-                onPressed: () async {},
+                onPressed: () async {
+                  // sendBooks(currentBook, );
+                },
                 icon: Icon(Icons.send_rounded, color: Colors.white,),
                 alignment: Alignment.center,
                 color: Colors.white,
@@ -768,7 +770,7 @@ class _BookViewState extends State<BookView> {
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
-                                      commentUserRating(userComment["rating"]),
+                                      commentUserRating(userComment["rating"].toString()),
                                       Text(
                                         userCommentInfo["name"],
                                         style: TextStyle(

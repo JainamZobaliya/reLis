@@ -34,7 +34,7 @@ def get_database():
     client = MongoClient(CONNECTION_STRING)
     # Create the database
     print("\t...Database Connected")
-    return client['testdb']
+    return client['testDB']
     
 db = get_database()
 
@@ -56,7 +56,7 @@ books_df = DataFrame(books_details, columns=books_columns)
 
 usersCollection = db['users']
 users_details = usersCollection.find()
-users_columns = ['emailId', 'favouriteBook', 'wishListBook', 'bookHistory', 'booksRead']
+users_columns = ['emailId', 'favouriteBook', 'wishListBook', 'bookHistory', 'booksRead', 'feedback']
 users_df = DataFrame(users_details, columns=users_columns)
 currentUser =  sys.argv[1]
 ratings_columns = ['rate0', 'rate005', 'rate1', 'rate105', 'rate2', 'rate205', 'rate3', 'rate305', 'rate4', 'rate405', 'rate5']
@@ -76,8 +76,10 @@ for index, row in books_df.iterrows():
     ratings_dict["id"].append(row["id"])
     ratings_dict["bookName"].append(row["bookName"])
 
+
 ratings_columns = ["id", "bookName", "overall"]
-ratings_df = DataFrame(ratings_dict, columns=ratings_columns)   
+ratings_df = DataFrame(ratings_dict, columns=ratings_columns)
+ratings_df = ratings_df.set_index('id')
 
 # print("\t...ratings_df: ",type(ratings_df))
 # # To print ratings details row-wise
@@ -95,9 +97,9 @@ ratings_df = DataFrame(ratings_dict, columns=ratings_columns)
 
 
 # Understand Rating information using shape.
-print("\n Ratings: ")
-print(ratings_df.shape) # (Total No. of data, Total No. of Coulmns)
-print(list(ratings_df.columns))
+# print("\n Ratings: ")
+# print(ratings_df.shape) # (Total No. of data, Total No. of Coulmns)
+# print(list(ratings_df.columns))
 
 # Understand Books information using shape.
 print("\n Books: ")
@@ -110,6 +112,29 @@ print(users_df.shape) # (Total No. of data, Total No. of Coulmns)
 print(list(users_df.columns))
 
 
+userList = {}
+bookId=[]
+
+userRating = {}
+
+for id in books_df["id"]:
+    bookId.append(id)
+    userRating[id] =  0
+
+for index, row in users_df.iterrows():
+    emailId = row["emailId"]
+    userList[emailId] = userRating.copy()
+    for feed in row["feedback"].values():
+        userList[emailId][feed["id"]] = feed["rating"]
+    # print("\nuserRating: ",userList[emailId])
+
+new_ratings_df = DataFrame(userList)
+new_ratings_df['overall'] = ratings_df['overall']
+ratings_df = new_ratings_df
+print("\n\nratings_df:") 
+print(ratings_df)
+print(ratings_df.shape) # (Total No. of data, Total No. of Coulmns)
+print(list(ratings_df.columns))
 
 # print("")
 # print("")
