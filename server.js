@@ -23,6 +23,8 @@ app.use(express.urlencoded({extended: true}))
 app.use(bodyParser.json())
 app.use(routes)
 app.use(passport.initialize())
+// app.use(express.static('public'))
+
 require('./config/passport')(passport)
 
 

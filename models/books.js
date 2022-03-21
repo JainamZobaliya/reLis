@@ -130,4 +130,4 @@ bookSchema.pre('save', function (next) {
     next();
 });
 
-module.exports = mongoose.model('Book', bookSchema)
+module.exports = mongoose.model('Book', bookSchema, 'books')

@@ -1,5 +1,6 @@
 var User = require('../models/user')
 var Book = require('../models/books')
+var AudioBook = require('../models/audioBooks')
 var BookImage = require('../models/images')
 var jwt = require('jwt-simple')
 var config = require('../config/dbconfig')
@@ -9,8 +10,9 @@ const request = require('request');
 const { Console } = require('console')
 const { type } = require('os')
 const utf8 = require('utf8')
-const path = require('path');
+const path = require('path')
 var fs = require('fs');
+
 
 function bookRecommendation(userId, req, res) {
     console.log("")
@@ -721,6 +723,84 @@ var functions = {
                             res.status(403).send({success: false, msg: 'Error in organising cart', body:req.body})
                         }
                         res.json({success: true, msg: 'Cart Updated Successfully', body:req.body})
+                    }
+                }
+            )
+        }
+    },
+    addAudioBook: function (req, res) {
+        if ((!req.body['id']) || (!req.body['bookId']) || (!req.body['audioBookMaxDuration']) || (!req.body['audioBookURL']) || (!req.body['audioBookChapterName'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else {
+            var filePath = 'assets/audioBooks/'+req.body.bookId+'/'+req.body.id+'.mp3'
+            var newAudioBook = AudioBook({ 
+                id: req.body.id,
+                bookId: req.body.bookId,
+                audioBookMaxDuration: req.body.audioBookMaxDuration,
+                audioBookURL: req.body.audioBookURL,
+                audioBookChapterName: req.body.audioBookChapterName,
+                audioBookPath: req.file.path,
+                audioBookSize: req.file.size,
+                audioBookName: req.file.filename,
+            });
+            newAudioBook.save(function (err, newAudioBook) {
+                if (err) {
+                    res.json({success: false, msg: 'Failed to add Audio-Book'})
+                }
+                else {
+                    res.json({success: true, msg: 'Audio-Book Successfully added'})
+                }
+            })
+        }
+    },
+    getAudioBook: function (req, res) {
+        console.log("body: ", req.body)
+        var bookId = req.body.bookId
+        var userId = req.body.userId
+        if((!bookId) || (!userId)) {
+            res.status(404).send({
+                success: false,
+                msg: 'Enter all fields',
+                body: req.body
+            })
+        }
+        else {
+            AudioBook.find({
+                bookId: bookId
+                },
+                function (err, audioBooks) {
+                    if (err) throw err
+                    if(audioBooks.length == 0) {
+                        res.json({success: true, msg: "Audio Book Not Added Yet..."})
+                    }
+                    else if (!audioBooks) {
+                        res.status(403).send({success: false, msg: 'AudioBooks not found'})
+                    }
+                    else {
+                        console.log("audioBooksLength: ", audioBooks.length)
+                        console.log("audioBooks: ", audioBooks)
+                        console.log("__dirname: ", __dirname)
+                        for(let i=0; i<audioBooks.length; ++i ) {
+                            var audioId = audioBooks[i].id
+                            var bookId = audioBooks[i].bookId
+                            var audioBookMaxDuration = audioBooks[i].audioBookMaxDuration
+                            var audioBookURL = audioBooks[i].audioBookURL
+                            var audioBookChapterName = audioBooks[i].audioBookChapterName
+                            var audioBookPath = audioBooks[i].audioBookPath
+                            var audioBookSize = audioBooks[i].audioBookSize
+                            var audioBookName = audioBooks[i].audioBookName
+                            console.log("audioBookPath: ", audioBookPath)
+                            var dir = path.join(__dirname, '..\\'+audioBookPath)
+                            console.log("...dir: ", dir)
+                            audioBooks[i]["audioFile"] = 
+                            {
+                                data: fs.readFileSync(dir),
+                                contentType: 'audio/mpeg'
+                            }
+                            console.log("audioBooks: ", audioBooks[i])
+                        }
+                        res.json({success: true, audioBooks: audioBooks})
                     }
                 }
             )

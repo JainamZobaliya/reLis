@@ -2,6 +2,8 @@ const express = require('express')
 const actions = require('../methods/actions')
 const router = express.Router()
 const multer = require('multer');
+const mongodb = require('mongodb');
+var fs = require('fs');
 // const uploadFile = require('express-fileupload');
 
 // set up multer for storing uploaded files
@@ -66,6 +68,24 @@ var storeBookImage = multer.diskStorage({
   
 var uploadBookImage = multer({ storage: storeBookImage });
 
+const storeAudioBook = multer.diskStorage({
+  filename: function (req, file, cb) {
+    console.log('filename')
+    console.log('1...body: ', req.body)
+    console.log('1...file: ', file)
+    cb(null, req.body.id+'.mp3')
+  },
+  destination: function (req, file, cb) {
+    console.log('storage')
+    console.log('2...body: ', req.body)
+    console.log('2...file: ', file)
+    const filePath = './assets/audioBooks/'+req.body.bookId
+    fs.mkdirSync(filePath, { recursive: true })
+    cb(null, filePath)
+  },
+})
+
+const uploadAudioBook = multer({ storage: storeAudioBook })
 
 router.get('/', (req, res) => {
     res.send('Hello World')
@@ -139,6 +159,14 @@ router.post('/changeLastPageRead', actions.changeLastPageRead)
 //@desc Update User's Reward
 //@route POST /addReward
 router.post('/addReward', actions.addReward)
+
+//@desc Add AudioBook
+//@route POST /addAudioBook
+router.post('/addAudioBook', uploadAudioBook.single('audioBook'), actions.addAudioBook)
+
+//@desc Get AudioBook
+//@route POST /getAudioBook
+router.post('/getAudioBook', actions.getAudioBook)
 
 //@desc Adding new book image
 //@route POST /addBookImage

@@ -207,4 +207,4 @@ userSchema.methods.comparePassword = function (passw, cb, redirect) {
     }
 }
 
-module.exports = mongoose.model('User', userSchema)
+module.exports = mongoose.model('User', userSchema, 'users')
