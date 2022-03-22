@@ -1,13 +1,18 @@
+import 'dart:html' as webFile;
+import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:relis/arguments/bookArguments.dart';
 import 'package:relis/audioBook/audiobook.dart';
+import 'package:relis/authentication/services.dart';
 import 'package:relis/authentication/user.dart';
 import 'package:relis/drawer.dart';
 import 'package:relis/globals.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
+import 'package:relis/view/pdfLoader.dart';
 import 'package:relis/view/pdfViewer.dart';
+import 'package:translator/translator.dart';
 
 class BookView extends StatefulWidget {
   const BookView({Key? key}) : super(key: key);
@@ -25,12 +30,77 @@ class _BookViewState extends State<BookView> {
   TextEditingController myCommentController = new TextEditingController();
   var feedbackMap = {};
   bool addedToCart = false;
-  
+  late String currentLang = "English (US)";  
+  final translator = GoogleTranslator(); 
+  List<String> lang = [];
+  ValueNotifier<String> bookDescription = ValueNotifier<String>("");
+  var fileData;
+
+  Map<String, String> langCodes = {
+    "Amharic": "am",
+    "Arabic": "ar",
+    "Basque": "eu",
+    "Bengali": "bn",
+    "English (UK)": "en-GB",
+    "Portuguese (Brazil)": "pt-BR",
+    "Bulgarian": "bg",
+    "Catalan": "ca",
+    "Cherokee": "chr",
+    "Croatian": "hr",
+    "Czech": "cs",
+    "Danish": "da",
+    "Dutch": "nl",
+    "English (US)": "en",
+    "Estonian": "et",
+    "Filipino": "fil",
+    "Finnish": "fi",
+    "French": "fr",
+    "German": "de",
+    "Greek": "el",
+    "Gujarati": "gu",
+    "Hebrew": "iw",
+    "Hindi": "hi",
+    "Hungarian": "hu",
+    "Icelandic": "is",
+    "Indonesian": "id",
+    "Italian": "it",
+    "Japanese": "ja",
+    "Kannada": "kn",
+    "Korean": "ko",
+    "Latvian": "lv",
+    "Lithuanian": "lt",
+    "Malay": "ms",
+    "Malayalam": "ml",
+    "Marathi": "mr",
+    "Norwegian": "no",
+    "Polish": "pl",
+    "Portuguese (Portugal)": "pt-PT",
+    "Romanian": "ro",
+    "Russian": "ru",
+    "Serbian": "sr",
+    "Chinese (PRC)": "zh-CN",
+    "Slovak": "sk",
+    "Slovenian": "sl",
+    "Spanish": "es",
+    "Swahili": "sw",
+    "Swedish": "sv",
+    "Tamil": "ta",
+    "Telugu": "te",
+    "Thai": "th",
+    "Chinese (Taiwan)": "zh-TW",
+    "Turkish": "tr",
+    "Urdu": "ur",
+    "Ukrainian": "uk",
+    "Vietnamese": "vi",
+    "Welsh": "cy",
+  };
+
 
   void loadValues(Map<String, dynamic> user, Map<String, dynamic> currentBook) {
-    for(var key in currentBook.keys) {
-      print("\t ${key}");
-    }
+    lang = langCodes.keys.toList()..sort();
+    // for(var key in currentBook.keys) {
+    //   print("\t ${key}");
+    // }
     // print("Received currentBook");
     favBook.value = isFavourite(user, currentBook["id"]);
     print("\tGot fav.");
@@ -53,6 +123,7 @@ class _BookViewState extends State<BookView> {
     print("\t not1: $not1");
     var and1 = not1 && addedToCart;
     print("\t\t and1: $and1");
+    bookDescription.value = currentBook["description"];
   }
   // AddedToCart is not working properly.
 
@@ -297,65 +368,92 @@ class _BookViewState extends State<BookView> {
                       if(!isBookBought(currentBook["id"]) || !isBookRented(currentBook["id"]))
                         SizedBox(height: 20,),
                       if(isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]))
-                        MaterialButton(
-                          elevation: 2.0,
-                          padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 50),
-                          shape: RoundedRectangleBorder(
-                            side: BorderSide(
-                              color: Color(0xFF032f4b),
-                            ),
-                            borderRadius: new BorderRadius.circular(15.0),
-                          ),
-                          focusElevation: 20.0,
-                          hoverElevation: 10.0,
-                          highlightElevation: 5.0,
-                          hoverColor: Color(0xff0f4261),
-                          autofocus: false,
-                          enableFeedback: true,
-                          textColor: Colors.white,
-                          color: Color(0xFF032f4b),
-                          splashColor: Color(0xFF032f4b).withOpacity(0.9),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                flex: 1,
-                                child: Icon(Icons.menu_book_rounded, color: Colors.white,),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Text(
-                                  "Read Now",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w300,
-                                    fontSize: 20,
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: MaterialButton(
+                                elevation: 2.0,
+                                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 50),
+                                shape: RoundedRectangleBorder(
+                                  side: BorderSide(
+                                    color: Color(0xFF032f4b),
                                   ),
-                                  textAlign: TextAlign.center,
-                                  overflow: TextOverflow.ellipsis,
+                                  borderRadius: new BorderRadius.circular(15.0),
                                 ),
+                                focusElevation: 20.0,
+                                hoverElevation: 10.0,
+                                highlightElevation: 5.0,
+                                hoverColor: Color(0xff0f4261),
+                                autofocus: false,
+                                enableFeedback: true,
+                                textColor: Colors.white,
+                                color: Color(0xFF032f4b),
+                                splashColor: Color(0xFF032f4b).withOpacity(0.9),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Expanded(
+                                      flex: 1,
+                                      child: Icon(Icons.menu_book_rounded, color: Colors.white,),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        "Read",
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w300,
+                                          fontSize: 20,
+                                        ),
+                                        textAlign: TextAlign.center,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                onPressed: () async {
+                                  addToHistory(user!, currentBook);
+                                  print("url: ${currentBook["url"]}");
+                                  WidgetsBinding.instance!.addPostFrameCallback((_) async {
+                                    print("going in getFile");
+                                    fileData = await getFile(currentBook["id"]);
+                                    print("out of getFile");
+                                    Navigator.of(context).push(
+                                      // MaterialPageRoute(builder: (context) => PDFViewer(path: "/book/"+currentBook["id"]+".pdf")),
+                                      MaterialPageRoute(
+                                        builder: (context) => PDFViewer(
+                                          bookId: currentBook["id"],
+                                          path: "/book/book1.pdf",
+                                          fileData: fileData,
+                                        ),
+                                      ),
+                                    );
+                                  });
+                                  
+                                  // Navigator.of(context).pushNamed(OTPPage.routeName);
+                                  // Center(
+                                  //   child: CircularProgressIndicator(),
+                                  // );
+                                  // if (_key.currentState.validate()) {
+                                  //   _signInWithEmailAndPassword();
+                                  // } else {
+                                  //   showMessageSnackBar("Please fill the valid Details!!");
+                                  // }
+                                },
                               ),
-                            ],
-                          ),
-                          onPressed: () async {
-                            addToHistory(user!, currentBook);
-                            print("url: ${currentBook["url"]}");
-                            Navigator.of(context).push(
-                              // MaterialPageRoute(builder: (context) => PDFViewer(path: "/book/"+currentBook["id"]+".pdf")),
-                              MaterialPageRoute(builder: (context) => PDFViewer(bookId: currentBook["id"], path: "/book/book1.pdf")),
-                            );
-                            // Navigator.of(context).pushNamed(OTPPage.routeName);
-                            // Center(
-                            //   child: CircularProgressIndicator(),
-                            // );
-                            // if (_key.currentState.validate()) {
-                            //   _signInWithEmailAndPassword();
-                            // } else {
-                            //   showMessageSnackBar("Please fill the valid Details!!");
-                            // }
-                          },
-                        ), // Read Now Button
+                            ),  // Read Now Button
+                            SizedBox(width: 10,),
+                            Expanded(
+                              flex: 2,
+                              child: translatorDropdown(),
+                            ),  // Translation Dropdown Button 
+                          ],
+                        ), 
                       if(!isBookBought(currentBook["id"]) || !isBookRented(currentBook["id"]))
                         SizedBox(height: 20,),
                       Container(
@@ -418,7 +516,14 @@ class _BookViewState extends State<BookView> {
                                       child: Icon(Icons.multitrack_audio_rounded, color: Colors.white,),
                                     ),
                                     onPressed: () async {
-                                      Navigator.of(context).pushNamed(AudioBook.routeName);
+                                      // Navigator.of(context).pushNamed(AudioBook.routeName);
+                                      Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                          builder: (context) => AudioBook(
+                                            book: currentBook,
+                                          ),
+                                        ),
+                                      );
                                     },
                                   ),
                                 ),
@@ -497,7 +602,12 @@ class _BookViewState extends State<BookView> {
                         ),
                       ],
                     ), // authorName, category, price
-                    showBookDescription(currentBook["description"]),
+                    ValueListenableBuilder(
+                      valueListenable: bookDescription,
+                      builder: (BuildContext context, String value, Widget? child) {
+                        return showBookDescription(bookDescription.value);
+                      },
+                    ),
                     SizedBox(height: 20,),
                     showCommentBox(currentBook),
                   ],
@@ -807,5 +917,131 @@ class _BookViewState extends State<BookView> {
       ),
     );
   }
+
+  Widget translatorDropdown() {
+    return Tooltip(
+      message: "Choose Language to Translate Book",
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 2.0, horizontal: 5),
+        decoration: BoxDecoration(
+          color: Color(0xFF032f4b),
+          borderRadius: BorderRadius.all(
+            Radius.circular(15.00)
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Icon(
+              Icons.g_translate_rounded,
+              color: Colors.tealAccent,
+            ),
+            DropdownButtonHideUnderline(
+              child: DropdownButton(
+                borderRadius: BorderRadius.all(
+                  Radius.circular(15.00)
+                ),
+                alignment: Alignment.center,
+                value: currentLang,
+                style: TextStyle(
+                  color: Colors.tealAccent,
+                  fontWeight: FontWeight.w300,
+                ),
+                dropdownColor: Color(0xFF032f4b),
+                icon: const Icon(
+                  Icons.keyboard_arrow_down,
+                  color: Colors.tealAccent,
+                ),
+                items: lang.map((String items) {
+                  return DropdownMenuItem(
+                    value: items,
+                    child: Text(items),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) async { 
+                  setState(() {
+                    currentLang = newValue!;
+                  });
+                  await startTranslating();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  startTranslating() async {
+    print("currentLang changes to $currentLang");
+    await translator.translate(bookDescription.value, to: langCodes[currentLang]!)
+      .then((result) {
+        print("... in startTranslating");
+        print("$result");
+        bookDescription.value = "$result";
+      });
+    // print("... in startTranslating");
+    // var file = await PDFLoader.loadAsset("/book/book1.pdf");
+  }
+
+  
+
+  getFile(String bookId) async {
+    try {
+      print("In get File");
+      var val = await Services().getBookFile(user!["emailId"], bookId);
+      print("val.data['success']: ");
+      print(val.data['success']);
+      if(val.data['success']) {
+        print("in if of getFile");
+        var imageListDynamic = val.data["bookFile"]["data"]["data"];
+        print("1...${imageListDynamic.runtimeType}");
+        var imageList = imageListDynamic.cast<int>();
+        print("2...${imageList.runtimeType}");
+        var imageData = Uint8List.fromList(imageList);
+        return imageData;
+        // print("...1");
+        // print("...${imageData.runtimeType}");
+        // // File file = new File(widget.bookId!+".pdf");
+        // var file = webFile.File(imageData, bookId!+".pdf");
+        // print("...2");
+        // print("type...${file.type}");
+        // print("name...${file.name}");
+        // print("rp...${file.relativePath}");
+        // // await file.writeAsBytes(imageData);
+        // // print("...${file.runtimeType}");
+        // // print("...${file.path}");
+        // return file;
+        // return Image.memory(
+        //   Uint8List.fromList(imageData),
+        //   fit: BoxFit.fill,
+        //   width: double.infinity,
+        //   repeat: ImageRepeat.noRepeat,
+        // );
+      }
+      else {
+        print("in else of getFile");
+        return [];
+      }
+      // print("...Getting values");
+      // print(val);
+      // // if (!val){
+      // //   return File(widget.bookId!+".pdf");
+      // // }
+      // // path.join('directory', 'file.txt');
+      // // Directory tempDir = await getTemporaryDirectory();
+      // // String tempPath = tempDir.path;
+      // File file = new File(widget.bookId!+".pdf");
+      // await file.writeAsBytes(val.bodyBytes);
+      // print("File Length: ${file.length()}");
+      // return file;
+    }  
+    catch (error) {
+      print("getFile Error: $error");
+      return [];
+    }
+  }
+
 
 }

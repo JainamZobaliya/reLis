@@ -8,6 +8,12 @@ import 'package:relis/globals.dart';
 class AudioBook extends StatefulWidget {
   static const routeName = '/AudioBook';
   //const AudioBook({Key? key}) : super(key: key);
+  dynamic book, audioBook;
+  AudioBook({
+    this.book,
+    this.audioBook,
+  });
+
   @override
   _AudioBookState createState() => _AudioBookState();
 }
@@ -31,12 +37,12 @@ class _AudioBookState extends State<AudioBook> {
         shadowColor: appBarShadowColor,
         elevation: 2.0,
       ),
-      body: view(context, advPlayer),
+      body: view(context, advPlayer, widget.book),
     );
   }
 }
 
-Widget view(BuildContext context, AudioPlayer advancedPlayer) {
+Widget view(BuildContext context, AudioPlayer advancedPlayer, var book) {
   return Center(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,25 +50,26 @@ Widget view(BuildContext context, AudioPlayer advancedPlayer) {
       children: <Widget>[
         Container(
           height: MediaQuery.of(context).size.height / 2,
+          width: MediaQuery.of(context).size.width / 2,
           padding: EdgeInsets.all(10.00),
           margin: EdgeInsets.all(10.00),
           color: Colors.yellow[700],
           alignment: Alignment.center,
-          child: Text('Image of Audio-Book'),
+          child: book["image"],
         ),
         Container(
           padding: EdgeInsets.all(10.00),
           margin: EdgeInsets.all(10.00),
           child: Column(
-            children: const [
+            children: [
               Text(
-                "FileName",
+                "${book["bookName"]}",
                 style: TextStyle(fontSize: 20.0),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                "authorName",
+                "${book["authorName"]}",
                 style: TextStyle(fontSize: 15.0),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

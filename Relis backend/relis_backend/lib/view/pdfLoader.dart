@@ -13,9 +13,12 @@ class PDFLoader {
   static var dio = Dio();
 
   static Future<File> loadAsset(String path) async {
+    print("\t... in loadAsset");
     final data = await rootBundle.load(path);
+    print("\t... loaded data");
+    print(data.toString());
     final bytes = data.buffer.asUint8List();
-
+    print("\t... loaded bytes");
     return _storeFile(path, bytes);
   }
 
@@ -93,7 +96,14 @@ class PDFLoader {
   // }
 
   static Future<File> _storeFile(String url, List<int> bytes) async {
+    print("\t... in _storeFile");
     print("Reached here...");
+    print(bytes.length);
+    var contents = String.fromCharCodes(bytes);
+    print("Contents are: ");
+    print(contents.length);
+    print(contents);
+    // print(contents);
     final filename = basename(url);
     final dir = await getApplicationDocumentsDirectory();
     final file = File('${dir.path}/$filename');

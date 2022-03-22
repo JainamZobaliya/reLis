@@ -272,4 +272,26 @@ class Services {
     }
   }
 
+  getBookFile(emailId, bookId) async {
+    try {
+      print("...Sending Request");
+      var response =  await dio.post('http://localhost:3000/getBookFile',
+          data: {"emailId": emailId, "bookId": bookId},
+          options: Options(contentType: Headers.formUrlEncodedContentType)).whenComplete(() => print("Got Response data ..."));
+      print("...Received response");
+      return response;
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+        msg: e.response?.data['msg'],
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
 }
+
+

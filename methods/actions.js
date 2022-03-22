@@ -754,6 +754,42 @@ var functions = {
             })
         }
     },
+    getBookFile: function (req, res) {
+        console.log("...getBookFile body: ", req.body)
+        var bookId = req.body.bookId
+        var userId = req.body.emailId
+        if((!bookId) || (!userId)) {
+            res.status(404).send({
+                success: false,
+                msg: 'Enter all fields',
+                body: req.body
+            })
+        }
+        else {
+            Book.find({
+                id: bookId
+                },
+                function (err, book) {
+                    if (err) throw err
+                    else if (!book) {
+                        res.status(403).send({success: false, msg: 'Book not found'})
+                    }
+                    else {
+                        var dir = path.join(__dirname, "../assets/books/"+bookId+".pdf")
+                        console.log("...dir: ", dir)
+                        bookFile = {
+                            data: fs.readFileSync(dir),
+                            contentType: 'application/pdf'
+                        }
+                        res.json({success: true, msg: 'BookFile retrieved', bookId: bookId, bookFile: bookFile});
+                        // const bookStream = fs.createReadStream(dir)
+                        // console.log("book: ", bookStream)
+                        // bookStream.pipe(res)
+                    }
+                }
+            )
+        }
+    },
     getAudioBook: function (req, res) {
         console.log("body: ", req.body)
         var bookId = req.body.bookId
@@ -791,16 +827,17 @@ var functions = {
                             var audioBookSize = audioBooks[i].audioBookSize
                             var audioBookName = audioBooks[i].audioBookName
                             console.log("audioBookPath: ", audioBookPath)
-                            var dir = path.join(__dirname, '..\\'+audioBookPath)
+                            var dir = path.join(__dirname, "../assets/books/bk-001.pdf")  // '..\\'+audioBookPath)
                             console.log("...dir: ", dir)
                             audioBooks[i]["audioFile"] = 
                             {
                                 data: fs.readFileSync(dir),
                                 contentType: 'audio/mpeg'
                             }
-                            console.log("audioBooks: ", audioBooks[i])
+                            const audioStream = fs.createReadStream(dir)
+                            console.log("audioStream: ", audioStream)
+                            audioStream.pipe(res)
                         }
-                        res.json({success: true, audioBooks: audioBooks})
                     }
                 }
             )

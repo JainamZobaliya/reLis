@@ -168,6 +168,10 @@ router.post('/addAudioBook', uploadAudioBook.single('audioBook'), actions.addAud
 //@route POST /getAudioBook
 router.post('/getAudioBook', actions.getAudioBook)
 
+//@desc Get Book File
+//@route POST /getBookFile
+router.post('/getBookFile', actions.getBookFile)
+
 //@desc Adding new book image
 //@route POST /addBookImage
 // router.post('/addBookImage', upload.single('img'), actions.addBookImage.bind(actions))

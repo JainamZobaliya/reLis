@@ -1,19 +1,25 @@
 import 'dart:async';
-
+import 'dart:io';
+// import 'dart:io';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:native_pdf_view/native_pdf_view.dart';
+import 'package:relis/authentication/services.dart';
 import 'package:relis/authentication/user.dart';
 import 'package:relis/globals.dart';
+import 'dart:html' as webFile;
 
 class PDFViewer extends StatefulWidget {
   String? url;
   String? path;
   String? bookId;
+  dynamic? fileData;
 
   PDFViewer({
     this.url,
     this.path,
     this.bookId,
+    this.fileData,
   });
 
   @override
@@ -26,23 +32,25 @@ class _PDFViewerState extends State<PDFViewer> {
   bool isSampleDoc = true;
   int _lastPageRead = _initialPage;
   double viewportFraction = 1;
+  var file;
   PdfController _pdfController = PdfController(
     document: PdfDocument.openAsset('ReLis.gif'),
   );
 
   @override
   void initState() {
+    super.initState();
     _initialPage = getInitialPage();
     _actualPageNumber = _initialPage;
     _lastPageRead = _initialPage;
+    // print("filePath: ${file.path}");
     _pdfController = PdfController(
-      document: PdfDocument.openAsset(widget.path!),
+      // document: PdfDocument.openAsset(widget.path!),
+      document: PdfDocument.openData(widget.fileData),
       initialPage: _initialPage,
       viewportFraction: viewportFraction,
     );
-    super.initState();
   }
-
   int getInitialPage() {
     if(user!.containsKey("booksRead") && user!["booksRead"].containsKey(widget.bookId)) {
       return user!["booksRead"][widget.bookId]["lastPageRead"];
@@ -105,10 +113,10 @@ class _PDFViewerState extends State<PDFViewer> {
             onPressed: () {
               if (isSampleDoc) {
                 _pdfController.loadDocument(
-                    PdfDocument.openAsset(widget.path!));
+                    PdfDocument.openData(widget.fileData));
               } else {
                 _pdfController.loadDocument(
-                    PdfDocument.openAsset(widget.path!));
+                    PdfDocument.openData(widget.fileData));
               }
               isSampleDoc = !isSampleDoc;
             },
@@ -119,7 +127,7 @@ class _PDFViewerState extends State<PDFViewer> {
         documentLoader: Center(child: CircularProgressIndicator()),
         pageLoader: Center(child: CircularProgressIndicator()),
         controller: _pdfController,
-        onDocumentLoaded: (document) {
+        onDocumentLoaded: (document) async {
           setState(() {
             _allPagesCount = document.pagesCount;
           });
