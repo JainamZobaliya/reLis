@@ -8,10 +8,12 @@ import 'package:relis/globals.dart';
 class AudioBook extends StatefulWidget {
   static const routeName = '/AudioBook';
   //const AudioBook({Key? key}) : super(key: key);
-  dynamic book, audioBook;
+  dynamic book, audioBook, audioFile, index;
   AudioBook({
     this.book,
     this.audioBook,
+    this.audioFile,
+    this.index,
   });
 
   @override
@@ -23,7 +25,7 @@ class _AudioBookState extends State<AudioBook> {
   @override
   void initState() {
     super.initState();
-    advPlayer = AudioPlayer(playerId: "${user!["emailId"]}");
+    advPlayer = AudioPlayer(playerId: "${user!["emailId"]}-${widget.audioBook[widget.index]["id"]}");
   }
 
   @override
@@ -37,25 +39,27 @@ class _AudioBookState extends State<AudioBook> {
         shadowColor: appBarShadowColor,
         elevation: 2.0,
       ),
-      body: view(context, advPlayer, widget.book),
+      body: view(context, advPlayer, widget.index, widget.book, widget.audioBook, widget.audioFile),
     );
   }
 }
 
-Widget view(BuildContext context, AudioPlayer advancedPlayer, var book) {
+Widget view(BuildContext context, AudioPlayer advancedPlayer, var index, var book, var audioBook, var audioFile) {
   return Center(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        Container(
-          height: MediaQuery.of(context).size.height / 2,
-          width: MediaQuery.of(context).size.width / 2,
-          padding: EdgeInsets.all(10.00),
-          margin: EdgeInsets.all(10.00),
-          color: Colors.yellow[700],
-          alignment: Alignment.center,
-          child: book["image"],
+        Center(
+          child: Container(
+            height: MediaQuery.of(context).size.height / 2,
+            width: MediaQuery.of(context).size.width / 2,
+            padding: EdgeInsets.all(10.00),
+            margin: EdgeInsets.all(10.00),
+            color: Colors.yellow[700],
+            alignment: Alignment.center,
+            child: book["image"],
+          ),
         ),
         Container(
           padding: EdgeInsets.all(10.00),
@@ -63,13 +67,13 @@ Widget view(BuildContext context, AudioPlayer advancedPlayer, var book) {
           child: Column(
             children: [
               Text(
-                "${book["bookName"]}",
+                "${audioBook["audioBookChapterName"]}",
                 style: TextStyle(fontSize: 20.0),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               Text(
-                "${book["authorName"]}",
+                "${book["bookName"]} by ${book["authorName"]}",
                 style: TextStyle(fontSize: 15.0),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -85,7 +89,7 @@ Widget view(BuildContext context, AudioPlayer advancedPlayer, var book) {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               //Audio line and Icons...
-              AudioFile(advancedPlayer: advancedPlayer),
+              AudioFile(advancedPlayer: advancedPlayer, index: index, book: book, audioBook: audioBook, audioFile: audioFile),
             ],
           ),
         ),

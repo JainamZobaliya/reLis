@@ -29,6 +29,7 @@ import 'package:relis/view/searchPage.dart';
 import 'package:relis/view/splashScreen.dart';
 import 'package:relis/view/statistics.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:html' as webFile;
 
 String appTitle = "ReLis - Let the book talk!!!";
 var token;
@@ -1517,4 +1518,84 @@ Widget customDivider() {
       Container(color: Color(0xFF032f4b), height: 5,),
     ],
   );
+}
+
+
+getBookFile(String bookId) async {
+  try {
+    print("In getBookFile");
+    var val = await Services().getBookFile(user!["emailId"], bookId);
+    print("val.data['success']: ");
+    print(val.data['success']);
+    if(val.data['success']) {
+      print("in if of getBookFile");
+      var bookListDynamic = val.data["bookFile"]["data"]["data"];
+      var bookBufferList = bookListDynamic.cast<int>();
+      var bookData = Uint8List.fromList(bookBufferList);
+      return bookData;
+    }
+    else {
+      print("in else of getBookFile");
+      return [];
+    }
+  }  
+  catch (error) {
+    print("getBookFile Error: $error");
+    return [];
+  }
+}
+
+getAudioBook(String bookId) async {
+  try {
+    print("In getAudioBook File");
+    var val = await Services().getAudioBook(user!["emailId"], bookId);
+    print("val.data['success']: ");
+    print(val.data['success']);
+    if(val.data['success']) {
+      print("in if of getAudioBook");
+      var audioBooksList = val.data["audioBooks"];
+      return audioBooksList;
+    }
+    else {
+      print("in else of getAudioBook");
+      return [];
+    }
+  }  
+  catch (error) {
+    print("getAudioBook Error: $error");
+    return [];
+  }
+}
+
+getAudioBookFile(String bookId, String audioId) async {
+  try {
+    print("In getAudioBookFile");
+    var val = await Services().getAudioBookFile(user!["emailId"], bookId, audioId);
+    print("val.data['success']: ");
+    print(val.data['success']);
+    if(val.data['success']) {
+      print("in if of getAudioBookFile");
+      var audioBookFileListDynamic = val.data["audioFile"]["data"]["data"];
+      var audioBookFileList = audioBookFileListDynamic.cast<int>();
+      var audioBookFileData = Uint8List.fromList(audioBookFileList);
+      var audioFile = webFile.File(audioBookFileData, "$bookId/$audioId.mp3");
+      return audioBookFileData;
+    }
+    else {
+      print("in else of getAudioBookFile");
+      return [];
+    }
+  }  
+  catch (error) {
+    print("getAudioBookFile Error: $error");
+    return [];
+  }
+}
+
+String getDuration(String seconds) {
+  Duration duration = new Duration(seconds: int. parse(seconds));
+  String twoDigits(int n) => n.toString().padLeft(2, "0");
+  String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
+  String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
+  return duration.inHours == 0 ? "$twoDigitMinutes:$twoDigitSeconds" : "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
 }

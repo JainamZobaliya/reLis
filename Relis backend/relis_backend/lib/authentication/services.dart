@@ -292,6 +292,48 @@ class Services {
       );
     }
   }
+
+  getAudioBook(emailId, bookId) async {
+    try {
+      print("...Sending Request");
+      var response =  await dio.post('http://localhost:3000/getAudioBook',
+          data: {"emailId": emailId, "bookId": bookId},
+          options: Options(contentType: Headers.formUrlEncodedContentType)).whenComplete(() => print("Got Response data ..."));
+      print("...Received response");
+      return response;
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+        msg: e.response?.data['msg'],
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+
+  getAudioBookFile(emailId, bookId, audioId) async {
+    try {
+      print("...Sending Request");
+      var response =  await dio.post('http://localhost:3000/getAudioBookFile',
+          data: {"emailId": emailId, "bookId": bookId, "audioId": audioId},
+          options: Options(contentType: Headers.formUrlEncodedContentType)).whenComplete(() => print("Got Response data ..."));
+      print("...Received response");
+      return response;
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+        msg: e.response?.data['msg'],
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
 }
 
 

@@ -54,6 +54,38 @@ function bookRecommendation(userId, req, res) {
     });
 }
 
+function getRatingsKey(rating) {
+    switch(rating) {
+        case 0 :
+            return "rate0";
+        case 0.5 :
+            return "rate005";
+        case 1 :
+        case 1.0 :
+            return "rate1";
+        case 1.5 :
+            return "rate105";
+        case 2 :
+        case 2.0 :
+            return "rate2";
+        case 2.5 :
+            return "rate205";
+        case 3 :
+        case 3.0 :
+            return "rate3";
+        case 3.5 :
+            return "rate305";
+        case 4 :
+        case 4.0 :
+            return "rate4";
+        case 4.5 :
+            return "rate405";
+        case 5 :
+        case 5.0 :
+            return "rate5";
+    }
+}
+
 var functions = {
     addNew: function (req, res) {
         if ((!req.body['firstName']) || (!req.body['lastName']) || (!req.body['emailId']) || (!req.body['password'])) {
@@ -793,7 +825,7 @@ var functions = {
     getAudioBook: function (req, res) {
         console.log("body: ", req.body)
         var bookId = req.body.bookId
-        var userId = req.body.userId
+        var userId = req.body.emailId
         if((!bookId) || (!userId)) {
             res.status(404).send({
                 success: false,
@@ -815,32 +847,171 @@ var functions = {
                     }
                     else {
                         console.log("audioBooksLength: ", audioBooks.length)
-                        console.log("audioBooks: ", audioBooks)
-                        console.log("__dirname: ", __dirname)
-                        for(let i=0; i<audioBooks.length; ++i ) {
-                            var audioId = audioBooks[i].id
-                            var bookId = audioBooks[i].bookId
-                            var audioBookMaxDuration = audioBooks[i].audioBookMaxDuration
-                            var audioBookURL = audioBooks[i].audioBookURL
-                            var audioBookChapterName = audioBooks[i].audioBookChapterName
-                            var audioBookPath = audioBooks[i].audioBookPath
-                            var audioBookSize = audioBooks[i].audioBookSize
-                            var audioBookName = audioBooks[i].audioBookName
-                            console.log("audioBookPath: ", audioBookPath)
-                            var dir = path.join(__dirname, "../assets/books/bk-001.pdf")  // '..\\'+audioBookPath)
-                            console.log("...dir: ", dir)
-                            audioBooks[i]["audioFile"] = 
-                            {
-                                data: fs.readFileSync(dir),
-                                contentType: 'audio/mpeg'
-                            }
-                            const audioStream = fs.createReadStream(dir)
-                            console.log("audioStream: ", audioStream)
-                            audioStream.pipe(res)
-                        }
+                        res.json({
+                            success: true,
+                            msg: 'AudioBooks Info retrieved',
+                            bookId: bookId,
+                            audioBooks: audioBooks
+                        });
                     }
                 }
             )
+        }
+    },
+    getAudioBookFile: function (req, res) {
+        console.log("...getBookFile body: ", req.body)
+        var audioId = req.body.audioId
+        var bookId = req.body.bookId
+        var userId = req.body.emailId
+        if((!audioId) || (!userId) || (!bookId)) {
+            res.status(404).send({
+                success: false,
+                msg: 'Enter all fields',
+                body: req.body
+            })
+        }
+        else {
+            AudioBook.findOne({
+                id: audioId
+                },
+                function (err, audioBook) {
+                    if (err) throw err
+                    else if (!audioBook) {
+                        res.status(403).send({success: false, msg: 'AudioBook not found'})
+                    }
+                    else {
+                        console.log("audioBook: ")
+                        console.log(audioBook)
+                        var audioBookPath = audioBook.audioBookPath
+                        var dir = path.join(__dirname, '..\\'+audioBookPath)
+                        console.log("...dir: ", dir)
+                        audioFile = {
+                            data: fs.readFileSync(dir),
+                            contentType: 'audio/mpeg'
+                        }
+                        res.json({
+                            success: true,
+                            msg: 'Audio-File retrieved',
+                            audioId: audioId,
+                            audioFile: audioFile
+                        });
+                    }
+                }
+            )
+        }
+    },
+    addFeedback: async function(req, res) {
+        var bookId = req.body['bookId']
+        var emailId = req.body['emailId']
+        var comment = req.body['comment']
+        var rating = req.body['rating']
+        if ((!emailId) || (!bookId) || (!comment) || (!rating)) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            rating = parseFloat(rating)
+            await User.findOne(
+                {
+                    emailId: emailId
+                },
+                async function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Adding Feeback Info. Failed, User not found!!', body:req.body})
+                    }
+                    else {
+                        try{
+                            // feedMap = user.feedback;
+                            var feedMap = {};
+                            console.log("user[feedback] ? ",user.hasOwnProperty("feedback"))
+                            if(user.hasOwnProperty("feedback")) {
+                                feedMap = user["feedback"];
+                            }
+                            console.log("...before Adding feedback: ");
+                            console.log(feedMap);
+                            feedMap[bookId] = {}
+                            feedMap[bookId]["id"] =  bookId;
+                            feedMap[bookId]["comment"] =  comment;
+                            feedMap[bookId]["rating"] =  rating;
+                            user.feedback = feedMap;
+                            console.log("...after Adding feedback: ");
+                            console.log(user.feedback);
+                            await user.save(function(err) {
+                                if(!err) {
+                                    console.log("... Feeback Added. ");
+                                }
+                                else {
+                                    console.log("... Error: could not add feedback. ");
+                                    console.log("... Error: ", err);
+                                    res.status(403).send({success: false, msg: 'Error in adding feedback', body:req.body, error: err })
+                                }
+                            });
+                        }
+                        catch(err) {  
+                            res.status(403).send({success: false, msg: 'Error in adding feedback', body:req.body, error: err})
+                        }
+                    }
+                }
+            );
+            bookMap = {
+                "userId": emailId,
+                "comment":  comment,
+                "rating":  rating,
+            };
+            console.log("BookMap: ", bookMap)
+            await Book.findOne(
+                {
+                    id: bookId
+                },
+                async function (err, book) {
+                    if (err) throw err
+                    if (!book) {
+                        res.status(403).send({success: false, msg: 'Adding Feeback Info. Failed, Book not found!!', body:req.body})
+                    }
+                    else {
+                        try{
+                            // bookFeedMap = book.feedback;
+                            var bookFeedMap = {};
+                            console.log("book[feedback] ? ",book.hasOwnProperty("feedback"))
+                            if(book.hasOwnProperty("feedback")) {
+                                bookFeedMap = book["feedback"];
+                            }
+                            else {
+                                book["feedback"] = {};
+                            }
+                            console.log("...before Adding book-feedback: ");
+                            console.log(book["feedback"]);
+                            console.log("...Reached Here-1");
+                            book.feedback.emailId = bookMap;
+                            console.log("...Reached Here-2");
+                            // book.feedback = bookFeedMap;
+                            console.log("...after Adding book-feedback: ");
+                            console.log(book.feedback);
+                            console.log("...Reached Here-3");
+                            console.log(book.feedback.emailId);
+                            var key = getRatingsKey(rating)
+                            console.log(key,": ",book["ratings"][key])
+                            book["ratings"][key] = book["ratings"][key]+1;
+                            console.log(key,": ",book["ratings"][key])
+                            await book.save(
+                                function(err) {
+                                    if(!err) {
+                                        console.log("... Book-Feeback Added. ");
+                                    }
+                                    else {
+                                        console.log("... Error: could not add book-feedback. ");
+                                        console.log("... Error: ", err);
+                                    }
+                                }
+                            );
+                        }
+                        catch(err) {  
+                            res.status(403).send({success: false, msg: 'Error in adding book-feedback', body:req.body})
+                        }
+                    }
+                }
+            );       
+            res.json({success: true, msg: 'Feedback Added Successfully', body:req.body})
         }
     },
     getinfo: function (req, res) {

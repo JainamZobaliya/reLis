@@ -1,10 +1,20 @@
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:relis/globals.dart';
 
 class AudioFile extends StatefulWidget {
   final AudioPlayer advancedPlayer;
-  const AudioFile({Key? key, required this.advancedPlayer}) : super(key: key);
+  dynamic audioFile, book, audioBook, index;
+  AudioFile(
+    {Key? key,
+    required this.advancedPlayer,
+    required this.audioFile,
+    required this.book,
+    required this.audioBook,
+    required this.index,
+    }
+  ) : super(key: key);
   @override
   _AudioFileState createState() => _AudioFileState();
 }
@@ -34,6 +44,10 @@ class _AudioFileState extends State<AudioFile> {
   void initState() {
     super.initState();
     advancedPlayer = this.widget.advancedPlayer;
+    endDuration = getDuration(widget.audioBook[widget.index]["audioBookMaxDuration"]);
+    print("audioBook: ");
+    print(widget.audioBook[widget.index]);
+    print("audioBook-endDuration: ${endDuration}");
     Future.delayed(Duration.zero, () async {
       await loadPlayer();
     });
@@ -45,7 +59,7 @@ class _AudioFileState extends State<AudioFile> {
         print("\n1------\n");
         print(d);
         _duration = d;
-        endDuration = _duration.toString().split(".")[0];
+        // endDuration = _duration.toString().split(".")[0];
         print("\na------\n");
       });
     });
@@ -65,8 +79,8 @@ class _AudioFileState extends State<AudioFile> {
         isPlaying = false;
       });
     });
-    endDuration = _duration.toString().split(".")[0];
-    allGood = await advancedPlayer.setUrl(path, isLocal: true).onError(
+    // endDuration = _duration.toString().split(".")[0];
+    allGood = await advancedPlayer.setUrl("${widget.audioBook[widget.index]["bookId"]}/${widget.audioBook[widget.index]["id"]}.mp3", isLocal: true).onError(
       (error, stackTrace) {
         print("error:");
         print(error);

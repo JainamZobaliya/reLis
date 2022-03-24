@@ -420,9 +420,9 @@ class _BookViewState extends State<BookView> {
                                   addToHistory(user!, currentBook);
                                   print("url: ${currentBook["url"]}");
                                   WidgetsBinding.instance!.addPostFrameCallback((_) async {
-                                    print("going in getFile");
-                                    fileData = await getFile(currentBook["id"]);
-                                    print("out of getFile");
+                                    print("going in getBookFile");
+                                    fileData = await getBookFile(currentBook["id"]);
+                                    print("out of getBookFile");
                                     Navigator.of(context).push(
                                       // MaterialPageRoute(builder: (context) => PDFViewer(path: "/book/"+currentBook["id"]+".pdf")),
                                       MaterialPageRoute(
@@ -517,13 +517,26 @@ class _BookViewState extends State<BookView> {
                                     ),
                                     onPressed: () async {
                                       // Navigator.of(context).pushNamed(AudioBook.routeName);
-                                      Navigator.of(context).push(
-                                        MaterialPageRoute(
-                                          builder: (context) => AudioBook(
-                                            book: currentBook,
+                                      WidgetsBinding.instance!.addPostFrameCallback((_) async {
+                                        print("going in getAudioBook");
+                                        var audioBook = await getAudioBook(currentBook["id"]);
+                                        print("out of getAudioBook");
+                                        print("going in getAudioBookFile");
+                                        var index = 0;
+                                        var audioFile = await getAudioBookFile(currentBook["id"], audioBook[index]["id"]);
+                                        print("out of getAudioBook");
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => AudioBook(
+                                              book: currentBook,
+                                              audioBook: audioBook,
+                                              audioFile: audioFile,
+                                              index: index,
+                                            ),
                                           ),
-                                        ),
-                                      );
+                                        );
+                                      });
+                                      
                                     },
                                   ),
                                 ),
@@ -984,64 +997,5 @@ class _BookViewState extends State<BookView> {
     // print("... in startTranslating");
     // var file = await PDFLoader.loadAsset("/book/book1.pdf");
   }
-
-  
-
-  getFile(String bookId) async {
-    try {
-      print("In get File");
-      var val = await Services().getBookFile(user!["emailId"], bookId);
-      print("val.data['success']: ");
-      print(val.data['success']);
-      if(val.data['success']) {
-        print("in if of getFile");
-        var imageListDynamic = val.data["bookFile"]["data"]["data"];
-        print("1...${imageListDynamic.runtimeType}");
-        var imageList = imageListDynamic.cast<int>();
-        print("2...${imageList.runtimeType}");
-        var imageData = Uint8List.fromList(imageList);
-        return imageData;
-        // print("...1");
-        // print("...${imageData.runtimeType}");
-        // // File file = new File(widget.bookId!+".pdf");
-        // var file = webFile.File(imageData, bookId!+".pdf");
-        // print("...2");
-        // print("type...${file.type}");
-        // print("name...${file.name}");
-        // print("rp...${file.relativePath}");
-        // // await file.writeAsBytes(imageData);
-        // // print("...${file.runtimeType}");
-        // // print("...${file.path}");
-        // return file;
-        // return Image.memory(
-        //   Uint8List.fromList(imageData),
-        //   fit: BoxFit.fill,
-        //   width: double.infinity,
-        //   repeat: ImageRepeat.noRepeat,
-        // );
-      }
-      else {
-        print("in else of getFile");
-        return [];
-      }
-      // print("...Getting values");
-      // print(val);
-      // // if (!val){
-      // //   return File(widget.bookId!+".pdf");
-      // // }
-      // // path.join('directory', 'file.txt');
-      // // Directory tempDir = await getTemporaryDirectory();
-      // // String tempPath = tempDir.path;
-      // File file = new File(widget.bookId!+".pdf");
-      // await file.writeAsBytes(val.bodyBytes);
-      // print("File Length: ${file.length()}");
-      // return file;
-    }  
-    catch (error) {
-      print("getFile Error: $error");
-      return [];
-    }
-  }
-
 
 }

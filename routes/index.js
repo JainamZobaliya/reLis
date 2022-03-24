@@ -172,6 +172,14 @@ router.post('/getAudioBook', actions.getAudioBook)
 //@route POST /getBookFile
 router.post('/getBookFile', actions.getBookFile)
 
+//@desc Get AudioBook File
+//@route POST /getAudioBookFile
+router.post('/getAudioBookFile', actions.getAudioBookFile)
+
+//@desc Add Book-Feedback
+//@route POST /addFeedback
+router.post('/addFeedback', actions.addFeedback)
+
 //@desc Adding new book image
 //@route POST /addBookImage
 // router.post('/addBookImage', upload.single('img'), actions.addBookImage.bind(actions))
