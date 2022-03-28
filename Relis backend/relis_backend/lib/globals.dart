@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:collection';
@@ -254,11 +255,19 @@ getLoggedIn(BuildContext context, String emailId, String password, String redire
         fontSize: 16.0,
       );
       showMessageSnackBar(context, "Fetching Books, Please Wait!!", Color(0xFF00FF88));
+      // Timer fetchBook = Timer.periodic(
+      //   Duration(seconds: 4),
+      //   (timer) {
+      //     showMessageSnackBar(context, "Fetching Books, Please Wait!!", Color(0xFF00FF88));
+      //   }
+      // );
+      // print("fetchBook: ${fetchBook.isActive}");
       await getBooks(context);
       await dailyLogin();
       print('\t Current User: ${user!["firstName"]} ${user!["lastName"]}');
       print('***** Moving to HomePage *****');
       stopLoading = true;
+      // fetchBook.cancel();
       while (Navigator.of(context).canPop())
         Navigator.of(context).pop();
       Navigator.of(context).pushNamed(HomePage.routeName);
@@ -1020,9 +1029,9 @@ var categoryList = [
 Map<String, dynamic> category = {};
 
 void addItem(Map<String, dynamic> map, var list) {
-    print("\n\n\n\n\n");
-    print("list: $list");
-    print("\n\n\n\n\n");
+    // print("\n\n\n\n\n");
+    // print("list: $list");
+    // print("\n\n\n\n\n");
   for (var ls in list) {
     map[ls["id"]] = ls;
   }
@@ -1099,13 +1108,13 @@ loadCategoryBooks(var bookList, var hover) {
 }
 
 void loadHover(var length, var data, var hover, var type) {
-  print("type: $type");
-  print("\n\n length: $length");
-  print("data: $data");
+  // print("type: $type");
+  // print("\n\n length: $length");
+  // print("data: $data");
   for (int i = 0; i < length; ++i) {
     hover[data[i]] = ValueNotifier<bool>(false);
   }
-  print("$type: ${hover!.length}");
+  // print("$type: ${hover!.length}");
 }
 
 void favouriteBook(BuildContext context, Map<String, dynamic> user, var currentBook) {
@@ -1520,6 +1529,27 @@ Widget customDivider() {
   );
 }
 
+getUserDetails(String emailId, String userId) async {
+  try {
+    print("In getUserDetails");
+    var val = await Services().getUserDetails(emailId, userId);
+    print("val.data['success']: ");
+    print(val.data['success']);
+    if(val.data['success']) {
+      print("in if of getUserDetails");
+      var feedUser = val.data["userDetails"];
+      return feedUser;
+    }
+    else {
+      print("in else of getUserDetails");
+      return [];
+    }
+  }  
+  catch (error) {
+    print("getAudioBook Error: $error");
+    return [];
+  }
+}
 
 getBookFile(String bookId) async {
   try {
@@ -1578,7 +1608,9 @@ getAudioBookFile(String bookId, String audioId) async {
       var audioBookFileListDynamic = val.data["audioFile"]["data"]["data"];
       var audioBookFileList = audioBookFileListDynamic.cast<int>();
       var audioBookFileData = Uint8List.fromList(audioBookFileList);
-      var audioFile = webFile.File(audioBookFileData, "$bookId/$audioId.mp3");
+      // print("\t\t...$bookId/$audioId.mp3");
+      // var audioFile = webFile.File(audioBookFileData, "$bookId/$audioId.mp3",);
+      // print("relativePath: ${audioFile.relativePath}");
       return audioBookFileData;
     }
     else {

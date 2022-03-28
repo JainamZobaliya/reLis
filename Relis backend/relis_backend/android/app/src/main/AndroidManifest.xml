@@ -2,6 +2,7 @@
     package="com.example.relis_backend">
    <application
         android:label="relis_backend"
+        android:usesCleartextTraffic="true"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

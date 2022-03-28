@@ -82,6 +82,29 @@ class Services {
     }
   }
 
+  getUserDetails(emailId, userId) async {
+    try {
+      print("...Sending Request");
+      var response =  await dio.post('http://localhost:3000/getUserDetails',
+          data: {"emailId": emailId, "userId": userId},
+          options: Options(
+            contentType: Headers.formUrlEncodedContentType,
+          )).whenComplete(() => print("Got Response data ..."));
+      print("...Received response");
+      return response;
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+        msg: e.response?.data['msg'],
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+
   addToFavourites(emailId, bookId) async {
     try {
       return await dio.post('http://localhost:3000/addToFavourites',
@@ -319,7 +342,9 @@ class Services {
       print("...Sending Request");
       var response =  await dio.post('http://localhost:3000/getAudioBookFile',
           data: {"emailId": emailId, "bookId": bookId, "audioId": audioId},
-          options: Options(contentType: Headers.formUrlEncodedContentType)).whenComplete(() => print("Got Response data ..."));
+          options: Options(
+            contentType: Headers.formUrlEncodedContentType,
+          )).whenComplete(() => print("Got Response data ..."));
       print("...Received response");
       return response;
     } on DioError catch (e) {

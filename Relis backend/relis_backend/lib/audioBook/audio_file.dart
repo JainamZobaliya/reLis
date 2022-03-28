@@ -1,15 +1,16 @@
-import 'package:audioplayers/audioplayers.dart';
+// import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:relis/globals.dart';
 
 class AudioFile extends StatefulWidget {
   final AudioPlayer advancedPlayer;
-  dynamic audioFile, book, audioBook, index;
+  dynamic audioBytes, book, audioBook, index;
   AudioFile(
     {Key? key,
     required this.advancedPlayer,
-    required this.audioFile,
+    required this.audioBytes,
     required this.book,
     required this.audioBook,
     required this.index,
@@ -23,12 +24,12 @@ class _AudioFileState extends State<AudioFile> {
   Duration _duration = new Duration();
   Duration _position = new Duration();
   // final String path = "https://drive.google.com/file/d/1FuoF2-CiOItuzypVvCO7izwzwyNv8_X9/view?usp=sharing";
-  final String path =
-      "/assets/audiobooks/https___archive.org_download_prideandprejudice_1005_librivox_prideandprejudice_01_austen_64kb.mp3";
+  // final String path =
+  //     "/assets/audiobooks/https___archive.org_download_prideandprejudice_1005_librivox_prideandprejudice_01_austen_64kb.mp3";
   bool isPlaying = false;
   bool isPaused = false;
   bool isLoop = false;
-  int allGood = 0;
+  // int allGood = 0;
   late AudioPlayer advancedPlayer;
   var min = 0.0;
   var max = 0.0;
@@ -39,65 +40,115 @@ class _AudioFileState extends State<AudioFile> {
     Icons.play_circle_fill,
     Icons.pause_circle_filled,
   ];
+  var processingState;
 
   @override
   void initState() {
+    print("...in AudioFile ");
     super.initState();
     advancedPlayer = this.widget.advancedPlayer;
     endDuration = getDuration(widget.audioBook[widget.index]["audioBookMaxDuration"]);
-    print("audioBook: ");
-    print(widget.audioBook[widget.index]);
     print("audioBook-endDuration: ${endDuration}");
     Future.delayed(Duration.zero, () async {
       await loadPlayer();
     });
+    
+      advancedPlayer.playerStateStream.listen((playerState) {
+      isPlaying = playerState.playing;
+      processingState = playerState.processingState;
+      if (processingState == ProcessingState.loading || processingState == ProcessingState.buffering) {
+        // buttonNotifier.value = ButtonState.loading;
+        print("........${processingState}");
+      }
+      // } else if (!isPlaying) {
+      //   buttonNotifier.value = ButtonState.paused;
+      // } else {
+      //   buttonNotifier.value = ButtonState.playing;
+      // }
+    });
   }
 
   Future loadPlayer() async {
-    advancedPlayer.onDurationChanged.listen((Duration d) {
-      setState(() {
-        print("\n1------\n");
-        print(d);
-        _duration = d;
-        // endDuration = _duration.toString().split(".")[0];
-        print("\na------\n");
-      });
-    });
-    advancedPlayer.onAudioPositionChanged.listen((Duration p) {
-      setState(() {
-        _position = p;
-        startDuration = _position.toString().split(".")[0];
-      });
-    });
-    advancedPlayer.onPlayerError.listen((error) {
-      print("...error: ");
-      print(error);
-    });
-    advancedPlayer.onPlayerCompletion.listen((event) {
-      setState(() {
-        _position = Duration(seconds: 0);
-        isPlaying = false;
-      });
-    });
-    // endDuration = _duration.toString().split(".")[0];
-    allGood = await advancedPlayer.setUrl("${widget.audioBook[widget.index]["bookId"]}/${widget.audioBook[widget.index]["id"]}.mp3", isLocal: true).onError(
-      (error, stackTrace) {
-        print("error:");
-        print(error);
-        print("\n\n");
-        print("stackTrace:");
-        print(stackTrace);
-        throw error!;
-      }
-    );
-    setState(() {});
-    print("endInit...allGood: ${allGood}");
+    print("...in loadPlayer");
+    try {
+      Uri audioUri = Uri.dataFromBytes(widget.audioBytes, mimeType: "audio/mpeg");
+      print("audioUri: ${audioUri}");
+      AudioSource source = AudioSource.uri(audioUri);
+      await advancedPlayer.setAudioSource(source, preload: false);
+      int i=0;
+      while(true)
+      {
+        print("...Loading Audio...${i++}...${advancedPlayer.processingState}");
+        if(processingState == ProcessingState.completed)
+        {
+          Duration? endDuration2 = await advancedPlayer.load();
+          print("endDuration2: ");
+          print("endDuration2: ${endDuration2.toString()}");
+          break;
+        }
+      };
+      print("...Audio Loaded...${i++}...${advancedPlayer.processingState}");
+    } on PlayerException catch (e) {
+      print("Error code: ${e.code}");
+      print("Error message: ${e.message}");
+      print("Error: ${e}");
+    } on PlayerInterruptedException catch (e) {
+      print("Connection aborted: ${e.message}");
+    } catch (e) {
+      print("audio_file -> loadPlayer -> Error: ");
+      print(e);
+    }
+
+    print("...out loadPlayer");
   }
+
+  // Future loadPlayer() async {
+  //   advancedPlayer.onDurationChanged.listen((Duration d) {
+  //     setState(() {
+  //       print("\n1------\n");
+  //       print(d);
+  //       _duration = d;
+  //       // endDuration = _duration.toString().split(".")[0];
+  //       print("\na------\n");
+  //     });
+  //   });
+  //   advancedPlayer.onAudioPositionChanged.listen((Duration p) {
+  //     setState(() {
+  //       _position = p;
+  //       startDuration = _position.toString().split(".")[0];
+  //     });
+  //   });
+  //   advancedPlayer.onPlayerError.listen((error) {
+  //     print("...error: ");
+  //     print(error);
+  //   });
+  //   advancedPlayer.onPlayerCompletion.listen((event) {
+  //     setState(() {
+  //       _position = Duration(seconds: 0);
+  //       isPlaying = false;
+  //     });
+  //   });
+  //   // endDuration = _duration.toString().split(".")[0];
+  //   print("\t\t...${widget.audioBook[widget.index]["bookId"]}/${widget.audioBook[widget.index]["id"]}.mp3");
+  //   advancedPlayer.playBytes(widget.audioBytes);
+  //   // allGood = await advancedPlayer.setUrl("${widget.audioBook[widget.index]["bookId"]}/${widget.audioBook[widget.index]["id"]}.mp3", isLocal: true).onError(
+  //   //   (error, stackTrace) {
+  //   //     print("error:");
+  //   //     print(error);
+  //   //     print("\n\n");
+  //   //     print("stackTrace:");
+  //   //     print(stackTrace);
+  //   //     throw error!;
+  //   //   }
+  //   // );
+  //   setState(() {});
+  //   print("endInit...");
+  // }
 
   @override
   void dispose() {
+    print("/t/t...audio_file DISPOSED");
     advancedPlayer.dispose();
-    advancedPlayer.release();
     super.dispose();
   }
 
@@ -131,14 +182,15 @@ class _AudioFileState extends State<AudioFile> {
       padding: const EdgeInsets.only(bottom: 10),
       onPressed: () {
         if (isPlaying == false && _position != 0) {
-          advancedPlayer.resume();
+          advancedPlayer.seek(_position);
+          advancedPlayer.play();
           setState(() {
             isPlaying = true;
             isPaused = false;
           });
           print("...Resuming");
         } else if (isPlaying == false) {
-          advancedPlayer.play(path);
+          advancedPlayer.play();
           setState(() {
             isPlaying = true;
             isPaused = false;
@@ -241,14 +293,15 @@ class _AudioFileState extends State<AudioFile> {
 
   @override
   Widget build(BuildContext context) {
-    print("build...allGood: ${allGood}");
-    return allGood != 1 ? Container(
-      child: CircularProgressIndicator(
-        backgroundColor: Colors.transparent,
-        color: Colors.red,
-      )
-    ) 
-    : Container(
+    print("build...");
+    // return allGood != 1 ? Container(
+    //   child: CircularProgressIndicator(
+    //     backgroundColor: Colors.transparent,
+    //     color: Colors.red,
+    //   )
+    // ) 
+    // : 
+    return Container(
       child: Column(
         children: <Widget>[
           audioTimeStamp(),
@@ -269,37 +322,34 @@ class _AudioFileState extends State<AudioFile> {
         TextButton(
           child: Text('Play'),
           onPressed: () {
-            advancedPlayer.play(path);
+            advancedPlayer.play();
           },
         ),
         const Text('Notification Service'),
         TextButton(
           child: Text('Notification'),
           onPressed: () async {
-            await advancedPlayer.notificationService.startHeadlessService();
-            await advancedPlayer.notificationService.setNotification(
-              title: 'My Song',
-              albumTitle: 'My Album',
-              artist: 'My Artist',
-              imageUrl: 'Image URL or blank',
-              forwardSkipInterval: const Duration(seconds: 30),
-              backwardSkipInterval: const Duration(seconds: 30),
-              duration: const Duration(minutes: 3),
-              elapsedTime: const Duration(seconds: 15),
-              enableNextTrackButton: true,
-              enablePreviousTrackButton: true,
-            );
-
-            await advancedPlayer.play(
-              path,
-            );
+            // await advancedPlayer.notificationService.startHeadlessService();
+            // await advancedPlayer.notificationService.setNotification(
+            //   title: 'My Song',
+            //   albumTitle: 'My Album',
+            //   artist: 'My Artist',
+            //   imageUrl: 'Image URL or blank',
+            //   forwardSkipInterval: const Duration(seconds: 30),
+            //   backwardSkipInterval: const Duration(seconds: 30),
+            //   duration: const Duration(minutes: 3),
+            //   elapsedTime: const Duration(seconds: 15),
+            //   enableNextTrackButton: true,
+            //   enablePreviousTrackButton: true,
+            // );
+            await advancedPlayer.play();
           },
         ),
         TextButton(
           child: Text('Clear Notification'),
           onPressed: () async {
             await advancedPlayer.stop();
-            await advancedPlayer.notificationService.clearNotification();
+            // await advancedPlayer.notificationService.clearNotification();
           },
         ),
       ],

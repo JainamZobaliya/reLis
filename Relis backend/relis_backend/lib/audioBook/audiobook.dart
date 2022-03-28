@@ -1,4 +1,5 @@
-import 'package:audioplayers/audioplayers.dart';
+// import 'package:audioplayers/audioplayers.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:relis/audioBook/audio_file.dart';
@@ -8,11 +9,11 @@ import 'package:relis/globals.dart';
 class AudioBook extends StatefulWidget {
   static const routeName = '/AudioBook';
   //const AudioBook({Key? key}) : super(key: key);
-  dynamic book, audioBook, audioFile, index;
+  dynamic book, audioBook, audioBytes, index;
   AudioBook({
     this.book,
     this.audioBook,
-    this.audioFile,
+    this.audioBytes,
     this.index,
   });
 
@@ -24,8 +25,9 @@ class _AudioBookState extends State<AudioBook> {
   late AudioPlayer advPlayer;
   @override
   void initState() {
+    print("...in AudioBook");
     super.initState();
-    advPlayer = AudioPlayer(playerId: "${user!["emailId"]}-${widget.audioBook[widget.index]["id"]}");
+    advPlayer = AudioPlayer(userAgent: "${user!["emailId"]}-${widget.audioBook[widget.index]["id"]}");
   }
 
   @override
@@ -39,12 +41,13 @@ class _AudioBookState extends State<AudioBook> {
         shadowColor: appBarShadowColor,
         elevation: 2.0,
       ),
-      body: view(context, advPlayer, widget.index, widget.book, widget.audioBook, widget.audioFile),
+      body: view(context, advPlayer, widget.index, widget.book, widget.audioBook, widget.audioBytes),
     );
   }
 }
 
-Widget view(BuildContext context, AudioPlayer advancedPlayer, var index, var book, var audioBook, var audioFile) {
+Widget view(BuildContext context, AudioPlayer advancedPlayer, var index, var book, var audioBook, var audioBytes) {
+  print("...in view of AudioBook");
   return Center(
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -67,7 +70,7 @@ Widget view(BuildContext context, AudioPlayer advancedPlayer, var index, var boo
           child: Column(
             children: [
               Text(
-                "${audioBook["audioBookChapterName"]}",
+                "${audioBook[index]["audioBookChapterName"]}",
                 style: TextStyle(fontSize: 20.0),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -89,7 +92,7 @@ Widget view(BuildContext context, AudioPlayer advancedPlayer, var index, var boo
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               //Audio line and Icons...
-              AudioFile(advancedPlayer: advancedPlayer, index: index, book: book, audioBook: audioBook, audioFile: audioFile),
+              AudioFile(advancedPlayer: advancedPlayer, index: index, book: book, audioBook: audioBook, audioBytes: audioBytes),
             ],
           ),
         ),

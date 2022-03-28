@@ -107,6 +107,10 @@ router.post('/authenticate', actions.authenticate)
 //@route POST /changePassword
 router.post('/changePassword', actions.changePassword)
 
+//@desc Get Details of a User
+//@route POST /getUserDetails
+router.post('/getUserDetails', actions.getUserDetails)
+
 //@desc Adding new book
 //@route POST /addBook
 router.post('/addBook', uploadBookImage.single('image'), actions.addBook)

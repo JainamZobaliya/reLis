@@ -35,6 +35,7 @@ class _BookViewState extends State<BookView> {
   List<String> lang = [];
   ValueNotifier<String> bookDescription = ValueNotifier<String>("");
   var fileData;
+  String initialDescription = "";
 
   Map<String, String> langCodes = {
     "Amharic": "am",
@@ -96,34 +97,38 @@ class _BookViewState extends State<BookView> {
   };
 
 
-  void loadValues(Map<String, dynamic> user, Map<String, dynamic> currentBook) {
+  loadValues(Map<String, dynamic> user, Map<String, dynamic> currentBook) async {
     lang = langCodes.keys.toList()..sort();
     // for(var key in currentBook.keys) {
     //   print("\t ${key}");
     // }
     // print("Received currentBook");
     favBook.value = isFavourite(user, currentBook["id"]);
-    print("\tGot fav.");
+    // print("\tGot fav.");
     wishBook.value = isWishList(user, currentBook["id"]);
-    print("\tGot wishBook.");
+    // print("\tGot wishBook.");
     feedbackMap = currentBook.containsKey("feedback") ? currentBook["feedback"] : {};
-    print("\tGot feedbackMap.");
+    // print("\tGot feedbackMap.");
     if(feedbackMap.length>0)
-      for(var userComment in feedbackMap.values)
-        userCommentInfo = getUserInfo(userComment["userId"]);
+      for(var userComment in feedbackMap.values) {
+        userCommentInfo[userComment["userId"]] = await getUserInfo(userComment["userId"]);
+      }
     addedToCart = (user["cart"]["toRent"].contains(currentBook["id"]) || user["cart"]["toBuy"].contains(currentBook["id"])) || (isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]));
-    print("\t rentCart: ${user["cart"]["toRent"].contains(currentBook["id"])}");
-    print("\t buyCart: ${user["cart"]["toBuy"].contains(currentBook["id"])}");
-    print("\t isBookBought: ${isBookBought(currentBook["id"])}");
-    print("\t isBookRented: ${isBookRented(currentBook["id"])}");
-    print("\t addedToCart: $addedToCart");
-    var or1 = (isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]));
-    print("\t or-1: $or1");
-    var not1 = !or1; // && and1;
-    print("\t not1: $not1");
-    var and1 = not1 && addedToCart;
-    print("\t\t and1: $and1");
-    bookDescription.value = currentBook["description"];
+    // print("\t rentCart: ${user["cart"]["toRent"].contains(currentBook["id"])}");
+    // print("\t buyCart: ${user["cart"]["toBuy"].contains(currentBook["id"])}");
+    // print("\t isBookBought: ${isBookBought(currentBook["id"])}");
+    // print("\t isBookRented: ${isBookRented(currentBook["id"])}");
+    // print("\t addedToCart: $addedToCart");
+    // var or1 = (isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]));
+    // print("\t or-1: $or1");
+    // var not1 = !or1; // && and1;
+    // print("\t not1: $not1");
+    // var and1 = not1 && addedToCart;
+    // print("\t\t and1: $and1");
+    bookDescription.value = bookDescription.value == "" ? initialDescription : bookDescription.value;
+    WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      setState(() {});
+    });
   }
   // AddedToCart is not working properly.
 
@@ -134,7 +139,10 @@ class _BookViewState extends State<BookView> {
     final book = ModalRoute.of(context)!.settings.arguments as BookArguments;
     print("\tIn Book View");
     // print("\tbookType: ${book.currentBook.runtimeType}");
-    loadValues(user!, book.currentBook);
+    initialDescription = book.currentBook["description"];
+    Future.delayed(Duration.zero, () async {
+      await loadValues(user!, book.currentBook);
+    });
     print("Book Values Loaded");
     return Hero(
       tag: "book: ${book.currentBook["id"]}",
@@ -250,7 +258,7 @@ class _BookViewState extends State<BookView> {
                                 onPressed: () async {
                                   await addToCart(context, currentBook["id"], currentBook["bookName"], isRent: true);
                                   addedToCart = true;
-                                  loadValues(user!, currentBook);
+                                  await loadValues(user!, currentBook);
                                   setState((){
                                     print("SetState Called");
                                   });
@@ -304,7 +312,7 @@ class _BookViewState extends State<BookView> {
                                 onPressed: () async {
                                   await addToCart(context, currentBook["id"], currentBook["bookName"], isRent: false);
                                   addedToCart = true;
-                                  loadValues(user!, currentBook);
+                                  await loadValues(user!, currentBook);
                                   setState((){
                                     print("SetState Called");
                                   });
@@ -359,7 +367,7 @@ class _BookViewState extends State<BookView> {
                           onPressed: () async {
                             removeFromCart(context, currentBook["id"], currentBook["bookName"]);
                             addedToCart = false;
-                            loadValues(user!, currentBook);
+                            await loadValues(user!, currentBook);
                             setState((){
                               print("SetState Called");
                             });
@@ -480,9 +488,9 @@ class _BookViewState extends State<BookView> {
                                       color: Color(0xFFff0000), size: 30,),
                                   ),
                                   onTap: () async {
-                                    this.setState(() {
+                                    this.setState(() async {
                                       favouriteBook(context, user!, currentBook);
-                                      loadValues(user!, currentBook);
+                                      await loadValues(user!, currentBook);
                                       setState(() {});
                                     });
                                   },
@@ -523,14 +531,14 @@ class _BookViewState extends State<BookView> {
                                         print("out of getAudioBook");
                                         print("going in getAudioBookFile");
                                         var index = 0;
-                                        var audioFile = await getAudioBookFile(currentBook["id"], audioBook[index]["id"]);
-                                        print("out of getAudioBook");
+                                        var audioBytes = await getAudioBookFile(currentBook["id"], audioBook[index]["id"]);
+                                        print("out of getAudioBookFile");
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
                                             builder: (context) => AudioBook(
                                               book: currentBook,
                                               audioBook: audioBook,
-                                              audioFile: audioFile,
+                                              audioBytes: audioBytes,
                                               index: index,
                                             ),
                                           ),
@@ -558,9 +566,9 @@ class _BookViewState extends State<BookView> {
                                       Icons.bookmark_add_outlined, color: Color(0xFF0000FF), size: 30,),
                                   ),
                                   onTap: () async {
-                                    this.setState(() {
+                                    this.setState(() async {
                                       wishListBook(context, user!, currentBook);
-                                      loadValues(user!, currentBook);
+                                      await loadValues(user!, currentBook);
                                       setState(() {});
                                     });
                                   },
@@ -719,11 +727,15 @@ class _BookViewState extends State<BookView> {
     return Container();
   }
 
-  getUserInfo(String userId) {
+  getUserInfo(String userId) async {
     var userInfo = {};
-    userInfo["userId"] = user?["emailId"];
-    userInfo["name"] = user?["firstName"] + " " + user?["lastName"];
-    userInfo["imageURL"] = user?["imageURL"];
+    var feedUser = await getUserDetails(user?["emailId"], userId);
+    print("feedUser: ");
+    print(feedUser);
+    userInfo["userId"] = feedUser?["emailId"];
+    userInfo["name"] = feedUser?["firstName"] + " " + feedUser?["lastName"];
+    userInfo["imageURL"] = feedUser?["imageURL"] != null ? (feedUser?["imageURL"] == "assets/ReLis.gif" ? null : feedUser?["imageURL"]) : null;
+    print("out of getUserInfo");
     return userInfo;
   }
 
@@ -798,6 +810,8 @@ class _BookViewState extends State<BookView> {
   }
 
   Widget showCommentBox(var currentBook) {
+    print("in scb");
+    print("${userCommentInfo}");
     return Container(
       padding: EdgeInsets.all(10.0),
       decoration: commentBoxDecoration,
@@ -884,7 +898,7 @@ class _BookViewState extends State<BookView> {
                               Row(
                                 children: [
                                   CircleAvatar(
-                                    backgroundImage: userCommentInfo["imageURL"] != null ? NetworkImage(userCommentInfo["imageURL"]) : Image.asset("ReLis.gif").image,
+                                    backgroundImage: userCommentInfo[userComment["userId"]]["imageURL"] != null ? NetworkImage(userCommentInfo[userComment["userId"]]["imageURL"]) : Image.asset("ReLis.gif").image,
                                     backgroundColor: Color(0xFF032f4b),
                                     radius: 25.00,
                                   ),
@@ -895,7 +909,7 @@ class _BookViewState extends State<BookView> {
                                     children: [
                                       commentUserRating(userComment["rating"].toString()),
                                       Text(
-                                        userCommentInfo["name"],
+                                        userCommentInfo[userComment["userId"]]["name"],
                                         style: TextStyle(
                                           color: mainAppAmber,
                                           fontWeight: FontWeight.w500,
@@ -960,6 +974,8 @@ class _BookViewState extends State<BookView> {
                 style: TextStyle(
                   color: Colors.tealAccent,
                   fontWeight: FontWeight.w300,
+                  fontSize: 12,
+                  overflow: TextOverflow.ellipsis,
                 ),
                 dropdownColor: Color(0xFF032f4b),
                 icon: const Icon(
@@ -988,12 +1004,13 @@ class _BookViewState extends State<BookView> {
 
   startTranslating() async {
     print("currentLang changes to $currentLang");
-    await translator.translate(bookDescription.value, to: langCodes[currentLang]!)
+    await translator.translate(initialDescription, to: langCodes[currentLang]!)
       .then((result) {
         print("... in startTranslating");
         print("$result");
         bookDescription.value = "$result";
       });
+      setState(() {});
     // print("... in startTranslating");
     // var file = await PDFLoader.loadAsset("/book/book1.pdf");
   }

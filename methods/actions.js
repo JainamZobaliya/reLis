@@ -164,6 +164,34 @@ var functions = {
             }
         )
     },
+    getUserDetails: function (req, res) {
+        var emailId = req.body['emailId']
+        var userId = req.body['userId']
+        if ((!emailId) || (!userId)) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else {
+            User.findOne(
+                {
+                    emailId: userId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'User not found', body:req.body})
+                    }
+                    else {
+                        userDetails = {}
+                        userDetails['emailId'] = user.emailId
+                        userDetails['firstName'] = user.firstName
+                        userDetails['lastName'] = user.lastName
+                        userDetails['imageURL'] = user.imageURL
+                        res.json({success: true, msg: 'User Details Retrieved Successfully', userDetails: userDetails})
+                    }
+                }
+            )
+        }
+    },
     addBook: function (req, res) {
         // console.log("Got req: ", req.body);
         if ((!req.body['id']) || (!req.body['isbn']) || (!req.body['bookName']) || (!req.body['url']) || (!req.body['authorName']) || (!req.body['publication']) || (!req.body['category']) || (!req.body['price']) || (!req.body['description'])) {
@@ -977,7 +1005,7 @@ var functions = {
                                 bookFeedMap = book["feedback"];
                             }
                             else {
-                                book["feedback"] = {};
+                                book.feedback = {};
                             }
                             console.log("...before Adding book-feedback: ");
                             console.log(book["feedback"]);
