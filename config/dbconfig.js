@@ -1,4 +1,4 @@
 module.exports = {
     secret: 'yoursecret',
-    database: 'Database URI',
+    database: 'mongodb+srv://devvora0308:devvora0308@cluster0.rlkvh.mongodb.net/testDB?retryWrites=true&w=majority',
 }

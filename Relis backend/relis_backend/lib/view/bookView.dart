@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:html' as webFile;
 import 'dart:typed_data';
 import 'package:flutter/cupertino.dart';
@@ -34,8 +35,10 @@ class _BookViewState extends State<BookView> {
   final translator = GoogleTranslator(); 
   List<String> lang = [];
   ValueNotifier<String> bookDescription = ValueNotifier<String>("");
-  var fileData;
+  var fileData, fileTranslatedData;
+  bool translated = false, bookDataFetched = false;
   String initialDescription = "";
+  var newComment = {};
 
   Map<String, String> langCodes = {
     "Amharic": "am",
@@ -96,7 +99,6 @@ class _BookViewState extends State<BookView> {
     "Welsh": "cy",
   };
 
-
   loadValues(Map<String, dynamic> user, Map<String, dynamic> currentBook) async {
     lang = langCodes.keys.toList()..sort();
     // for(var key in currentBook.keys) {
@@ -130,8 +132,6 @@ class _BookViewState extends State<BookView> {
       setState(() {});
     });
   }
-  // AddedToCart is not working properly.
-
 
   @override
   Widget build(BuildContext context) {
@@ -428,37 +428,32 @@ class _BookViewState extends State<BookView> {
                                   addToHistory(user!, currentBook);
                                   print("url: ${currentBook["url"]}");
                                   WidgetsBinding.instance!.addPostFrameCallback((_) async {
-                                    print("going in getBookFile");
-                                    fileData = await getBookFile(currentBook["id"]);
-                                    print("out of getBookFile");
+                                    var bookData;
+                                    if(!translated) {
+                                      fileData = await getBookData(currentBook["id"]);
+                                      // printData(fileData);
+                                      bookData = fileData;
+                                      // bookData = Uint8List.fromList(fileData);
+                                    }
+                                    else {
+                                      bookData = Uint8List.fromList(fileTranslatedData);
+                                    }
                                     Navigator.of(context).push(
-                                      // MaterialPageRoute(builder: (context) => PDFViewer(path: "/book/"+currentBook["id"]+".pdf")),
                                       MaterialPageRoute(
                                         builder: (context) => PDFViewer(
                                           bookId: currentBook["id"],
-                                          path: "/book/book1.pdf",
-                                          fileData: fileData,
+                                          fileData: bookData,
                                         ),
                                       ),
                                     );
                                   });
-                                  
-                                  // Navigator.of(context).pushNamed(OTPPage.routeName);
-                                  // Center(
-                                  //   child: CircularProgressIndicator(),
-                                  // );
-                                  // if (_key.currentState.validate()) {
-                                  //   _signInWithEmailAndPassword();
-                                  // } else {
-                                  //   showMessageSnackBar("Please fill the valid Details!!");
-                                  // }
                                 },
                               ),
                             ),  // Read Now Button
                             SizedBox(width: 10,),
                             Expanded(
                               flex: 2,
-                              child: translatorDropdown(),
+                              child: translatorDropdown(currentBook["id"]),
                             ),  // Translation Dropdown Button 
                           ],
                         ), 
@@ -630,7 +625,7 @@ class _BookViewState extends State<BookView> {
                       },
                     ),
                     SizedBox(height: 20,),
-                    showCommentBox(currentBook),
+                    showCommentBox(context, currentBook),
                   ],
                 ),
               ),
@@ -791,6 +786,7 @@ class _BookViewState extends State<BookView> {
         color: Colors.amber,
       ),
       onRatingUpdate: (rating) {
+        newComment["rating"] = rating;
         print(rating);
       },
     );
@@ -809,7 +805,7 @@ class _BookViewState extends State<BookView> {
     // );
   }
 
-  Widget showCommentBox(var currentBook) {
+  Widget showCommentBox(BuildContext context, var currentBook) {
     print("in scb");
     print("${userCommentInfo}");
     return Container(
@@ -823,6 +819,7 @@ class _BookViewState extends State<BookView> {
                 child: TextFormField(
                   onChanged: (text) {
                     myComment = text;
+                    newComment["comment"] = myComment;
                   },
                   controller: myCommentController,
                   textInputAction: TextInputAction.done,
@@ -862,7 +859,7 @@ class _BookViewState extends State<BookView> {
               SizedBox(width: 20,),
               IconButton(
                 onPressed: () async {
-                  // sendBooks(currentBook, );
+                  await sendFeedback(context, currentBook["id"], newComment);
                 },
                 icon: Icon(Icons.send_rounded, color: Colors.white,),
                 alignment: Alignment.center,
@@ -945,7 +942,7 @@ class _BookViewState extends State<BookView> {
     );
   }
 
-  Widget translatorDropdown() {
+  Widget translatorDropdown(String bookId) {
     return Tooltip(
       message: "Choose Language to Translate Book",
       child: Container(
@@ -992,7 +989,7 @@ class _BookViewState extends State<BookView> {
                   setState(() {
                     currentLang = newValue!;
                   });
-                  await startTranslating();
+                  await startTranslating(bookId);
                 },
               ),
             ),
@@ -1002,17 +999,81 @@ class _BookViewState extends State<BookView> {
     );
   }
 
-  startTranslating() async {
+  getBookData(String bookId) async {
+    print("going in getBookFile");
+    fileData = await getBookFile(bookId);
+    bookDataFetched = true;
+    print("out of getBookFile");
+    return fileData;
+  }
+
+  startTranslating(String bookId) async {
+    if(!bookDataFetched) {
+      fileData = await getBookData(bookId);
+    }
+    print("... going in printData");
+    printData(fileData);
+    print("... out printData");
     print("currentLang changes to $currentLang");
+    // await translator.translate(initialDescription, to: langCodes[currentLang]!)
+    //   .then((result) {
+    //     print("... in startTranslating");
+    //     fileTranslatedData = utf8.encode(result.toString());
+    //     print("...lenght: ${fileTranslatedData.length}");
+    //     printData(fileTranslatedData);
+    //   });
     await translator.translate(initialDescription, to: langCodes[currentLang]!)
       .then((result) {
-        print("... in startTranslating");
+        print("... in startTranslating for Description");
         print("$result");
         bookDescription.value = "$result";
       });
-      setState(() {});
+    translated = true;
+    setState(() {});
     // print("... in startTranslating");
     // var file = await PDFLoader.loadAsset("/book/book1.pdf");
+  }
+
+
+  printData(var data) async {
+    print("Fuccccccccccck");
+    // List<int> bytes = [];
+    // for(int i=0; i<100; ++i) {
+    //   bytes.add(data[i]);
+    // }
+    // print(bytes);
+    // String bar = String.fromCharCodes(bytes); // utf8.decode(bytes);
+    var book = new webFile.File(data, "this");
+    final reader = webFile.FileReader();
+    // var list = await book.slice(0,5);
+    print("\t ... list Length ");
+    print("\t ${book.runtimeType} ");
+    print("\t ${book.name} ");
+    print("\t ${book.size} ");
+    reader.readAsArrayBuffer(book);
+    var texttt;
+    reader.onLoad.listen((data) {
+      setState(() {
+        print("\t\t data loaded: ");
+        print(data.loaded);
+        // print(data);
+        texttt = reader.result;
+      });
+    });
+    reader.onLoadEnd.listen((data) {
+      setState(() {
+        print("\t\t data loaded: ");
+        print(data);
+        print(texttt.toString());
+      });
+    });
+    reader.onError.listen((fileEvent) {
+      setState(() {
+        texttt = "Some Error occured while reading the file";
+      });
+    });
+    print("Fuuuuuuuccccccccccck");
+    // print(bar);
   }
 
 }

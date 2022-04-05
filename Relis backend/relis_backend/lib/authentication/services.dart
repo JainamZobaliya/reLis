@@ -14,7 +14,7 @@ class Services {
     print("EmailId: $emailId");
     print("password: $password");
     try {
-      return await dio.post('http://localhost:3000/authenticate',
+      return await dio.post('https://relis-nodejs1.herokuapp.com/authenticate', // http://localhost:3000/authenticate
           data: {"emailId": emailId, "password": password, "redirect": redirect},
           options: Options(contentType: Headers.formUrlEncodedContentType));
     } on DioError catch (e) {
@@ -40,7 +40,7 @@ class Services {
       print("password: ${Mappy['password']}");
 
       try {
-        return await dio.post('http://localhost:3000/adduser',
+        return await dio.post('https://relis-nodejs1.herokuapp.com/adduser',
             data: {
               "firstName": Mappy['firstName'],
               "lastName": Mappy['lastName'],
@@ -67,7 +67,7 @@ class Services {
     print("EmailId: $emailId");
     print("New password: $password");
     try {
-      return await dio.post('http://localhost:3000/changePassword',
+      return await dio.post('https://relis-nodejs1.herokuapp.com/changePassword',
           data: {"emailId": emailId, "password": password},
           options: Options(contentType: Headers.formUrlEncodedContentType));
     } on DioError catch (e) {
@@ -85,7 +85,7 @@ class Services {
   getUserDetails(emailId, userId) async {
     try {
       print("...Sending Request");
-      var response =  await dio.post('http://localhost:3000/getUserDetails',
+      var response =  await dio.post('https://relis-nodejs1.herokuapp.com/getUserDetails',
           data: {"emailId": emailId, "userId": userId},
           options: Options(
             contentType: Headers.formUrlEncodedContentType,
@@ -107,7 +107,7 @@ class Services {
 
   addToFavourites(emailId, bookId) async {
     try {
-      return await dio.post('http://localhost:3000/addToFavourites',
+      return await dio.post('https://relis-nodejs1.herokuapp.com/addToFavourites',
           data: {"emailId": emailId, "bookId": bookId},
           options: Options(contentType: Headers.formUrlEncodedContentType));
     } on DioError catch (e) {
@@ -124,7 +124,7 @@ class Services {
 
   removeFromFavourites(emailId, bookId) async {
     try {
-      return await dio.post('http://localhost:3000/removeFromFavourites',
+      return await dio.post('https://relis-nodejs1.herokuapp.com/removeFromFavourites',
           data: {"emailId": emailId, "bookId": bookId},
           options: Options(contentType: Headers.formUrlEncodedContentType));
     } on DioError catch (e) {
@@ -141,7 +141,7 @@ class Services {
   
   addToWishList(emailId, bookId) async {
     try {
-      return await dio.post('http://localhost:3000/addToWishList',
+      return await dio.post('https://relis-nodejs1.herokuapp.com/addToWishList',
           data: {"emailId": emailId, "bookId": bookId},
           options: Options(contentType: Headers.formUrlEncodedContentType));
     } on DioError catch (e) {
@@ -158,7 +158,7 @@ class Services {
 
   removeFromWishList(emailId, bookId) async {
     try {
-      return await dio.post('http://localhost:3000/removeFromWishList',
+      return await dio.post('https://relis-nodejs1.herokuapp.com/removeFromWishList',
           data: {"emailId": emailId, "bookId": bookId},
           options: Options(contentType: Headers.formUrlEncodedContentType));
     } on DioError catch (e) {
@@ -175,7 +175,7 @@ class Services {
 
   getAllBooks(emailId) async {
     try {
-      return await dio.post('http://localhost:3000/getAllBooks',
+      return await dio.post('https://relis-nodejs1.herokuapp.com/getAllBooks',
           data: {"emailId": emailId},
           options: Options(contentType: Headers.formUrlEncodedContentType));
     } on DioError catch (e) {
@@ -192,7 +192,7 @@ class Services {
   
   getBookImage(emailId, bookId) async {
     try {
-      return await dio.post('http://localhost:3000/getBookImage',
+      return await dio.post('https://relis-nodejs1.herokuapp.com/getBookImage',
           data: {"emailId": emailId, "bookId": bookId},
           options: Options(contentType: Headers.formUrlEncodedContentType));
     } on DioError catch (e) {
@@ -210,7 +210,7 @@ class Services {
   updateCart(emailId, cartMap) async {
     try {
       return await dio.post(
-          'http://localhost:3000/updateCart',
+          'https://relis-nodejs1.herokuapp.com/updateCart',
           data: {"emailId": emailId, "cartMap": jsonEncode(cartMap)},
           options: Options(contentType: Headers.formUrlEncodedContentType),
         );
@@ -229,7 +229,7 @@ class Services {
   buyBooks(emailId, cartMap, booksBoughtMap, booksRentedMap) async {
     try {
       return await dio.post(
-          'http://localhost:3000/buyBooks',
+          'https://relis-nodejs1.herokuapp.com/buyBooks',
           data: {
             "emailId": emailId,
             "cartMap": jsonEncode(cartMap),
@@ -254,7 +254,7 @@ class Services {
   changeLastPageRead(emailId, booksReadMap) async {
     try {
       return await dio.post(
-          'http://localhost:3000/changeLastPageRead',
+          'https://relis-nodejs1.herokuapp.com/changeLastPageRead',
           data: {
             "emailId": emailId,
             "booksReadMap": jsonEncode(booksReadMap),
@@ -279,7 +279,7 @@ class Services {
       print("dailyRecords: ");
       print(dailyRecords);
       return await dio.post(
-          'http://localhost:3000/addReward',
+          'https://relis-nodejs1.herokuapp.com/addReward',
           data: {"emailId": emailId, "dailyRecords": jsonEncode(dailyRecords), "credits": credits},
           options: Options(contentType: Headers.formUrlEncodedContentType),
         );
@@ -295,10 +295,71 @@ class Services {
     }
   }
 
+  addFeedback(emailId, bookId, comment, rating) async {
+    try {
+      return await dio.post('https://relis-nodejs1.herokuapp.com/addFeedback',
+        data: {
+          "emailId": emailId,
+          "bookId": bookId,
+          "comment": comment,
+          "rating": rating,
+        },
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+        ),
+      );
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+        msg: e.response?.data['msg'],
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+  
+  addPersonalBooks(emailId, personalBook) async {
+  print("... in Services addPersonalBooks");
+    try {
+      return await dio.post('https://relis-nodejs1.herokuapp.com/addPersonalBooks',
+        data: {
+          "emailId": emailId,
+          "personalBook": personalBook,
+        },
+        options: Options(
+          contentType: Headers.formUrlEncodedContentType,
+        ),
+      ).timeout(Duration(seconds: 30),onTimeout: (){
+        print("...returning");
+        return Future.value(Response(
+          data: {
+            "success": false,
+            "message": "Timeout error!!"
+            },
+          requestOptions: RequestOptions(path: "")
+          )
+        );
+      },);
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+        msg: e.response?.data['msg'],
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+
   getBookFile(emailId, bookId) async {
     try {
       print("...Sending Request");
-      var response =  await dio.post('http://localhost:3000/getBookFile',
+      var response =  await dio.post('https://relis-nodejs1.herokuapp.com/getBookFile',
           data: {"emailId": emailId, "bookId": bookId},
           options: Options(contentType: Headers.formUrlEncodedContentType)).whenComplete(() => print("Got Response data ..."));
       print("...Received response");
@@ -319,7 +380,7 @@ class Services {
   getAudioBook(emailId, bookId) async {
     try {
       print("...Sending Request");
-      var response =  await dio.post('http://localhost:3000/getAudioBook',
+      var response =  await dio.post('https://relis-nodejs1.herokuapp.com/getAudioBook',
           data: {"emailId": emailId, "bookId": bookId},
           options: Options(contentType: Headers.formUrlEncodedContentType)).whenComplete(() => print("Got Response data ..."));
       print("...Received response");
@@ -340,7 +401,7 @@ class Services {
   getAudioBookFile(emailId, bookId, audioId) async {
     try {
       print("...Sending Request");
-      var response =  await dio.post('http://localhost:3000/getAudioBookFile',
+      var response =  await dio.post('https://relis-nodejs1.herokuapp.com/getAudioBookFile',
           data: {"emailId": emailId, "bookId": bookId, "audioId": audioId},
           options: Options(
             contentType: Headers.formUrlEncodedContentType,
@@ -359,6 +420,7 @@ class Services {
       );
     }
   }
+
 }
 
 

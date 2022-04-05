@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:relis/arguments/bookArguments.dart';
@@ -27,6 +29,7 @@ class _PageTypeViewState extends State<PageTypeView> {
   Map<String, ValueNotifier<bool>> bookHover = {};
   dynamic currentBook;
   var bookTypeList = {};
+  var bookData = [];
 
   @override
   void initState() {
@@ -132,7 +135,9 @@ class _PageTypeViewState extends State<PageTypeView> {
                     color: mainAppAmber,
                     size: 45,
                   ),
-                  onPressed: addBook,
+                  onPressed: () {
+                    addBook(context);
+                  },
                   elevation: 2.0,
                   hoverElevation: 5.0,
                   hoverColor: Colors.transparent.withOpacity(0.6),
@@ -247,7 +252,6 @@ class _PageTypeViewState extends State<PageTypeView> {
   Widget mobileView() {
     return Container();
   }
-
 
   void loadPageData(dynamic pageData) {
     if(pageData == null){
@@ -410,7 +414,7 @@ class _PageTypeViewState extends State<PageTypeView> {
     });
   }
 
-  addBook() {
+  addBook(BuildContext context) {
     Map<String, dynamic> newBook = {
       "id": "",
       "bookName": "",
@@ -479,9 +483,21 @@ class _PageTypeViewState extends State<PageTypeView> {
                       color: Colors.white,
                     ),
                   ),
-                  onPressed: () {
-                    bookList.add(newBook);
-                    user?["personalBooks"].addLast(newBook["id"]);
+                  onPressed: () async {
+                    var rng = Random();
+                    var randNo = rng.nextInt(1000);
+                    newBook["bookFile"] = bookData;
+                    newBook["id"] = "pbk-$randNo";
+                    newBook["authorName"] = user!["firstName"]+" "+user!["lastName"];
+                    newBook["image"] = Image.asset("ReLis.gif");
+                    print("id: ");
+                    print(newBook["id"]);
+                    print("bookFile Length: ");
+                    print(newBook["bookFile"].length);
+                    setState(() {});
+                    print("newBook:");
+                    print(newBook);
+                    await addPersonalBooks(context, newBook);
                     Navigator.pop(context);
                   },
                 ),
@@ -650,8 +666,9 @@ class _PageTypeViewState extends State<PageTypeView> {
                       borderRadius: BorderRadius.all(Radius.circular(50.0)),
                       borderOnForeground: true,
                       child: InkWell(
-                        onTap: (){
-                          chooseFile(context);
+                        onTap: () async {
+                          bookData = await chooseFile(context);
+                          print("...Received Book Data!!");
                           setState(() {});
                         },
                         borderRadius: BorderRadius.all(Radius.circular(50.0)),
@@ -667,7 +684,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                               Expanded(
                                 flex: 1,
                                 child: Text(
-                                  "Enter Book PDF",
+                                  bookData==[] ? "Enter Book PDF" : "${newBook["bookName"]}.pdf",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                       color: mainAppAmber
@@ -713,6 +730,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                           child: TextFormField(
                             onChanged: (text) {
                               newBook["bookName"] = text;
+                              setState(() {});
                             },
                             style: TextStyle(color: mainAppAmber, fontWeight: FontWeight.bold,),
                             maxLines: 1,
@@ -751,6 +769,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                           child: TextFormField(
                             onChanged: (text) {
                               newBook["authorName"] = text;
+                              setState(() {});
                             },
                             style: TextStyle(color: mainAppAmber, fontWeight: FontWeight.bold,),
                             maxLines: 1,
@@ -793,6 +812,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                     child: TextFormField(
                       onChanged: (text) {
                         newBook["description"] = text;
+                        setState(() {});
                       },
                       style: TextStyle(color: mainAppBlue, fontWeight: FontWeight.bold,),
                       keyboardType: TextInputType.multiline,

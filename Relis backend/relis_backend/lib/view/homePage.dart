@@ -390,7 +390,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget bookScrollList(var currentBook, ScrollController controller, Map<String, ValueNotifier<bool>> bookHover, String messageText) {
-    if(currentBook == null || currentBook.isEmpty || currentBook.length == 0){
+    if(currentBook == null || currentBook.isEmpty || currentBook.length == 0 || bookHover == null || bookHover.isEmpty || bookHover.length == 0){
       return Container(
         alignment: Alignment.center,
         padding: EdgeInsets.symmetric(vertical: 10.00, horizontal: 20.00),

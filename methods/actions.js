@@ -86,6 +86,79 @@ function getRatingsKey(rating) {
     }
 }
 
+async function addBookFeedback(req, res) {
+    var bookId = req.body['bookId']
+    var emailId = req.body['emailId']
+    var comment = req.body['comment']
+    var rating = req.body['rating']
+    if ((!emailId) || (!bookId) || (!comment) || (!rating)) {
+        res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+    }
+    else { 
+        rating = parseFloat(rating)
+        bookMap = {
+            "userId": emailId,
+            "comment":  comment,
+            "rating":  rating,
+        };
+        console.log("BookMap: ", bookMap)
+        await Book.findOne(
+            {
+                id: bookId
+            },
+            async function (err, book) {
+                if (err) throw err
+                if (!book) {
+                    res.status(403).send({success: false, msg: 'Adding Feeback Info. Failed, Book not found!!', body:req.body})
+                }
+                else {
+                    try{
+                        // bookFeedMap = book.feedback;
+                        var bookFeedMap = {};
+                        console.log("book[feedback] ? ",book.hasOwnProperty("feedback"))
+                        if(book.hasOwnProperty("feedback")) {
+                            bookFeedMap = book["feedback"];
+                        }
+                        else {
+                            book.feedback = {};
+                        }
+                        console.log("...before Adding book-feedback: ");
+                        console.log(book["feedback"]);
+                        console.log("...Reached Here-1");
+                        book.feedback.emailId = bookMap;
+                        console.log("...Reached Here-2");
+                        // book.feedback = bookFeedMap;
+                        console.log("...after Adding book-feedback: ");
+                        console.log(book.feedback);
+                        console.log("...Reached Here-3");
+                        console.log(book.feedback.emailId);
+                        var key = getRatingsKey(rating)
+                        console.log(key,": ",book["ratings"][key])
+                        book["ratings"][key] = book["ratings"][key]+1;
+                        console.log(key,": ",book["ratings"][key])
+                        await book.save(
+                            function(err) {
+                                if(!err) {
+                                    console.log("... Book-Feeback Added. ");
+                                }
+                                else {
+                                    console.log("... Error: could not add book-feedback. ");
+                                    console.log("... Error: ", err);
+                                }
+                            }
+                        );
+                    }
+                    catch(err) {  
+                        res.status(403).send({success: false, msg: 'Error in adding book-feedback', body:req.body})
+                    }
+                }
+            }
+        );    
+        return;   
+        // res.json({success: true, msg: 'Feedback Added Successfully', body:req.body})
+    }
+}
+
 var functions = {
     addNew: function (req, res) {
         if ((!req.body['firstName']) || (!req.body['lastName']) || (!req.body['emailId']) || (!req.body['password'])) {
@@ -226,6 +299,59 @@ var functions = {
                 }
                 else {
                     res.json({success: true, msg: 'Book Successfully added'})
+                }
+            })
+        }
+    },
+    addPersonalBooks: function (req, res) {
+        console.log("Got req: ");
+        console.log(req.body);
+        var emailId = req.body['emailId']
+        var personalBook = req.body['personalBook']
+        if ((!emailId) || (!personalBook)) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else {
+            // console.log("req: ", req);
+            var newBook = PersonalBook({ 
+                id: personalBook.id,
+                isbn: personalBook.isbn,
+                bookName: personalBook.bookName,
+                url: personalBook.url,
+                category: personalBook.category,
+                authorName: personalBook.authorName,
+                publication: personalBook.publication,
+                price: personalBook.price,
+                image: req.file,
+                description: personalBook.description,
+                feedback: personalBook.feedback,
+                noOfChapters: personalBook.noOfChapters,
+                language: personalBook.language,
+                ratings: personalBook.ratings,
+                imagePath: req.file.path,
+                imageSize: req.file.size,
+                imageName: req.file.filename,
+                bookFile: req.bookFile,
+                // bookFile: req.file.bookFile,
+            });
+            var bookWriteFailed = false;
+            fs.writeFile("../assets/personalBooks/"+personalBook.id+'.pdf', newBook.bookFile, function (err) {
+                if (err) {
+                    bookWriteFailed = true;
+                    throw err;
+                };
+                console.log('Saved!');
+            });
+            // console.log("newBook: ",newBook);
+            if(bookWriteFailed) {
+                res.json({success: false, msg: 'Failed to add perosnal book'})
+            }
+            newBook.save(function (err, newBook) {
+                if (err) {
+                    res.json({success: false, msg: 'Failed to add perosnal book'})
+                }
+                else {
+                    res.json({success: true, msg: 'Personal Book Successfully added'})
                 }
             })
         }
@@ -987,58 +1113,7 @@ var functions = {
                 "rating":  rating,
             };
             console.log("BookMap: ", bookMap)
-            await Book.findOne(
-                {
-                    id: bookId
-                },
-                async function (err, book) {
-                    if (err) throw err
-                    if (!book) {
-                        res.status(403).send({success: false, msg: 'Adding Feeback Info. Failed, Book not found!!', body:req.body})
-                    }
-                    else {
-                        try{
-                            // bookFeedMap = book.feedback;
-                            var bookFeedMap = {};
-                            console.log("book[feedback] ? ",book.hasOwnProperty("feedback"))
-                            if(book.hasOwnProperty("feedback")) {
-                                bookFeedMap = book["feedback"];
-                            }
-                            else {
-                                book.feedback = {};
-                            }
-                            console.log("...before Adding book-feedback: ");
-                            console.log(book["feedback"]);
-                            console.log("...Reached Here-1");
-                            book.feedback.emailId = bookMap;
-                            console.log("...Reached Here-2");
-                            // book.feedback = bookFeedMap;
-                            console.log("...after Adding book-feedback: ");
-                            console.log(book.feedback);
-                            console.log("...Reached Here-3");
-                            console.log(book.feedback.emailId);
-                            var key = getRatingsKey(rating)
-                            console.log(key,": ",book["ratings"][key])
-                            book["ratings"][key] = book["ratings"][key]+1;
-                            console.log(key,": ",book["ratings"][key])
-                            await book.save(
-                                function(err) {
-                                    if(!err) {
-                                        console.log("... Book-Feeback Added. ");
-                                    }
-                                    else {
-                                        console.log("... Error: could not add book-feedback. ");
-                                        console.log("... Error: ", err);
-                                    }
-                                }
-                            );
-                        }
-                        catch(err) {  
-                            res.status(403).send({success: false, msg: 'Error in adding book-feedback', body:req.body})
-                        }
-                    }
-                }
-            );       
+            await addBookFeedback(req, res)
             res.json({success: true, msg: 'Feedback Added Successfully', body:req.body})
         }
     },

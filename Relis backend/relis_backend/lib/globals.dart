@@ -232,7 +232,7 @@ dailyLogin() async {
 
 getLoggedIn(BuildContext context, String emailId, String password, String redirect, {String sessionOutOnStr = "-"}) async {
   print('***** Login Authentication *****');
-  Services().login(emailId, password, redirect).then((val) async {
+  await Services().login(emailId, password, redirect).then((val) async {
     if (val != null && val.data['success']) {
       token = val.data['token'];
       user = val.data['user'];
@@ -262,7 +262,10 @@ getLoggedIn(BuildContext context, String emailId, String password, String redire
       //   }
       // );
       // print("fetchBook: ${fetchBook.isActive}");
-      await getBooks(context);
+      print("bookList: ");
+      print(bookList.length);
+      if(bookList.length == 0)
+        await getBooks(context);
       await dailyLogin();
       print('\t Current User: ${user!["firstName"]} ${user!["lastName"]}');
       print('***** Moving to HomePage *****');
@@ -911,7 +914,8 @@ getBookImage(String bookId) async {
   print("Book is "+bookId);
   Dio dio = new Dio();
   Response response = await dio.post(
-    "http://localhost:3000/getBookImage",
+    // "http://localhost:3000/getBookImage"
+    "https://relis-nodejs1.herokuapp.com/getBookImage",
     data: {"emailId": user!["emailId"], "bookId": bookId},
   ); 
   if(response.data['success']) {
@@ -1298,10 +1302,14 @@ Future<void> chooseImage(BuildContext context, bool imageSource) async {
   }
 }
 
-Future<void> uploadFile(BuildContext context, File file) async {
+uploadFileData(BuildContext context, File file) async {
   String fileName = file.path.split('/').last;
   String extension = fileName.split('.').last;
   print("Received file: ${fileName}.${extension}");
+  var bookData = file.readAsBytesSync();
+  print("bookData Length: ");
+  print(bookData.length);
+  return bookData;
   // var map = {
   //   'name': fileName,
   //   'photo': await MultipartFile.fromFile(
@@ -1321,14 +1329,15 @@ Future<void> uploadFile(BuildContext context, File file) async {
   // }
 }
 
-Future<void> chooseFile(BuildContext context) async {
+chooseFile(BuildContext context) async {
   FilePickerResult? result = await FilePicker.platform.pickFiles();
-
   if (result != null) {
-    print("result: ");
-    print(result);
-    File file = File(result.files.single.path!);
-    await uploadFile(context, file);
+    // print("result: ");
+    // print(result);
+    PlatformFile file = result.files.first;
+    print("fileName: ${file.name} - ${file.bytes!.length}");
+    // File file = File(result.files.single.path!);
+    return file.bytes; // await uploadFileData(context, );
   } else {
     // User canceled the picker
     print('Please Choose a File');
@@ -1528,6 +1537,56 @@ Widget customDivider() {
     ],
   );
 }
+
+sendFeedback(BuildContext context, String bookId, var newCommentInfo) async {
+  await Services().addFeedback(user!["emailId"], bookId, newCommentInfo["comment"], newCommentInfo["rating"]).then((val) async {
+    if (val != null && val.data['success']) {
+      showMessageFlutterToast(
+        "Feedback added!!",
+        Colors.green,
+      );
+    }
+    else {
+      showMessageFlutterToast(
+        "Error in adding Feedback!!",
+        Color(0xFFFF0000),
+      );
+    }
+  });
+  // for(var bk in user!["cart"]["toRent"]) {
+  //   print("\t Book in rentCart: ${bk}");
+  // }
+  // for(var bk in user!["cart"]["toBuy"]) {
+  //   print("\t Book in buyCart: ${bk}");
+  // }
+}
+
+addPersonalBooks(BuildContext context, var newBook) async {
+  print("... in Globals addPersonalBooks");
+  await Services().addPersonalBooks(user!["emailId"], newBook).then((val) async {
+    if (val != null && val.data['success']) {
+      bookList.add(newBook);
+      user?["personalBooks"].addLast(newBook["id"]);
+      showMessageFlutterToast(
+        "New Book added!!",
+        Colors.green,
+      );
+    }
+    else {
+      showMessageFlutterToast(
+        "Error in adding new book!!",
+        Color(0xFFFF0000),
+      );
+    }
+  });
+  // for(var bk in user!["cart"]["toRent"]) {
+  //   print("\t Book in rentCart: ${bk}");
+  // }
+  // for(var bk in user!["cart"]["toBuy"]) {
+  //   print("\t Book in buyCart: ${bk}");
+  // }
+}
+
 
 getUserDetails(String emailId, String userId) async {
   try {

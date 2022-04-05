@@ -68,6 +68,17 @@ var storeBookImage = multer.diskStorage({
   
 var uploadBookImage = multer({ storage: storeBookImage });
 
+var storePersonalBookImage = multer.diskStorage({
+    destination: (req, file, callback) => {
+        callback(null, './assets/personalBooks')
+    },
+    filename: (req, file, callback) => {
+        callback(null, req.body.id+'.png')
+    }
+});
+  
+var uploadPersonalBookImage = multer({ storage: storePersonalBookImage });
+
 const storeAudioBook = multer.diskStorage({
   filename: function (req, file, cb) {
     console.log('filename')
@@ -114,6 +125,10 @@ router.post('/getUserDetails', actions.getUserDetails)
 //@desc Adding new book
 //@route POST /addBook
 router.post('/addBook', uploadBookImage.single('image'), actions.addBook)
+
+//@desc Adding new Personal book
+//@route POST /addPersonalBooks
+router.post('/addPersonalBooks', uploadPersonalBookImage.single('image'), actions.addPersonalBooks)
 // router.post('/addBook', fileUploads, actions.addBook)
 
 //@desc Get Book Details
