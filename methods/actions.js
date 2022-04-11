@@ -1,18 +1,205 @@
-var User = require('../models/user')
-var Book = require('../models/books')
-var AudioBook = require('../models/audioBooks')
-var BookImage = require('../models/images')
-var jwt = require('jwt-simple')
-var config = require('../config/dbconfig')
-const actions = require('../methods/actions')
+var User = require('../models/user');
+var Book = require('../models/books');
+var AudioBook = require('../models/audioBooks');
+var BookImage = require('../models/images');
+var jwt = require('jwt-simple');
+var config = require('../config/dbconfig');
+const actions = require('../methods/actions');
 const {spawn} = require('child_process');
 const request = require('request');
-const { Console } = require('console')
-const { type } = require('os')
-const utf8 = require('utf8')
-const path = require('path')
+const { Console } = require('console');
+const { type } = require('os');
+const utf8 = require('utf8');
+const path = require('path');
 var fs = require('fs');
+const { PDFNet } = require('@pdftron/pdfnet-node');
+const axios = require('axios');
+// const fetch = require('node-fetch');
 
+async function sendEmail(emailId, subject, body) {
+    const service_id = 'service_xd6ttln';
+    const template_id = 'template_w7cy5tq';
+    const user_id = 'user_ZeaSCRhRLjK9oAEB6moy6';
+    // const subject = subject;
+    const from_email = 'dev.vora@somaiya.edu';
+    const from_name = 'ReLis Team';
+    const to_email = emailId;
+    const reply_to = 'dev.vora@somaiya.edu';
+    var emailBody = body + "\nThanks And Regards,\n"+from_name+".";
+    const url = "https://api.emailjs.com/api/v1.0/email/send";
+    const headers = {
+        'origin': 'http://localhost',
+        'Content-Type': 'application/json',
+    };
+    await axios.post(url, {
+            'service_id': service_id,
+            'template_id': template_id,
+            'user_id': user_id,
+            'template_params': {
+                'subject': subject,
+                'from_email': from_email,
+                'to_email': to_email,
+                'from_name': from_name,
+                'reply_to': reply_to,
+                'body': emailBody
+            },
+        },{
+            headers: headers,
+        }
+    ).then(res => {
+    }).catch(error => {
+        console.error("sendEmail error: ", error)
+    });
+  }
+
+async function sleep(ms) {
+    return new Promise((resolve) => this.setTimeout(resolve, ms));
+}
+
+async function replaceWithTranslatedText(page, replacer, translateTo, reqCount) {
+    const txt = await PDFNet.TextExtractor.create();
+    const rect = await page.getCropBox()
+    // const rect = new PDFNet.Rect(0,0,612,794);
+    txt.begin(page, rect);
+    text = await txt.getAsText();
+        wordCounter = await txt.getWordCount();
+        console.log("wordCounter: ");
+        console.log(wordCounter);
+    var textList = text.split(/[,.;:]/);
+    var tt = "";
+    var originalText = "";
+    var wordTimer = 0;
+    for(var i=0; i<textList.length; ++i){
+        var textToBeTranslated = textList[i]+ ". ";
+        while(textToBeTranslated.length<500 && i+1!=textList.length && (textList[i+1].length+textToBeTranslated.length)<498){
+            textToBeTranslated = textToBeTranslated + textList[++i] + ". "
+        }
+        if(reqCount>=20){
+            console.log("...Sleeping for "+(60000)+" ms");
+            // this.clearInterval(timer1)
+            var t = await sleep(60000);
+            // sleep((min - wordTimer));
+            wordTimer = 0;
+            reqCount = 0;
+            console.log("Back from Sleeping...");
+        }
+        var timer1 = setInterval(
+            function() {  
+                ++wordTimer
+            }, 
+            60000
+        );  
+        translatedText = await translateText(textToBeTranslated, translateTo, reqCount);
+        reqCount++;
+        originalText = originalText+textToBeTranslated+".\n"
+        tt = tt+translatedText+".\n"
+    }
+    // console.log("reqCount: "+reqCount);
+    // console.log("\t\toriginalText: ");
+    // console.log(originalText);
+    // console.log("\t\ttranslatedText: ");
+    // console.log(tt);
+    // await replacer.setMatchStrings("", "");
+    // await replacer.addText(rect, tt);
+    // await replacer.addString(originalText, translatedText);
+    await replacer.process(page);
+    // const text = txt.getAsText();
+    // Extract words one by one.
+    // let line = await txt.getFirstLine();
+    // translatedLine = "";
+    // word = await line.getFirstWord()
+    // var wordTimer = 0;
+    // var min = 1 * 60 * 1000;
+    // for (; (await line.isValid()); line = (await line.getNextLine())) 
+    // {
+    //     // translatedLine = await gTranslateText(line, "es");
+    //     // replacer.addString(line, translatedLine);
+    //     console.log(line)
+    //     for (word = await line.getFirstWord(); (await word.isValid()); word = (await word.getNextWord())) 
+    //     {
+    //         originalWord = await word.getString();
+    //         if(wordCount>=20){
+    //             console.log("Sleeping for "+(60000)+" ms");
+    //             // this.clearInterval(timer1)
+    //             var t = await sleep(60000);
+    //             // sleep((min - wordTimer));
+    //             wordTimer = 0;
+    //             wordCount = 0;
+    //             console.log("Back from Sleeping...");
+    //         }
+    //         var timer1 = setInterval(
+    //             function() {  
+    //                 ++wordTimer
+    //             }, 
+    //             min
+    //         );  
+    //         translatedWord = await translateText(originalWord, translateTo, wordCount);
+    //         await replacer.addString(originalWord, translatedWord);
+    //         ++wordCount;
+    //         // console.log(originalWord, " - ", translatedWord)
+    //     }
+    // }
+    result = {};
+    result["originalText"] = originalText;
+    result["translatedText"] = tt;
+    result["reqCount"] = reqCount;
+    result["rect"] = rect;
+    return result;
+}
+
+async function translateText(originalText, translateTo, wordCount) {
+    console.log("In translateText - ", wordCount)
+    translatedText = originalText;
+    // const res = await fetch("https://libretranslate.com/translate", {
+    //     method: "POST",
+    //     body: JSON.stringify({
+    //         q: originalText,
+    //         source: "en",
+    //         target: translateTo,
+    //         format: "text"
+    //     }),
+    //     headers: { "Content-Type": "application/json" }
+    // }).then(
+    //     res => {
+    //         console.log("res: ", res.json())
+    //         console.log("Out translateText")
+    //         return originalText;
+    //     }
+    // ).catch(
+    //     (error) => console.log("translateText error: ", error)
+    // );
+    // const res = await request.post(
+    //     'https://libretranslate.com/translate', {
+    //         json: { 
+    //             q: originalText,
+    //             source: "en",
+    //             target: translateTo,
+    //             format: "text"
+    //         }
+    //     },
+    //     function (error, response, body) {
+    //         if(error)
+    //             console.log(error)
+    //         if (!error && response.statusCode == 200) {
+    //             console.log(body);
+    //         }
+    //     }
+    // );
+    const res = await axios.post('https://libretranslate.de/translate', {
+            q: originalText,
+            source: "en",
+            target: translateTo,
+            format: "text"
+        },
+    ).then(res => {
+        translatedText = res.data.translatedText
+    }).catch(error => {
+        console.error("translateText error: ", error)
+    })
+    return translatedText
+    // console.log(await res.json());
+    // console.log(translatedText);
+}
 
 function bookRecommendation(userId, req, res) {
     console.log("")
@@ -842,7 +1029,7 @@ var functions = {
         }
     },
     changeLastPageRead: function(req, res) {
-        if ((!req.body['booksReadMap']) || (!req.body['emailId'])) {
+        if ((!req.body['booksReadMap']) || (!req.body['emailId']) || (!req.body['dailyRecordsMap'])) {
             res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
         }
         else { 
@@ -858,7 +1045,9 @@ var functions = {
                     else {
                         try{
                             booksReadMap = JSON.parse(req.body.booksReadMap)
+                            dailyRecordsMap = JSON.parse(req.body.dailyRecordsMap)
                             user.booksRead = booksReadMap;
+                            user.dailyRecords = dailyRecordsMap;
                             user.save(function(err) {
                                 if(!err) {
                                     console.log("... Updated Last Page Read Info. ");
@@ -872,6 +1061,42 @@ var functions = {
                             res.status(403).send({success: false, msg: 'Error in Updating Last Page Read Info.', body:req.body})
                         }
                         res.json({success: true, msg: 'Updated Last Page Read Info. Successfully', body:req.body})
+                    }
+                }
+            )
+        }
+    },
+    changeDailyRecords: function(req, res) {
+        if ((!req.body['emailId']) || (!req.body['dailyRecordsMap'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            User.findOne(
+                {
+                    emailId: req.body.emailId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Updating Daily Records Failed, User not found', body:req.body})
+                    }
+                    else {
+                        try{
+                            dailyRecordsMap = JSON.parse(req.body.dailyRecordsMap)
+                            user.dailyRecords = dailyRecordsMap;
+                            user.save(function(err) {
+                                if(!err) {
+                                    console.log("... Updated Daily Records Info. ");
+                                }
+                                else {
+                                    console.log("... Error: could not update Daily Records info. ");
+                                }
+                            });
+                        }
+                        catch(err) {  
+                            res.status(403).send({success: false, msg: 'Error in Updating Daily Records Info.', body:req.body})
+                        }
+                        res.json({success: true, msg: 'Updated Daily Records Info. Successfully', body:req.body})
                     }
                 }
             )
@@ -971,6 +1196,116 @@ var functions = {
                         // const bookStream = fs.createReadStream(dir)
                         // console.log("book: ", bookStream)
                         // bookStream.pipe(res)
+                    }
+                }
+            )
+        }
+    },
+    translateBookFile: async function (req, res) {
+        console.log("...translateBookFile body: ", req.body)
+        var bookId = req.body["bookId"]
+        var userId = req.body["userId"]
+        var translateTo = req.body["translateTo"]
+        // if(false) {
+        if((!bookId) || (!userId) || (!translateTo)) {
+            res.status(404).send({
+                success: false,
+                msg: 'Enter all fields',
+                body: req.body
+            })
+        }
+        else {
+            Book.find({
+                id: bookId
+                },
+                async function (err, book) {
+                    if (err) throw err
+                    else if (!book) {
+                        res.status(403).send({success: false, msg: 'Book not found'})
+                    }
+                    else {
+                        var filePath = path.join(__dirname, "../assets/books/")
+                        var dir = path.join(filePath, bookId+".pdf")
+                        console.log("...dir: ", dir)
+                        bookData = ""
+                        // bookFile = fs.readFileSync(dir)
+                        // pdfUtil.pdfToText(dir,function(err, data) {
+                        //     if (err) throw(err); 
+                        //     bookData = data; //print text    
+                        //     res.json({success: true, msg: 'BookFile retrieved', bookId: bookId, bookData: bookData});
+                        // });
+
+                        // pdfParse(bookFile).then(function (data) {
+                        //     bookData = data.text
+                        //     res.json({success: true, msg: 'BookFile retrieved', bookId: bookId, bookData: bookData});
+                        // })
+                        await PDFNet.initialize("demo:1649515536848:7bdef7ad03000000006f3917e290cc19d4b0cfdd79fde3a10df92acff6");  
+                        const pdfDoc = await PDFNet.PDFDoc.createFromFilePath(dir);
+                        await pdfDoc.initSecurityHandler()
+                        const replacer = await PDFNet.ContentReplacer.create();
+                        const pageCount = await pdfDoc.getPageCount();
+                        console.log("pageCount is ");
+                        console.log(pageCount)
+                        // res.json({success: true, msg: 'Translation Request of '+bookId+' received.\nWe\'ll notify you once the book gets translated!!!', bookId: bookId,});
+                        var reqCount = 0;
+                        // var wordTimer = 0;
+                        var docContent = "";
+                        for(var i=1; i<=pageCount; ++i) {
+                            const page = await pdfDoc.getPage(i);
+                            const txt = await PDFNet.TextExtractor.create();
+                            const rect = await page.getCropBox()
+                            // const rect = new PDFNet.Rect(0,0,612,794);
+                            txt.begin(page, rect);
+                            text = await txt.getAsText();
+                            docContent = docContent + text + "\n\n\n\n";
+                            // if(reqCount>=20){
+                            //     console.log("Sleeping for "+(60000)+" ms");
+                            //     // this.clearInterval(timer1)
+                            //     var t = await sleep(60000);
+                            //     // sleep((min - wordTimer));
+                            //     wordTimer = 0;
+                            //     reqCount = 0;
+                            //     console.log("Back from Sleeping...");
+                            // }
+                            // var timer1 = setInterval(
+                            //     function() {  
+                            //         ++wordTimer
+                            //     }, 
+                            //     60000
+                            // );  
+                            // result = await replaceWithTranslatedText(page, replacer, translateTo, reqCount);
+                            // // originalText = result["originalText"];
+                            // // translatedText = result["translatedText"];
+                            // reqCount = result["reqCount"];
+                            // rect = result["rect"];
+                            // await replacer.addText(rect, translatedText)
+                            // console.log("originalText: ")
+                            // console.log(originalText)
+                            // console.log()
+                            // console.log()
+                            // console.log("translatedText: ")
+                            // console.log(translatedText)
+                            // await replacer.addString(originalText, translatedText);
+                            // await replacer.process(page);
+                            console.log("\t\tDone Page ",i,"/",pageCount);
+                        }
+                        // var outputFilePath = filePath + bookId+"_"+translateTo+".pdf"
+                        // await pdfDoc.save(outputFilePath, PDFNet.SDFDoc.SaveOptions.e_remove_unused);
+                        // replace a text placeholder
+                        // await replacer.addString('OrigninalText', 'NewText');
+                        // await replacer.process(page);
+                        // var subject = "Translation Request is Fulfilled!!";
+                        // var body = "Dear user - "+userId+",\nYour translated book is ready!! Visit ReLis App. and enjoy reading the book...";
+                        // sendEmail(userId, subject, body)
+                        // console.log("\tMail Sent to ", userId);
+                        console.log("docContent is loaded");
+                        res.json({
+                            success: true,
+                            msg: 'BookFile Translated',
+                            bookId: bookId,
+                            pageCount: pageCount,
+                            docContent: docContent,
+                        });
                     }
                 }
             )

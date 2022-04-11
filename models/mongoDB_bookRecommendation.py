@@ -22,20 +22,20 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pymongo
 from pandas import DataFrame
-# import certifi
+#import certifi
 pd.set_option("display.max_rows", None, "display.max_columns", None)
 
-# ca = certifi.where()
+#ca = certifi.where()
 
 def get_database():
     from pymongo import MongoClient
     import pymongo
     # Provide the mongodb atlas url to connect python to mongodb using pymongo
-    CONNECTION_STRING = "Database URI"
+    CONNECTION_STRING = "mongodb+srv://devvora0308:devvora0308@cluster0.rlkvh.mongodb.net/testDB?retryWrites=true&w=majority"
     # Create a connection using MongoClient. We can import MongoClient or use pymongo.MongoClient
     from pymongo import MongoClient
     client = MongoClient(CONNECTION_STRING)
-    # client = MongoClient(CONNECTION_STRING, tlsCAFile = ca)
+    #client = MongoClient(CONNECTION_STRING, tlsCAFile = ca)
     # Create the database
     print("\t...Database Connected")
     return client['testDB']
@@ -261,12 +261,12 @@ book_ratingCount = (combine_book_rating.
      [['bookName', 'totalRatingCount']]
     )
 # #book_ratingCount.head()
-print("\n\book_ratingCount:")
+print("\n\nbook_ratingCount:")
 print(book_ratingCount)
 
 rating_with_totalRatingCount = combine_book_rating.merge(book_ratingCount, left_on = 'bookName', right_on = 'bookName', how = 'left')
 # #rating_with_totalRatingCount.head()
-print("\n\rating_with_totalRatingCount:")
+print("\n\nrating_with_totalRatingCount:")
 print(rating_with_totalRatingCount)
 
 # pd.set_option('display.float_format', lambda x: '%.3f' % x)
@@ -313,18 +313,49 @@ print(all_user_rating_matrix)
 # all_user_rating_pivot.iloc[:].values.reshape(1,-1)
 
 query_index = np.random.choice(all_user_rating_pivot.shape[0]) #Based on ratings given to a bk by user 
-print("\n\nquery_index:")
+print("\n\nquery_index:") # query_index = Stores random book from all_user_rating_pivot, for now.
 print(query_index)
 distances, indices = model_knn.kneighbors(all_user_rating_pivot.iloc[query_index,:].values.reshape(1, -1), n_neighbors = 2)
 
 # all_user_rating_pivot.index[query_index]
+result_list = []
 
 for i in range(0, len(distances.flatten())):
     if i == 0:
         print('Recommendations for {0}:\n'.format(all_user_rating_pivot.index[query_index]))
     else:
+        result_list.append(all_user_rating_pivot.index[indices.flatten()[i]])
         print('{0}: {1}, with distance of {2}:'.format(i, all_user_rating_pivot.index[indices.flatten()[i]], distances.flatten()[i]))
 
+values = []
 
+for i in result_list:
+    for j in range(len(books_df.id)):
+        if (i==books_df.bookName[j]):
+            values.append(books_df.id[j])
+
+print("\n\nvalues:")
+print(values)
+
+# Collection list to check if recommendedBooks collection already exists of not
+# collist = db.list_collection_names()
+# if "recommendedBooks" in collist:
+#     print("The collection exists.")
+# else:
+#     recommendResultsCol = db['recommendedBooks']
+print("\n\nuser--id:")
+print(currentUser)
+# userKey = []
+# userKey.append(currentUser)
+
+#recommendResults[userId] = 
+# resultDict = dict(zip(['recommendedBooks'], result_list))
+# print("\n\nresultDict")
+# print(resultDict)
+
+#print(usersCollection)
+
+storeResult = usersCollection.update_one({'emailId': currentUser}, {"$set":{"recommendedBooks": values}})
+print(storeResult)
 
 # print('Exit from ReLis',str(sys.argv[1]))

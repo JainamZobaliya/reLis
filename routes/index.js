@@ -175,6 +175,10 @@ router.post('/buyBooks', actions.buyBooks)
 //@route POST /changeLastPageRead
 router.post('/changeLastPageRead', actions.changeLastPageRead)
 
+//@desc Change Daily Records
+//@route POST /changeDailyRecords
+router.post('/changeDailyRecords', actions.changeDailyRecords)
+
 //@desc Update User's Reward
 //@route POST /addReward
 router.post('/addReward', actions.addReward)
@@ -190,6 +194,10 @@ router.post('/getAudioBook', actions.getAudioBook)
 //@desc Get Book File
 //@route POST /getBookFile
 router.post('/getBookFile', actions.getBookFile)
+
+//@desc Translate Book File
+//@route POST /translateBookFile
+router.post('/translateBookFile', actions.translateBookFile)
 
 //@desc Get AudioBook File
 //@route POST /getAudioBookFile
