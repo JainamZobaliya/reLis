@@ -1102,6 +1102,42 @@ var functions = {
             )
         }
     },
+    changeHistory: function(req, res) {
+        if ((!req.body['emailId']) || (!req.body['historyMap'])) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else { 
+            User.findOne(
+                {
+                    emailId: req.body.emailId
+                },
+                function (err, user) {
+                    if (err) throw err
+                    if (!user) {
+                        res.status(403).send({success: false, msg: 'Updating Daily Records Failed, User not found', body:req.body})
+                    }
+                    else {
+                        try{
+                            historyMap = JSON.parse(req.body.historyMap)
+                            user.bookHistory = historyMap;
+                            user.save(function(err) {
+                                if(!err) {
+                                    console.log("... Users Reading History Info. Updated");
+                                }
+                                else {
+                                    console.log("... Error: could not update Users Reading History Info. ");
+                                }
+                            });
+                        }
+                        catch(err) {  
+                            res.status(403).send({success: false, msg: 'Error in Updating Users Reading History Info.', body:req.body})
+                        }
+                        res.json({success: true, msg: 'Updated Users Reading History Info. Successfully', body:req.body})
+                    }
+                }
+            )
+        }
+    },
     addReward: function(req, res) {
         if ((!req.body['dailyRecords']) || (!req.body['emailId']) || (!req.body['credits'])) {
             res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})

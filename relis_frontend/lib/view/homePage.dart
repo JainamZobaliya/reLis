@@ -199,16 +199,19 @@ class _HomePageState extends State<HomePage> {
       // ),
       drawer: AppDrawer(), //DrawerPage(),
       body: SingleChildScrollView(
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            if (constraints.maxWidth > 700) {
-              return desktopView();
-            } else {
-              return mobileView();
-            }
-          },
-        ),
-      ), // bottom[currentIndex],
+        padding: EdgeInsets.fromLTRB(0, 0,0, 10),
+        child: desktopView(),
+      ),
+      //   LayoutBuilder(
+      //     builder: (BuildContext context, BoxConstraints constraints) {
+      //       if (constraints.maxWidth > 700) {
+      //         return desktopView();
+      //       } else {
+      //         return mobileView();
+      //       }
+      //     },
+      //   ),
+      // ), // bottom[currentIndex],
     );
   }
 

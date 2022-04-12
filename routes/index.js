@@ -175,6 +175,10 @@ router.post('/buyBooks', actions.buyBooks)
 //@route POST /changeLastPageRead
 router.post('/changeLastPageRead', actions.changeLastPageRead)
 
+//@desc Update User's Reading History
+//@route POST /changeHistory
+router.post('/changeHistory', actions.changeHistory)
+
 //@desc Change Daily Records
 //@route POST /changeDailyRecords
 router.post('/changeDailyRecords', actions.changeDailyRecords)

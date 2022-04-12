@@ -424,7 +424,7 @@ class _BookViewState extends State<BookView> {
                                   ],
                                 ),
                                 onPressed: () async {
-                                  addToHistory(user!, currentBook);
+                                  addToHistory(context, user!, currentBook);
                                   print("url: ${currentBook["url"]}");
                                   WidgetsBinding.instance!.addPostFrameCallback((_) async {
                                     var bookData;
