@@ -1065,8 +1065,8 @@ void loadBooksInCategory() {
 
 void loadEachHover() {
   loadHoverMap(category, categoryHover);
-  loadHover(user?["recommendedBook"].length, user?["recommendedBook"],
-      recommendationHover, "recommendedBook");
+  loadHover(user?["recommendedBooks"].length, user?["recommendedBooks"],
+      recommendationHover, "recommendedBooks");
   loadHover(bookInfo["trendingBook"].length, bookInfo["trendingBook"],
       trendingHover, "trendingBook");
   loadHover(user?["favouriteBook"].length, user?["favouriteBook"], favouriteHover,
