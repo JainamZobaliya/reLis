@@ -24,27 +24,27 @@ class TranslatedBook extends StatelessWidget {
           shadowColor: appBarShadowColor,
           elevation: 2.0,
         ),
-        body: Container(
-          alignment: Alignment.center,
-          padding: EdgeInsets.symmetric(vertical: 10.00, horizontal: 20.00),
-          margin: EdgeInsets.symmetric(vertical: 0.00, horizontal: 20.00),
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          color: mainAppBlue,
-          child:SingleChildScrollView(
-            controller: transController,
+        body: SingleChildScrollView(
+          controller: transController,
+          child: Container(
+            alignment: Alignment.center,
+            padding: EdgeInsets.symmetric(vertical: 10.00, horizontal: 10.00),
+            margin: EdgeInsets.symmetric(vertical: 10.00, horizontal: 0.00),
+            width: MediaQuery.of(context).size.width,
+            color: mainAppAmber,
             child: Text(
               "${fileData}",
               style: TextStyle(
-                color: Color(0xFFFFFFFF),
+                // color: Color(0xFFFFFFFF),
+                color: mainAppBlue,
                 height: 2,
                 fontSize: 18,
                 fontWeight: FontWeight.normal,
                 decoration: TextDecoration.none,
                 fontStyle: FontStyle.normal,
               ),
-            ),        
-          ),      
+            ),
+          ),
         ),
     );
   }

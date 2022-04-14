@@ -303,7 +303,7 @@ async function addBookFeedback(req, res) {
                         // bookFeedMap = book.feedback;
                         var bookFeedMap = {};
                         console.log("book[feedback] ? ",book.hasOwnProperty("feedback"))
-                        if(book.hasOwnProperty("feedback")) {
+                        if(book.hasOwnProperty("feedback") && book.feedback.length>0) {
                             bookFeedMap = book["feedback"];
                         }
                         else {
@@ -1237,6 +1237,7 @@ var functions = {
             )
         }
     },
+
     translateBookFile: async function (req, res) {
         console.log("...translateBookFile body: ", req.body)
         var bookId = req.body["bookId"]
@@ -1293,7 +1294,7 @@ var functions = {
                             // const rect = new PDFNet.Rect(0,0,612,794);
                             txt.begin(page, rect);
                             text = await txt.getAsText();
-                            docContent = docContent + text + "\n\n\n\n";
+                            docContent = docContent + text+"\n";
                             // if(reqCount>=20){
                             //     console.log("Sleeping for "+(60000)+" ms");
                             //     // this.clearInterval(timer1)

@@ -23,7 +23,7 @@ class _PaymentPageState extends State<PaymentPage> {
   void initState() {
     super.initState();
     isLoggedIn(context);
-    changePage("Cart");
+    // changePage("Cart");
     print("toRent: ");
     print("${user!["cart"]["toRent"]}");
     print("${(user!["cart"]["toRent"]).runtimeType}");
@@ -122,15 +122,16 @@ class _PaymentPageState extends State<PaymentPage> {
         elevation: 2.0,
       ),
       body:  SingleChildScrollView(
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            if (constraints.maxWidth > 700) {
-              return desktopView();
-            } else {
-              return mobileView();
-            }
-          },
-        ),
+        child: desktopView(),
+        // LayoutBuilder(
+        //   builder: (BuildContext context, BoxConstraints constraints) {
+        //     if (constraints.maxWidth > 700) {
+        //       return desktopView();
+        //     } else {
+        //       return mobileView();
+        //     }
+        //   },
+        // ),
       ),// bottom[currentIndex],
     );
   }

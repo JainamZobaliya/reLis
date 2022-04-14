@@ -23,6 +23,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+    
   form_field_validator: ^1.0.1
 
   # The following adds the Cupertino Icons font to your application.
@@ -46,8 +47,13 @@ dependencies:
   translator: ^0.1.7
   just_audio: ^0.9.20
   just_audio_libwinmedia: any
+  firebase_core: ^1.14.0
+  js: any
+  video_player:
   # pdf: ^3.7.1 # For creating pdf's
   # flutter_svg: ^1.0.2
+dependency_overrides:
+  platform: ^3.1.0
 
 dev_dependencies:
   flutter_test:

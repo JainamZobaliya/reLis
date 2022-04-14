@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:relis/authentication/signIn.dart';
+import 'package:relis/globals.dart';
 
 class SplashPage extends StatefulWidget {
   static const routeName = '/SplashPage';
@@ -59,7 +60,7 @@ class _SplashPageState extends State<SplashPage> {
       padding: EdgeInsets.all(10.0),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(25.00),
-        child: Image.asset('ReLis.gif', fit: BoxFit.fill,),
+        child: Image.network(reLis_gif, fit: BoxFit.fill,),
       ),
       decoration: new BoxDecoration(
         borderRadius: new BorderRadius.circular(25.0),

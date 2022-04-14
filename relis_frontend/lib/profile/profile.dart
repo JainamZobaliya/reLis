@@ -79,15 +79,16 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
         shadowColor: appBarShadowColor,
         elevation: 2.0,
       ),
-      body: LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          if (constraints.maxWidth > 700) {
-            return desktopView();
-          } else {
-            return mobileView();
-          }
-        },
-      ),
+      body: desktopView(),
+      // LayoutBuilder(
+      //   builder: (BuildContext context, BoxConstraints constraints) {
+      //     if (constraints.maxWidth > 700) {
+      //       return desktopView();
+      //     } else {
+      //       return mobileView();
+      //     }
+      //   },
+      // ),
     );
   }
 
@@ -121,7 +122,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                         child: CircleAvatar(
                           radius: 180,
                           backgroundColor: Color(0xFF032f4b),
-                          backgroundImage: user?["imageURL"] != null ? NetworkImage(user?["imageURL"]) : Image.asset("ReLis.gif").image,
+                          backgroundImage: user?["imageURL"] != null ? NetworkImage(user?["imageURL"]) : NetworkImage(reLis_gif),
                           child: Material(
                             elevation: 0.0,
                             clipBehavior: Clip.antiAliasWithSaveLayer,

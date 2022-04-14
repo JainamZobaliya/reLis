@@ -37,6 +37,7 @@
     pdfjsLib.GlobalWorkerOptions.workerSrc = "//cdnjs.cloudflare.com/ajax/libs/pdf.js/2.7.570/pdf.worker.min.js";
   </script>
   <link rel="manifest" href="manifest.json">
+  <script type="text/javascript" src="firebaseData.js"></script>
 </head>
 <body>
   <!-- This script installs service_worker.js to provide PWA functionality to
@@ -111,6 +112,24 @@
       // Service workers not supported. Just drop the <script> tag.
       loadMainDartJs();
     }
+  </script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBgPY4H6c2I924Ad-RC9UdCzZ9tVMuXMMw",
+      authDomain: "audiobook-404e3.firebaseapp.com",
+      projectId: "audiobook-404e3",
+      storageBucket: "audiobook-404e3.appspot.com",
+      messagingSenderId: "629834383464",
+      appId: "1:629834383464:web:200d4b7abf8111f1c13bdd",
+      measurementId: "G-YF05466XJC"
+    };
+  </script>
+  <script>
+    const app = firebase.initializeApp(firebaseConfig)
+    export {app};
   </script>
 </body>
 </html>

@@ -9,6 +9,7 @@ import 'package:relis/bookInfo.dart';
 import 'package:relis/profile/profile.dart';
 import 'package:relis/view/bookView.dart';
 import 'package:relis/view/creditsPage.dart';
+import 'package:relis/view/demoMode.dart';
 import 'package:relis/view/pageView.dart';
 import 'package:relis/drawer.dart';
 import 'package:relis/globals.dart';
@@ -41,7 +42,7 @@ class _HomePageState extends State<HomePage> {
           title: Text("Cart"),
           tileColor: mainAppAmber,
           onTap: () {
-            changePage("Cart");
+            // changePage("Cart");
             Navigator.of(context).popAndPushNamed(PaymentPage.routeName);
             ;
           },
@@ -54,7 +55,7 @@ class _HomePageState extends State<HomePage> {
           title: Text("Statistic"),
           tileColor: mainAppAmber,
           onTap: () {
-            changePage("Statistic");
+            // changePage("Statistic");
             Navigator.of(context).popAndPushNamed(StatisticsPage.routeName);
             ;
           },
@@ -78,7 +79,7 @@ class _HomePageState extends State<HomePage> {
           leading: CircleAvatar(
             backgroundImage: user?["imageURL"] != null
                 ? NetworkImage(user?["imageURL"])
-                : Image.asset("ReLis.gif").image,
+                : NetworkImage(reLis_gif),
             backgroundColor: Color(0xFF032f4b),
             radius: 20.00,
           ),
@@ -86,6 +87,19 @@ class _HomePageState extends State<HomePage> {
           tileColor: mainAppAmber,
           onTap: () {
             Navigator.of(context).popAndPushNamed(Profile.routeName);
+          },
+        ),
+      ),
+      PopupMenuItem(
+        padding: EdgeInsets.zero,
+        child: ListTile(
+          leading: Icon(Icons.video_collection_rounded),
+          title: Text("Demo"),
+          tileColor: mainAppAmber,
+          onTap: () {
+            // changePage("Demo");
+            Navigator.of(context).popAndPushNamed(DemoMode.routeName);
+            ;
           },
         ),
       ),
@@ -139,7 +153,6 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    print("ijk: ${++ijk}");
     return Scaffold(
       backgroundColor: appBackgroundColor,
       appBar: AppBar(
@@ -180,7 +193,7 @@ class _HomePageState extends State<HomePage> {
             icon: CircleAvatar(
               backgroundImage: user?["imageURL"] != null
                   ? NetworkImage(user?["imageURL"])
-                  : Image.asset("ReLis.gif").image,
+                  : NetworkImage(reLis_gif),
               backgroundColor: Color(0xFF032f4b),
               radius: 50.00,
             ),
@@ -197,7 +210,7 @@ class _HomePageState extends State<HomePage> {
       //   ],
       //   backgroundColor: Colors.tealAccent,
       // ),
-      drawer: AppDrawer(), //DrawerPage(),
+      // drawer: AppDrawer(), //DrawerPage(),
       body: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(0, 0,0, 10),
         child: desktopView(),
@@ -391,8 +404,6 @@ class _HomePageState extends State<HomePage> {
 
   Widget viewButton(
       String containerName, String visibilityName, Widget containerChild) {
-    print("viewButton - ${containerName}");
-    print("Recc: ${user?['recommendedBooks']}");
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.start,
@@ -438,7 +449,6 @@ class _HomePageState extends State<HomePage> {
 
   Widget bookScrollList(var currentBook, ScrollController controller,
       Map<String, ValueNotifier<bool>> bookHover, String messageText) {
-    print(currentBook.length);
     if (currentBook == null ||
         currentBook.isEmpty ||
         currentBook.length == 0 ||
@@ -491,11 +501,8 @@ class _HomePageState extends State<HomePage> {
 
   Widget bookCarousel() {
     Dio dio = Dio();
-    print("In bookCarousel");
     List<Widget> carouselList = [];
     var carouselBooks = getBooksMap(bookInfo["topPicks"], isList: true);
-    print("Got bookCarousel: ");
-    print("\n\n\n\n");
     for (var currentBook1 in carouselBooks.values) {
       Map<String, dynamic> currentBook =
           Map<String, dynamic>.from(currentBook1);
@@ -547,8 +554,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ));
     }
-    int currentCarousel = 0;
-    print("Loading bookCarousel");
+    ValueNotifier<int> currentCarousel = ValueNotifier<int>(0);
     return Container(
       margin: EdgeInsets.symmetric(vertical: 10.00),
       child: Column(
@@ -576,10 +582,8 @@ class _HomePageState extends State<HomePage> {
               enlargeCenterPage: true,
               scrollDirection: Axis.horizontal,
               onPageChanged: (int pageNo, dynamic reason) {
-                // print("homePage: Auto: ");
-                // print("\t currentCarousel was: ${currentCarousel}");
-                currentCarousel = pageNo;
-                // print("\t New currentCarousel is: ${currentCarousel}");
+                currentCarousel.value = pageNo;
+                print("aa");
                 setState(() {});
               },
             ),
@@ -594,19 +598,26 @@ class _HomePageState extends State<HomePage> {
                 onTap: () {
                   // print("homePage: Tapped: ");
                   // print("\t currentCarousel was: ${currentCarousel}");
-                  currentCarousel = entry.key;
+                  currentCarousel.value = entry.key;
+                  carouselController.animateToPage(entry.key);
                   // print("\t New currentCarousel is: ${currentCarousel}");
                   setState(() {});
-                  carouselController.animateToPage(entry.key);
                 },
-                child: Container(
-                  width: 12.0,
-                  height: 12.0,
-                  margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
-                  decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(
-                          currentCarousel == entry.key ? 0.9 : 0.4)),
+                child: ValueListenableBuilder(
+                  valueListenable: currentCarousel,
+                  builder: (BuildContext, val, child){
+                    return Container(
+                      width: 12.0,
+                      height: 12.0,
+                      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: mainAppBlue.withOpacity(
+                          currentCarousel.value == entry.key ? 0.9 : 0.4,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               );
             }).toList(),

@@ -37,15 +37,16 @@ class _PasswordChangeState extends State<PasswordChange> {
           child: Form(
             autovalidateMode: AutovalidateMode.onUserInteraction,
             key: _formKey,
-            child: LayoutBuilder(
-              builder: (BuildContext context, BoxConstraints constraints) {
-                if (constraints.maxWidth > 700) {
-                  return desktopView();
-                } else {
-                  return mobileView();
-                }
-              },
-            ),
+            child: desktopView()
+            // LayoutBuilder(
+            //   builder: (BuildContext context, BoxConstraints constraints) {
+            //     if (constraints.maxWidth > 700) {
+            //       return desktopView();
+            //     } else {
+            //       return mobileView();
+            //     }
+            //   },
+            // ),
           ),
         ),
       ),
@@ -310,8 +311,14 @@ class _PasswordChangeState extends State<PasswordChange> {
   }
   
   Widget signInImage() {
-    return Image.asset(
-      "images/signin.png",
+    return Image.network(
+      "https://firebasestorage.googleapis.com/v0/b/audiobook-404e3.appspot.com/o/signin-2.jpg?alt=media&token=a552abaa-9549-4a32-8043-ca15444eca01",
+      errorBuilder: (context, exception, stackTrace) {
+        return Image.network(reLis_gif);
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        return imageLoader(loadingProgress);
+      },
       fit: BoxFit.contain,
     );
   }

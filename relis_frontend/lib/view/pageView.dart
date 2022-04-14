@@ -82,17 +82,18 @@ class _PageTypeViewState extends State<PageTypeView> {
         shadowColor: appBarShadowColor,
         elevation: 2.0,
       ),
-      drawer: (pageData.page.hashCode == pageType.adminBookView.hashCode) ? null : AppDrawer(),
+      // drawer: (pageData.page.hashCode == pageType.adminBookView.hashCode) ? null : AppDrawer(),
       body: SingleChildScrollView(
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            if (constraints.maxWidth > 700) {
-              return desktopView();
-            } else {
-              return mobileView();
-            }
-          },
-        ),
+        child: desktopView(),
+        // LayoutBuilder(
+        //   builder: (BuildContext context, BoxConstraints constraints) {
+        //     if (constraints.maxWidth > 700) {
+        //       return desktopView();
+        //     } else {
+        //       return mobileView();
+        //     }
+        //   },
+        // ),
       ),
     );
   }
@@ -489,7 +490,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                     newBook["bookFile"] = bookData;
                     newBook["id"] = "pbk-$randNo";
                     newBook["authorName"] = user!["firstName"]+" "+user!["lastName"];
-                    newBook["image"] = Image.asset("ReLis.gif");
+                    newBook["image"] = Image.network(reLis_gif);
                     print("id: ");
                     print(newBook["id"]);
                     print("bookFile Length: ");
@@ -551,7 +552,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                           child: CircleAvatar(
                             radius: 160,
                             backgroundColor: Color(0xFF032f4b),
-                            backgroundImage: newBook["imageURL"] != null ? NetworkImage(newBook["imageURL"]) : Image.asset("ReLis.gif").image,
+                            backgroundImage: newBook["imageURL"] != null ? NetworkImage(newBook["imageURL"]) : NetworkImage(reLis_gif),
                             child: Material(
                               elevation: 0.0,
                               clipBehavior: Clip.antiAliasWithSaveLayer,

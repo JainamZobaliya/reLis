@@ -160,16 +160,17 @@ class _BookViewState extends State<BookView> {
           shadowColor: appBarShadowColor,
           elevation: 2.0,
         ),
-        drawer: AppDrawer(), //DrawerPage(),
-        body: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints constraints) {
-            if (constraints.maxWidth > 700) {
-              return desktopView(book.currentBook);
-            } else {
-              return mobileView(book.currentBook);
-            }
-          },
-        ),
+        // drawer: AppDrawer(), //DrawerPage(),
+        body: desktopView(book.currentBook),
+        // LayoutBuilder(
+        //   builder: (BuildContext context, BoxConstraints constraints) {
+        //     if (constraints.maxWidth > 700) {
+        //       return desktopView(book.currentBook);
+        //     } else {
+        //       return mobileView(book.currentBook);
+        //     }
+        //   },
+        // ),
       ),
     );
   }
@@ -737,7 +738,7 @@ class _BookViewState extends State<BookView> {
     print(feedUser);
     userInfo["userId"] = feedUser?["emailId"];
     userInfo["name"] = feedUser?["firstName"] + " " + feedUser?["lastName"];
-    userInfo["imageURL"] = feedUser?["imageURL"] != null ? (feedUser?["imageURL"] == "assets/ReLis.gif" ? null : feedUser?["imageURL"]) : null;
+    userInfo["imageURL"] = feedUser?["imageURL"] != null ? (feedUser?["imageURL"].contains("ReLis.gif") ? null : feedUser?["imageURL"]) : null;
     print("out of getUserInfo");
     return userInfo;
   }
@@ -892,7 +893,7 @@ class _BookViewState extends State<BookView> {
                               Row(
                                 children: [
                                   CircleAvatar(
-                                    backgroundImage: userCommentInfo[userComment["userId"]]["imageURL"] != null ? NetworkImage(userCommentInfo[userComment["userId"]]["imageURL"]) : Image.asset("ReLis.gif").image,
+                                    backgroundImage: userCommentInfo[userComment["userId"]]["imageURL"] != null ? NetworkImage(userCommentInfo[userComment["userId"]]["imageURL"]) : NetworkImage(reLis_gif),
                                     backgroundColor: Color(0xFF032f4b),
                                     radius: 25.00,
                                   ),
@@ -1009,8 +1010,8 @@ class _BookViewState extends State<BookView> {
     // }
     Dio dio = new Dio();
     Response response = await dio.post(
-      "http://localhost:3000/translateBookFile",
-      // "https://relis-nodejs1.herokuapp.com/getBookImage",
+      // "http://localhost:3000/translateBookFile",
+      "https://relis-nodejs1.herokuapp.com/translateBookFile",
       data: {"userId": user!["emailId"], "bookId": bookId, "translateTo": langCodes[currentLang],},
       options: Options(contentType: Headers.formUrlEncodedContentType),
     ); 
@@ -1025,14 +1026,14 @@ class _BookViewState extends State<BookView> {
       // docContent = docContent.replaceAll("<", "\"less than symbol\"");
       // docContent = docContent.replaceAll(">", "\"greater than symbol\"");
       // docContent = docContent.replaceAll("\$", "\"dollar symbol\"");
-      var reg = new RegExp(r"[,.;:]");
+      var reg = new RegExp(r"[\n]");
       var content = docContent.split(reg);
       content.removeWhere((item) => item.length == 0);
       for(int i=0; i<content.length; ++i){
         var textToBeTranslated = content[i];
         try{
-          // if(content[i]=="")
-          //   continue;
+          if(content[i]=="")
+            continue;
           while(textToBeTranslated.length<2000 && (i+1)!=content.length && content[i+1]!="" && (textToBeTranslated + content[i+1]).length<1998){
             textToBeTranslated = textToBeTranslated + content[++i];
           }

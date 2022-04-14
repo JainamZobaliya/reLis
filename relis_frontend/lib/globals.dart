@@ -30,12 +30,23 @@ import 'package:relis/view/searchPage.dart';
 import 'package:relis/view/splashScreen.dart';
 import 'package:relis/view/statistics.dart';
 import 'package:relis/view/translatedBook.dart';
+import 'package:relis/view/demoMode.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:html' as webFile;
 
 String appTitle = "ReLis - Let the book talk!!!";
 var token;
 int totalPageReadToday = 0;
+var reLis_gif = "https://firebasestorage.googleapis.com/v0/b/audiobook-404e3.appspot.com/o/ReLis.gif?alt=media&token=bbcb7a6e-c7c2-4d27-8ced-5ab58d3e177c";
+
+imageLoader(ImageChunkEvent? loadingProgress) {
+  return Center(
+    child: CircularProgressIndicator(
+      value: loadingProgress!.expectedTotalBytes != null ? loadingProgress!.cumulativeBytesLoaded / loadingProgress!.expectedTotalBytes! : null,
+      color: mainAppAmber,
+    ),
+  );
+}
 
 ThemeData appTheme = ThemeData(
   primarySwatch: Colors.blue,
@@ -67,6 +78,7 @@ var appRoutes = {
   PasswordChange.routeName: (BuildContext context) => PasswordChange(),
   CreditsPage.routeName: (BuildContext context) => CreditsPage(),
   PaymentPage.routeName: (BuildContext context) => PaymentPage(), 
+  DemoMode.routeName: (BuildContext context) => DemoMode(), 
   StatisticsPage.routeName: (BuildContext context) => StatisticsPage(),
   AudioBook.routeName: (BuildContext context) => AudioBook()
 };
@@ -118,7 +130,7 @@ isLoggedIn(BuildContext context) async {
       await logOut(context);
     }
     else if(loggedIn && currentPage!="Home") {
-      changePage("Home");
+      // changePage("Home");
       print("\tisLoggedIn: going to getLoggedIn");
       await getLoggedIn(context, emailId!, password!, "true", sessionOutOnStr: sessionOutOnStr);
     }
@@ -310,20 +322,21 @@ Color appBackgroundColor = mainAppAmber; // Color(0xFF1A93EF);
 Color selectedDrawerTile = Color(0xFF197278);
 Color commentBoxColor = Color(0xFF197278);
 
-Map<String, bool> pages = {
-  "SignIn": true,
-  "SignUp": false,
-  "Home": false,
-  "Genre": false,
-  "Trending": false,
-  "Cart": false,
-  "Favourites": false,
-  "Wish List": false,
-  "History": false,
-  "Bought": false,
-  "Rented": false,
-  "Statistic": false,
-};
+// Map<String, bool> pages = {
+//   "SignIn": true,
+//   "SignUp": false,
+//   "Home": false,
+//   "Genre": false,
+//   "Trending": false,
+//   "Cart": false,
+//   "Favourites": false,
+//   "Wish List": false,
+//   "History": false,
+//   "Bought": false,
+//   "Rented": false,
+//   "Demo": false,
+//   "Statistic": false,
+// };
 
 Map<String, String> Registeration = {};
 // Map<String, dynamic> rentCart = {};
@@ -355,15 +368,15 @@ void showMessageSnackBar(BuildContext context, String message, Color backgroundC
   ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }
 
-void changePage(String newPage) {
-  pages[currentPage] = false;
-  currentPage = newPage;
-  pages[currentPage] = true;
-}
+// void changePage(String newPage) {
+//   pages[currentPage] = false;
+//   currentPage = newPage;
+//   pages[currentPage] = true;
+// }
 
-bool isPageOpened(String pageName) {
-  return pages[pageName]!;
-}
+// bool isPageOpened(String pageName) {
+//   return pages[pageName]!;
+// }
 
 BoxDecoration boxDecoration = BoxDecoration(
   color: Colors.tealAccent,
@@ -490,7 +503,7 @@ gotToRoute(BuildContext context, pageType type) {
   switch (type) {
     case pageType.category:
       {
-        changePage("Genre");
+        // changePage("Genre");
         return Navigator.of(context).popAndPushNamed(
           PageTypeView.routeName,
           arguments: PageArguments(
@@ -501,7 +514,7 @@ gotToRoute(BuildContext context, pageType type) {
       break;
     case pageType.trending:
       {
-        changePage("Trending");
+        // changePage("Trending");
         return Navigator.of(context).pushNamed(
           PageTypeView.routeName,
           arguments: PageArguments(
@@ -512,7 +525,7 @@ gotToRoute(BuildContext context, pageType type) {
       break;
     case pageType.cart:
       {
-        changePage("Cart");
+        // changePage("Cart");
         return Navigator.of(context).pushNamed(
           PageTypeView.routeName,
           arguments: PageArguments(
@@ -523,7 +536,7 @@ gotToRoute(BuildContext context, pageType type) {
       break;
     case pageType.favourite:
       {
-        changePage("Favourites");
+        // changePage("Favourites");
         return Navigator.of(context).pushNamed(
           PageTypeView.routeName,
           arguments: PageArguments(
@@ -534,7 +547,7 @@ gotToRoute(BuildContext context, pageType type) {
       break;
     case pageType.wishList:
       {
-        changePage("Wish List");
+        // changePage("Wish List");
         return Navigator.of(context).pushNamed(
           PageTypeView.routeName,
           arguments: PageArguments(
@@ -545,7 +558,7 @@ gotToRoute(BuildContext context, pageType type) {
       break;
     case pageType.history:
       {
-        changePage("History");
+        // changePage("History");
         return Navigator.of(context).pushNamed(
           PageTypeView.routeName,
           arguments: PageArguments(
@@ -556,7 +569,7 @@ gotToRoute(BuildContext context, pageType type) {
       break;
     case pageType.bought:
       {
-        changePage("Bought");
+        // changePage("Bought");
         return Navigator.of(context).pushNamed(
           PageTypeView.routeName,
           arguments: PageArguments(
@@ -567,7 +580,7 @@ gotToRoute(BuildContext context, pageType type) {
       break;
     case pageType.rented:
       {
-        changePage("Rented");
+        // changePage("Rented");
         return Navigator.of(context).pushNamed(
           PageTypeView.routeName,
           arguments: PageArguments(
@@ -578,7 +591,7 @@ gotToRoute(BuildContext context, pageType type) {
       break;
     case pageType.personalBooks:
       {
-        changePage("Trending");
+        // changePage("Trending");
         return Navigator.of(context).pushNamed(
           PageTypeView.routeName,
           arguments: PageArguments(
@@ -590,7 +603,7 @@ gotToRoute(BuildContext context, pageType type) {
     case pageType.none:
     default:
       {
-        changePage("Home");
+        // changePage("Home");
         return Navigator.of(context).pushNamed(HomePage.routeName);
       }
       break;

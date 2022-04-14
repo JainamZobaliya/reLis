@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:relis/arguments/photoArguments.dart';
 import 'package:relis/authentication/user.dart';
+import 'package:relis/globals.dart';
 
 class ShowPhoto extends StatefulWidget {
   static const routeName = '/ShowPhotoPage';
@@ -57,7 +58,7 @@ class _ShowPhotoState extends State<ShowPhoto> {
           child: Image(
             image: pageData.photoURL != null && pageData.photoURL != "" ? Image.network(pageData.photoURL).image
             // NetworkImage(pageData.photoURL)
-                : Image.asset("ReLis.gif").image,
+                : NetworkImage(reLis_gif),
             fit: BoxFit.contain,
           ),
         ),

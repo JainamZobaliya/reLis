@@ -30,7 +30,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   void initState() {
     super.initState();
-    changePage("SignUp");
+    // changePage("SignUp");
     checkStatus(context);
   }
 
@@ -931,8 +931,15 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Widget signUpImage() {
-    return Image.asset(
-      "images/signup.jpg",
+    return Image.network(
+      "https://firebasestorage.googleapis.com/v0/b/audiobook-404e3.appspot.com/o/signup.jpg?alt=media&token=2a1a8f9b-d014-451e-afec-d0f5caafd84d",
+      errorBuilder: (context, exception, stackTrace) {
+        return Image.network(reLis_gif);
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return imageLoader(loadingProgress);
+      },
       fit: BoxFit.contain,
     );
   }
