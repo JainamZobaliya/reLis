@@ -305,16 +305,13 @@ async function addBookFeedback(req, res) {
                         console.log("book[feedback] ? ",book.hasOwnProperty("feedback"))
                         if(book.hasOwnProperty("feedback") && book.feedback.length>0) {
                             bookFeedMap = book["feedback"];
+                            console.log("...before Adding book-feedback: ");
+                            console.log(book["feedback"]);
                         }
-                        else {
-                            book.feedback = {};
-                        }
-                        console.log("...before Adding book-feedback: ");
-                        console.log(book["feedback"]);
                         console.log("...Reached Here-1");
-                        book.feedback.emailId = bookMap;
+                        bookFeedMap = bookMap;
                         console.log("...Reached Here-2");
-                        // book.feedback = bookFeedMap;
+                        book.feedback = bookFeedMap;
                         console.log("...after Adding book-feedback: ");
                         console.log(book.feedback);
                         console.log("...Reached Here-3");
@@ -1485,7 +1482,60 @@ var functions = {
                 "rating":  rating,
             };
             console.log("BookMap: ", bookMap)
-            await addBookFeedback(req, res)
+            await Book.findOne(
+                {
+                    id: bookId
+                },
+                async function (err, book) {
+                    if (err) throw err
+                    if (!book) {
+                        res.status(403).send({success: false, msg: 'Adding Feeback Info. Failed, Book not found!!', body:req.body})
+                    }
+                    else {
+                        try{
+                            // bookFeedMap = book.feedback;
+                            var bookFeedMap = {};
+                            console.log("book[feedback] ? ",book.hasOwnProperty("feedback"))
+                            if(book.hasOwnProperty("feedback") && book.feedback.length>0) {
+                                bookFeedMap = book["feedback"];
+                                console.log("...before Adding book-feedback: ");
+                                console.log(book["feedback"]);
+                            }
+                            console.log("...Reached Here-1");
+                            // bookFeedMap = bookMap;
+                            bookFeedMap[emailId.toString()] = {};
+                            bookFeedMap[emailId.toString()]["userId"] = emailId;
+                            bookFeedMap[emailId.toString()]["comment"] = comment;
+                            bookFeedMap[emailId.toString()]["rating"] = rating;
+                            console.log("...Reached Here-2");
+                            book.feedback = bookFeedMap;
+                            console.log("...after Adding book-feedback: ");
+                            console.log(book.feedback);
+                            console.log("...Reached Here-3");
+                            console.log(book.feedback.emailId);
+                            var key = getRatingsKey(rating)
+                            console.log(key,": ",book["ratings"][key])
+                            book["ratings"][key] = book["ratings"][key]+1;
+                            console.log(key,": ",book["ratings"][key])
+                            await book.save(
+                                function(err) {
+                                    if(!err) {
+                                        console.log("... Book-Feeback Added. ");
+                                    }
+                                    else {
+                                        console.log("... Error: could not add book-feedback. ");
+                                        console.log("... Error: ", err);
+                                    }
+                                }
+                            );
+                        }
+                        catch(err) {  
+                            res.status(403).send({success: false, msg: 'Error in adding book-feedback', body:req.body})
+                        }
+                    }
+                }
+            ); 
+            // await addBookFeedback(req, res)
             res.json({success: true, msg: 'Feedback Added Successfully', body:req.body})
         }
     },

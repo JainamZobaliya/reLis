@@ -47,22 +47,24 @@ var bookSchema = new Schema({
         require: true
     },
     feedback: {
-        userId: {
-            userId: {
-                type: String,
-                require: true
-            },
-            comment: {
-                type: String,
-                require: true
-            },
-            rating: {
-                type: Number,
-                min: 0,
-                max: 5,
-                require: true
-            },
-        },
+        type: Map,
+        default: {},
+        // userId: {
+        //     userId: {
+        //         type: String,
+        //         require: true
+        //     },
+        //     comment: {
+        //         type: String,
+        //         require: true
+        //     },
+        //     rating: {
+        //         type: Number,
+        //         min: 0,
+        //         max: 5,
+        //         require: true
+        //     },
+        // },
     },
     ratings: {
         rate0: {
