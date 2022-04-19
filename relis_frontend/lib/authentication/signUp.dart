@@ -467,7 +467,7 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
           Expanded(
             flex: 1,
-            child: signUpImage(),
+            child: getSignUpImage(),
           ),
         ],
       ),
@@ -498,7 +498,7 @@ class _SignUpPageState extends State<SignUpPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.max,
         children: [
-          signUpImage(),
+          getSignUpImage(),
           SizedBox(
             height: 20,
           ),
@@ -930,17 +930,7 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget signUpImage() {
-    return Image.network(
-      "https://firebasestorage.googleapis.com/v0/b/audiobook-404e3.appspot.com/o/signup.jpg?alt=media&token=2a1a8f9b-d014-451e-afec-d0f5caafd84d",
-      errorBuilder: (context, exception, stackTrace) {
-        return Image.network(reLis_gif);
-      },
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return imageLoader(loadingProgress);
-      },
-      fit: BoxFit.contain,
-    );
+  Widget getSignUpImage() {
+    return signUpImage;
   }
 }

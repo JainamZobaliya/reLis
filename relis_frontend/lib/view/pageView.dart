@@ -490,7 +490,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                     newBook["bookFile"] = bookData;
                     newBook["id"] = "pbk-$randNo";
                     newBook["authorName"] = user!["firstName"]+" "+user!["lastName"];
-                    newBook["image"] = Image.network(reLis_gif);
+                    newBook["image"] = relisGif;
                     print("id: ");
                     print(newBook["id"]);
                     print("bookFile Length: ");
@@ -552,7 +552,7 @@ class _PageTypeViewState extends State<PageTypeView> {
                           child: CircleAvatar(
                             radius: 160,
                             backgroundColor: Color(0xFF032f4b),
-                            backgroundImage: newBook["imageURL"] != null ? NetworkImage(newBook["imageURL"]) : NetworkImage(reLis_gif),
+                            backgroundImage: newBook["imageURL"] != null ? NetworkImage(newBook["imageURL"]) : relisGif,
                             child: Material(
                               elevation: 0.0,
                               clipBehavior: Clip.antiAliasWithSaveLayer,

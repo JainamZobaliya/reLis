@@ -609,58 +609,45 @@ var functions = {
                         var dir = path.join(__dirname, "../assets/books/")
                         var imageName = book.imageName
                         dir = path.join(dir,imageName)
-                        // console.log("dir: "+dir);
                         var options = {
                             root: dir
                         };
-                        // var imageBuffer = fs.readFileSync(dir);
-                        // var imageFile = fs.createWriteStream(imageName).write(imageBuffer);
                         imagePng = {
                             data: fs.readFileSync(dir),
                             contentType: 'image/png'
                         }
-                        // console.log("imagePng:")
-                        // console.log(imagePng)
                         res.json({success: true, msg: 'BookImage retrieved', bookId: bookId, imagePng: imagePng});
-                        // res.sendFile(imageName, options, function (err) {
-                        //     if (err) {
-                        //         throw(err);
-                        //     } else {
-                        //         console.log('Sent:', imageName);
-                        //     }
-                        // });                 
-                        // res.sendFile(path.join(__dirname, "../assets/books/"+bookId+".png"));
-                        // fs.exists(filePath, function (exists) {
-                        //     if (!exists) {
-                        //         res.writeHead(404, {
-                        //             "Content-Type": "text/plain" });
-                        //         res.end("404 Not Found");
-                        //         return;
-                        //     }
-                        //     var ext = path.extname(action); // Extracting file extension
-                        //     var contentType = "text/plain"; // Setting default Content-Type
-                        //     // Checking if the extension of image is '.png'
-                        //     if (ext === ".png") {
-                        //         contentType = "image/png";
-                        //     }
-                        //     // Setting the headers
-                        //     res.writeHead(200, {
-                        //         "Content-Type": contentType });
-                        //     // Reading the file
-                        //     fs.readFile(filePath,
-                        //         function (err, content) {
-                        //             res.end(content); // Serving the image
-                        //         });
-                        // });
                     }
                 }
-            ).catch(error => {
-                console.log(error);
-            })
-            // if(books.length>0) {
-            //     return res.json({success: true, bookImages: bookImages})
-            // }
-            // return res.status(403).send({success: false, msg: 'Book not found'})
+            ).catch(
+                error => {
+                    console.log(error);
+                }
+            )
+        }
+    },
+    getImage: async function (req, res) {
+        var imageType = req.body.imageType
+        if(!imageType) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else {
+            imageTypeList = ["signUpImage", "signInImage", "relisGif"];
+            if (imageTypeList.indexOf(imageType) == -1) {
+                return res.status(403).send({success: false, msg: 'Image retrieving error'})
+            }
+            else {
+                var dir = path.join(__dirname, "../assets/images/")
+                var imageExt = imageType == "relisGif" ? '.gif' : '.png'
+                var imageName = imageType + imageExt
+                dir = path.join(dir,imageName)
+                imagePng = {
+                    data: fs.readFileSync(dir),
+                    contentType: imageType == "relisGif" ? 'image/gif' : 'image/png'
+                }
+                console.log("Image - ", imageName, "sent", imagePng["data"].length);
+                res.json({success: true, msg: 'Image retrieved', imagePng: imagePng});
+            }
         }
     },
     getRecommendBook: async function (req, res) {
@@ -1234,7 +1221,6 @@ var functions = {
             )
         }
     },
-
     translateBookFile: async function (req, res) {
         console.log("...translateBookFile body: ", req.body)
         var bookId = req.body["bookId"]
@@ -1452,10 +1438,10 @@ var functions = {
                             }
                             console.log("...before Adding feedback: ");
                             console.log(feedMap);
-                            feedMap[bookId] = {}
-                            feedMap[bookId]["id"] =  bookId;
-                            feedMap[bookId]["comment"] =  comment;
-                            feedMap[bookId]["rating"] =  rating;
+                            feedMap[bookId.toString()] = {}
+                            feedMap[bookId.toString()]["id"] =  bookId;
+                            feedMap[bookId.toString()]["comment"] =  comment;
+                            feedMap[bookId.toString()]["rating"] =  rating;
                             user.feedback = feedMap;
                             console.log("...after Adding feedback: ");
                             console.log(user.feedback);
@@ -1496,27 +1482,31 @@ var functions = {
                             // bookFeedMap = book.feedback;
                             var bookFeedMap = {};
                             console.log("book[feedback] ? ",book.hasOwnProperty("feedback"))
-                            if(book.hasOwnProperty("feedback") && book.feedback.length>0) {
+                            if(Object.keys(book["feedback"]).length>0) {
                                 bookFeedMap = book["feedback"];
                                 console.log("...before Adding book-feedback: ");
-                                console.log(book["feedback"]);
+                                console.log(bookFeedMap);
                             }
-                            console.log("...Reached Here-1");
-                            // bookFeedMap = bookMap;
-                            bookFeedMap[emailId.toString()] = {};
-                            bookFeedMap[emailId.toString()]["userId"] = emailId;
-                            bookFeedMap[emailId.toString()]["comment"] = comment;
-                            bookFeedMap[emailId.toString()]["rating"] = rating;
-                            console.log("...Reached Here-2");
-                            book.feedback = bookFeedMap;
-                            console.log("...after Adding book-feedback: ");
-                            console.log(book.feedback);
-                            console.log("...Reached Here-3");
-                            console.log(book.feedback.emailId);
-                            var key = getRatingsKey(rating)
-                            console.log(key,": ",book["ratings"][key])
-                            book["ratings"][key] = book["ratings"][key]+1;
-                            console.log(key,": ",book["ratings"][key])
+                            try{
+                                console.log("in try")
+                                console.log(bookFeedMap);
+                                // bookFeedMap[emailId.toString()] = {};
+                                bookFeedMap.set(emailId.toString(), bookMap );
+                                // bookFeedMap.set(emailId.toString(), {} );
+                                // bookFeedMap[emailId.toString()]["userId"] = emailId;
+                                // bookFeedMap[emailId.toString()]["comment"] = comment;
+                                // bookFeedMap[emailId.toString()]["rating"] = rating;
+                                book["feedback"] = bookFeedMap;
+                                console.log("...after Adding book-feedback: ");
+                                console.log(book["feedback"]);
+                                var key = getRatingsKey(rating)
+                                console.log(key,": ",book["ratings"][key])
+                                book["ratings"][key] = book["ratings"][key]+1;
+                                console.log(key,": ",book["ratings"][key])
+                            }
+                            catch(error){
+                                consol.log("Error Due to map: ", error)
+                            }
                             await book.save(
                                 function(err) {
                                     if(!err) {

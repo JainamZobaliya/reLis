@@ -532,19 +532,36 @@ class _BookViewState extends State<BookView> {
                                       // Navigator.of(context).pushNamed(AudioBook.routeName);
                                       WidgetsBinding.instance!.addPostFrameCallback((_) async {
                                         print("going in getAudioBook");
-                                        var audioBook = await getAudioBook(currentBook["id"]);
-                                        print("out of getAudioBook");
-                                        print("going in getAudioBookFile");
-                                        var index = 0;
-                                        var audioBytes = await getAudioBookFile(currentBook["id"], audioBook[index]["id"]);
-                                        print("out of getAudioBookFile");
+                                        // var audioBook = await getAudioBook(currentBook["id"]);
+                                        // print("out of getAudioBook");
+                                        // print("going in getAudioBookFile");
+                                        // var index = 0;
+                                        // var audioBytes = await getAudioBookFile(currentBook["id"], audioBook[index]["id"]);
+                                        // print("out of getAudioBookFile");
+                                        Dio dio = new Dio();
+                                        Response response = await dio.post(
+                                          // "http://localhost:3000/translateBookFile",
+                                          "https://relis-nodejs1.herokuapp.com/translateBookFile",
+                                          data: {"userId": user!["emailId"], "bookId": currentBook["id"], "translateTo": langCodes[currentLang],},
+                                          options: Options(contentType: Headers.formUrlEncodedContentType),
+                                        ); 
+                                        print("translateBookFileResponse: ");
+                                        print("success: ");
+                                        print(response.data['success']);
+                                        print("docContent.length: ");
+                                        print(response.data['docContent'].length);
+                                        var docContent;
+                                        if(response.data['success']) {
+                                          docContent = response.data['docContent'];
+                                        }
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
                                             builder: (context) => AudioBook(
                                               book: currentBook,
-                                              audioBook: audioBook,
-                                              audioBytes: audioBytes,
-                                              index: index,
+                                              docContent: docContent,
+                                              // audioBook: audioBook,
+                                              // audioBytes: audioBytes,
+                                              // index: index,
                                             ),
                                           ),
                                         );
@@ -893,7 +910,7 @@ class _BookViewState extends State<BookView> {
                               Row(
                                 children: [
                                   CircleAvatar(
-                                    backgroundImage: userCommentInfo[userComment["userId"]]["imageURL"] != null ? NetworkImage(userCommentInfo[userComment["userId"]]["imageURL"]) : NetworkImage(reLis_gif),
+                                    backgroundImage: userCommentInfo[userComment["userId"]]["imageURL"] != null ? NetworkImage(userCommentInfo[userComment["userId"]]["imageURL"]) : relisGif,
                                     backgroundColor: Color(0xFF032f4b),
                                     radius: 25.00,
                                   ),

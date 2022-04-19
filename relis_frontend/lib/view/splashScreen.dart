@@ -11,19 +11,34 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> {
   bool isLoading = true;
+  var loader;
   //creating the timer that stops the loading after 15 secs
   void startTimer() {
-    Timer.periodic(const Duration(seconds: 5), (t) {
-      t.cancel(); //stops the timer
-      isLoading = false;
-      setState(() {});
-      _checker();
-    });
+    Future.delayed(
+      Duration.zero,
+      () async {
+        await loadImages();
+        // _.cancel();
+        isLoading = false;
+        setState(() {});
+        print("Now will call checker!!!");
+        _checker();
+      },
+    );
+  }
+
+  loadImages() async {
+    // relisGif = await getImage("relisGif");
+    signUpImage = await getImage("signUpImage");
+    signInImage = await getImage("signInImage");
+    setState(() {});
+    print("Images Loaded");
   }
 
   @override
   void initState() {
     startTimer(); //start the timer on loading
+    print("InitState Completed");
     super.initState();
   }
 
@@ -60,7 +75,7 @@ class _SplashPageState extends State<SplashPage> {
       padding: EdgeInsets.all(10.0),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(25.00),
-        child: Image.network(reLis_gif, fit: BoxFit.fill,),
+        child: relisGif,
       ),
       decoration: new BoxDecoration(
         borderRadius: new BorderRadius.circular(25.0),

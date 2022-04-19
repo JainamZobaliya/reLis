@@ -48,6 +48,8 @@ imageLoader(ImageChunkEvent? loadingProgress) {
   );
 }
 
+dynamic signUpImage, signInImage, relisGif;
+
 ThemeData appTheme = ThemeData(
   primarySwatch: Colors.blue,
   scrollbarTheme: ScrollbarThemeData(
@@ -675,6 +677,28 @@ getBookImage(String bookId) async {
     var imageListDynamic = response.data["imagePng"]["data"]["data"];
     var imageList = imageListDynamic.cast<int>();
     var imageData = imageList;
+    return Image.memory(
+      Uint8List.fromList(imageData),
+      fit: BoxFit.fill,
+      width: double.infinity,
+      repeat: ImageRepeat.noRepeat,
+    );
+  }
+}
+
+getImage(String imageType) async {
+  print("In getImage - $imageType");
+  Dio dio = new Dio();
+  Response response = await dio.post(
+    // "http://localhost:3000/getImage",
+    "https://relis-nodejs1.herokuapp.com/getImage",
+    data: {"imageType": imageType},
+  ); 
+  if(response.data['success']) {
+    var imageListDynamic = response.data["imagePng"]["data"]["data"];
+    var imageList = imageListDynamic.cast<int>();
+    var imageData = imageList;
+    print("Out getImage - $imageType");
     return Image.memory(
       Uint8List.fromList(imageData),
       fit: BoxFit.fill,

@@ -147,6 +147,10 @@ router.post('/getAllBooks', actions.getAllBooks)
 //@route POST /getBookImage
 router.post('/getBookImage', actions.getBookImage)
 
+//@desc Get Image
+//@route POST /getImage
+router.post('/getImage', actions.getImage)
+
 //@desc Adding book to current users favourites
 //@route POST /addToFavourites
 router.post('/addToFavourites', actions.addToFavourites)

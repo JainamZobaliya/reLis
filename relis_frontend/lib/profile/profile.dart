@@ -122,7 +122,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                         child: CircleAvatar(
                           radius: 180,
                           backgroundColor: Color(0xFF032f4b),
-                          backgroundImage: user?["imageURL"] != null ? NetworkImage(user?["imageURL"]) : NetworkImage(reLis_gif),
+                          backgroundImage: user?["imageURL"] != null ? NetworkImage(user?["imageURL"]) : relisGif,
                           child: Material(
                             elevation: 0.0,
                             clipBehavior: Clip.antiAliasWithSaveLayer,

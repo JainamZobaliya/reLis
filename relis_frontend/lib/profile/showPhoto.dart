@@ -58,7 +58,7 @@ class _ShowPhotoState extends State<ShowPhoto> {
           child: Image(
             image: pageData.photoURL != null && pageData.photoURL != "" ? Image.network(pageData.photoURL).image
             // NetworkImage(pageData.photoURL)
-                : NetworkImage(reLis_gif),
+                : relisGif,
             fit: BoxFit.contain,
           ),
         ),

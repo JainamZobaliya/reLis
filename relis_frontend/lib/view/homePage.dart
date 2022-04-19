@@ -79,7 +79,7 @@ class _HomePageState extends State<HomePage> {
           leading: CircleAvatar(
             backgroundImage: user?["imageURL"] != null
                 ? NetworkImage(user?["imageURL"])
-                : NetworkImage(reLis_gif),
+                : relisGif,
             backgroundColor: Color(0xFF032f4b),
             radius: 20.00,
           ),
@@ -193,7 +193,7 @@ class _HomePageState extends State<HomePage> {
             icon: CircleAvatar(
               backgroundImage: user?["imageURL"] != null
                   ? NetworkImage(user?["imageURL"])
-                  : NetworkImage(reLis_gif),
+                  : relisGif,
               backgroundColor: Color(0xFF032f4b),
               radius: 50.00,
             ),
