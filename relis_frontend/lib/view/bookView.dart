@@ -37,6 +37,7 @@ class _BookViewState extends State<BookView> {
   final translator = GoogleTranslator(); 
   List<String> lang = [];
   ValueNotifier<String> bookDescription = ValueNotifier<String>("");
+  ValueNotifier<String> commentLoader = ValueNotifier<String>("");
   var fileData, fileTranslatedData;
   bool translated = false, bookDataFetched = false;
   String initialDescription = "";
@@ -111,18 +112,29 @@ class _BookViewState extends State<BookView> {
     // print("\tGot fav.");
     wishBook.value = isWishList(user, currentBook["id"]);
     // print("\tGot wishBook.");
-    feedbackMap = currentBook.containsKey("feedback") ? currentBook["feedback"] : {};
-    // print("\tGot feedbackMap.");
-    if(feedbackMap.length>0 && !bookViewLoaded)
-      for(var userComment in feedbackMap.values) {
-        userCommentInfo[userComment["userId"]] = await getUserInfo(userComment["userId"]);
-      }
-    addedToCart = (user["cart"]["toRent"].contains(currentBook["id"]) || user["cart"]["toBuy"].contains(currentBook["id"])) || (isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]));
+    await loadFeedback(currentBook);
+    addedToCart = (user["cart"]["toRent"].contains(currentBook["id"]) || user["cart"]["toBuy"].contains(currentBook["id"])) || isBookBought(currentBook["id"]);
     bookDescription.value = bookDescription.value == "" ? initialDescription : bookDescription.value;
     WidgetsBinding.instance!.addPostFrameCallback((_) async {
       bookViewLoaded = true;
       setState(() {});
     });
+  }
+
+  loadFeedback(var currentBook) async {
+    if(currentBook["feedback"].length > 0)
+    {
+      feedbackMap = currentBook["feedback"];
+      // print("\tGot feedbackMap.");
+      if(feedbackMap.length>0 && !bookViewLoaded)
+        for(var userComment in feedbackMap.values) {
+          userCommentInfo[userComment["userId"]] = await getUserInfo(userComment["userId"]);
+        }
+    }
+    else{
+      feedbackMap = {};
+    }
+    commentLoader.value = "";
   }
 
   @override
@@ -245,7 +257,7 @@ class _BookViewState extends State<BookView> {
                                     Expanded(
                                       flex: 2,
                                       child: Text(
-                                        "Rent",
+                                        isBookRented(currentBook["id"]) ? "Rent Again" : "Rent",
                                         style: TextStyle(
                                           fontWeight: FontWeight.w300,
                                           fontSize: 20,
@@ -542,7 +554,7 @@ class _BookViewState extends State<BookView> {
                                         Response response = await dio.post(
                                           // "http://localhost:3000/translateBookFile",
                                           "https://relis-nodejs1.herokuapp.com/translateBookFile",
-                                          data: {"userId": user!["emailId"], "bookId": currentBook["id"], "translateTo": langCodes[currentLang],},
+                                          data: {"userId": user!["emailId"], "bookId": currentBook["id"], "translateTo": langCodes["English (US)"],},
                                           options: Options(contentType: Headers.formUrlEncodedContentType),
                                         ); 
                                         print("translateBookFileResponse: ");
@@ -823,137 +835,146 @@ class _BookViewState extends State<BookView> {
   }
 
   Widget showCommentBox(BuildContext context, var currentBook) {
-    return Container(
-      padding: EdgeInsets.all(10.0),
-      decoration: commentBoxDecoration,
-      child: Column(
-        children: [
-          Row(
+    return ValueListenableBuilder(
+      valueListenable: commentLoader, 
+      builder: (context, val, child) {
+        return Container(
+          padding: EdgeInsets.all(10.0),
+          decoration: commentBoxDecoration,
+          child: Column(
             children: [
-              Expanded(
-                child: TextFormField(
-                  onChanged: (text) {
-                    myComment = text;
-                    newComment["comment"] = myComment;
-                  },
-                  controller: myCommentController,
-                  textInputAction: TextInputAction.done,
-                  autofocus: false,
-                  maxLines: 1,
-                  keyboardType: TextInputType.emailAddress,
-                  cursorColor: Colors.white,
-                  style: TextStyle(
-                    color: Colors.white,
-                  ),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.all(20),
-                    hintText: '',
-                    hintStyle: TextStyle(
-                      height: 0.7,
-                      color: Colors.white,
-                    ),
-                    labelText: 'Enter your view on this book...',
-                    labelStyle: TextStyle(
-                      color: Colors.white,
-                      height: 1,
-                    ),
-                    prefixIcon: Icon(Icons.add_reaction_rounded, color: Colors.white),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                      borderRadius: BorderRadius.circular(18.0),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white),
-                      borderRadius: BorderRadius.circular(18.0),
-                    ),
-                  ),
-                ),
-              ), // TextBox
-              SizedBox(width: 20,),
-              bookRatingBar(0, true), // Rating bar
-              SizedBox(width: 20,),
-              IconButton(
-                onPressed: () async {
-                  await sendFeedback(context, currentBook["id"], newComment);
-                },
-                icon: Icon(Icons.send_rounded, color: Colors.white,),
-                alignment: Alignment.center,
-                color: Colors.white,
-                padding: EdgeInsets.all(10.00),
-                splashColor: mainAppAmber,
-                tooltip: "Post your Comment!!!",
-              ), // Post Comment Button
-            ],
-          ), // TextBox, RatingBar, Post-button
-          SizedBox(height: 20,),
-          if(feedbackMap.length>0)
-            for(var userComment in feedbackMap.values)
-              Column(
+              Row(
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          padding: EdgeInsets.all(10.00),
-                          decoration: BoxDecoration(
-                            color: commentBoxColor,
-                            borderRadius: BorderRadius.all(Radius.circular(20.00)),
-                            border: Border.all(
-                              color: mainAppAmber,
-                              width: 2,
-                            ),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  CircleAvatar(
-                                    backgroundImage: userCommentInfo[userComment["userId"]]["imageURL"] != null ? NetworkImage(userCommentInfo[userComment["userId"]]["imageURL"]) : relisGif,
-                                    backgroundColor: Color(0xFF032f4b),
-                                    radius: 25.00,
-                                  ),
-                                  SizedBox(width: 10.00,),
-                                  Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      commentUserRating(userComment["rating"].toString()),
-                                      Text(
-                                        userCommentInfo[userComment["userId"]]["name"],
-                                        style: TextStyle(
-                                          color: mainAppAmber,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize: 12,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ],
-                                  )
-                                ],
-                              ),
-                              SizedBox(height: 10.00,),
-                              Text(
-                                userComment["comment"],
-                                style: TextStyle(
-                                  color: mainAppAmber,
-                                ),
-                                maxLines: 5,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
+                  Expanded(
+                    child: TextFormField(
+                      onChanged: (text) {
+                        myComment = text;
+                        newComment["comment"] = myComment;
+                      },
+                      controller: myCommentController,
+                      textInputAction: TextInputAction.done,
+                      autofocus: false,
+                      maxLines: 1,
+                      keyboardType: TextInputType.emailAddress,
+                      cursorColor: Colors.white,
+                      style: TextStyle(
+                        color: Colors.white,
+                      ),
+                      decoration: InputDecoration(
+                        contentPadding: EdgeInsets.all(20),
+                        hintText: '',
+                        hintStyle: TextStyle(
+                          height: 0.7,
+                          color: Colors.white,
+                        ),
+                        labelText: 'Enter your view on this book...',
+                        labelStyle: TextStyle(
+                          color: Colors.white,
+                          height: 1,
+                        ),
+                        prefixIcon: Icon(Icons.add_reaction_rounded, color: Colors.white),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(18.0),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(color: Colors.white),
+                          borderRadius: BorderRadius.circular(18.0),
                         ),
                       ),
-                    ],
-                  ),
-                  SizedBox(height: 10,),
+                    ),
+                  ), // TextBox
+                  SizedBox(width: 20,),
+                  bookRatingBar(0, true), // Rating bar
+                  SizedBox(width: 20,),
+                  IconButton(
+                    onPressed: () async {
+                      commentLoader.value = "hello";
+                      currentBook = await sendFeedback(context, currentBook["id"], newComment, currentBook);
+                      await loadFeedback(currentBook);
+                      myCommentController.clear();
+                      setState(() {});
+                    },
+                    icon: Icon(Icons.send_rounded, color: Colors.white,),
+                    alignment: Alignment.center,
+                    color: Colors.white,
+                    padding: EdgeInsets.all(10.00),
+                    splashColor: mainAppAmber,
+                    tooltip: "Post your Comment!!!",
+                  ), // Post Comment Button
                 ],
-            ),
-        ],
-      ),
+              ), // TextBox, RatingBar, Post-button
+              SizedBox(height: 20,),
+              if(feedbackMap.length>0)
+                for(var userComment in feedbackMap.values)
+                  Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Container(
+                              padding: EdgeInsets.all(10.00),
+                              decoration: BoxDecoration(
+                                color: commentBoxColor,
+                                borderRadius: BorderRadius.all(Radius.circular(20.00)),
+                                border: Border.all(
+                                  color: mainAppAmber,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CircleAvatar(
+                                        backgroundImage: userCommentInfo[userComment["userId"]]["imageURL"] != null ? NetworkImage(userCommentInfo[userComment["userId"]]["imageURL"]) : relisGif,
+                                        backgroundColor: Color(0xFF032f4b),
+                                        radius: 25.00,
+                                      ),
+                                      SizedBox(width: 10.00,),
+                                      Column(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          commentUserRating(userComment["rating"].toString()),
+                                          Text(
+                                            userCommentInfo[userComment["userId"]]["name"],
+                                            style: TextStyle(
+                                              color: mainAppAmber,
+                                              fontWeight: FontWeight.w500,
+                                              fontSize: 12,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      )
+                                    ],
+                                  ),
+                                  SizedBox(height: 10.00,),
+                                  Text(
+                                    userComment["comment"],
+                                    style: TextStyle(
+                                      color: mainAppAmber,
+                                    ),
+                                    maxLines: 5,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 10,),
+                    ],
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 

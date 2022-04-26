@@ -39,6 +39,7 @@ class _SignUpPageState extends State<SignUpPage> {
     return Scaffold(
       backgroundColor: appBackgroundColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(appTitle),
         backgroundColor: appBarBackgroundColor,
         shadowColor: appBarShadowColor,

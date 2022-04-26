@@ -1187,7 +1187,6 @@ addCartToDb() async {
   }
   print("...Reached Here - 3");
   var now = DateTime.now();
-  var due = DateTime.now().add(Duration(days: 7));
   print("...Reached here - 4");
   // Emptying Cart and adding books in booksBought and booksRented 
   for(var bookId in user!["cart"]["toBuy"]) {
@@ -1198,6 +1197,7 @@ addCartToDb() async {
     user!["cart"]["toBuy"].remove(bookId);
   }
   for(var bookId in user!["cart"]["toRent"]) {
+    var due = isBookRented(bookId) ? DateTime.parse(user!["booksRented"][bookId]["dueOn"]).add(Duration(days: 7)) : DateTime.now().add(Duration(days: 7));
     user!["booksRented"][bookId] = {
       "id" : bookId,
       "rentedOn" : now.toString(),
@@ -1368,13 +1368,17 @@ Widget customDivider() {
   );
 }
 
-sendFeedback(BuildContext context, String bookId, var newCommentInfo) async {
+sendFeedback(BuildContext context, String bookId, var newCommentInfo, var currentBook) async {
   await Services().addFeedback(user!["emailId"], bookId, newCommentInfo["comment"], newCommentInfo["rating"]).then((val) async {
     if (val != null && val.data['success']) {
+      print("Feedback: ");
+      print(val.data['feedback']);
+      currentBook["feedback"] = val.data['feedback'];
       showMessageFlutterToast(
         "Feedback added!!",
         Colors.green,
       );
+      print("Out of sendFeedback");
     }
     else {
       showMessageFlutterToast(
@@ -1382,6 +1386,7 @@ sendFeedback(BuildContext context, String bookId, var newCommentInfo) async {
         Color(0xFFFF0000),
       );
     }
+    return currentBook;
   });
   // for(var bk in user!["cart"]["toRent"]) {
   //   print("\t Book in rentCart: ${bk}");

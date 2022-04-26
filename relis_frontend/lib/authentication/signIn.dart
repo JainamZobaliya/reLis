@@ -36,6 +36,7 @@ class _SignInPageState extends State<SignInPage> {
     return Scaffold(
       backgroundColor: appBackgroundColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(appTitle),
         backgroundColor: appBarBackgroundColor,
         shadowColor: appBarShadowColor,

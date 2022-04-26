@@ -156,9 +156,10 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: appBackgroundColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text(appTitle),
         backgroundColor: appBarBackgroundColor,
-        shadowColor: appBarShadowColor,
+        shadowColor: appBarShadowColor,   
         elevation: 2.0,
         actions: [
           Tooltip(

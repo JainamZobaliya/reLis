@@ -64,7 +64,9 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   _checker() {
-    Navigator.of(context).popAndPushNamed(SignInPage.routeName);
+    while(Navigator.of(context).canPop())
+      Navigator.of(context).pop();
+    Navigator.of(context).pushNamed(SignInPage.routeName);
   }
 
   background() {
