@@ -15,6 +15,99 @@ var fs = require('fs');
 const { PDFNet } = require('@pdftron/pdfnet-node');
 const axios = require('axios');
 // const fetch = require('node-fetch');
+const schedule = require('node-schedule');
+const rule = new schedule.RecurrenceRule();
+rule.dayOfWeek = [0, 4];
+rule.second = new schedule.Range(0, 59, 5);
+rule.hour = 8;
+rule.minute = 0;
+ // Sunday and Thursday at 8 am
+const job = schedule.scheduleJob(rule, async function(){
+  var dueMap = await getRentInfo();
+//   console.log("dueMap: ");
+//   console.log(dueMap);
+  var bookNameList = [];
+  var bookNameBody = "";
+  Object.keys(dueMap).map(async function(userId, index) {
+    // console.log(dueMap[userId].length);
+    // console.log(userId);
+    bookList = dueMap[userId];
+    for(var bookId of bookList) {
+        bookName = await getBookName(bookId);
+        console.log(bookName);
+        if(bookName!="")
+            bookNameList.push(bookName);
+        if(bookNameList.length > 0){
+            bookNameBody = bookNameBody+ ",\n" + bookName;
+        }
+        else
+            bookNameBody = bookName;
+            
+    }
+    // console.log(bookNameBody);
+    await sendEmail(userId, "Book Due Soon!!!", "Dear user - "+userId+",\nThe following books"+bookNameBody+" rented by you are going to expire soon!! Visit ReLis App and buy the book to continue your reading experience.");
+  });
+
+});
+
+async function getBookName(bookId) {
+    var bookName = "";
+    await Book.findOne(
+        {
+            id: bookId
+        },
+        async function (err, book) {
+            if (err) {
+                bookName = "";
+                console.log('getBookName Error: ', err);
+            }
+            if (!book) {
+                console.log('Book not found!!');
+                bookName = "";
+            }
+            else {
+                bookName = book.bookName;
+            }
+        }
+    );  
+    return bookName;
+}
+
+async function getRentInfo() {
+    var dueMap = {};
+    await User.find({} , (err, users) => {
+        if(err)
+            console.log("getRentInfo Error: ", err);
+        users.map(user => {
+            var currentUser = user.emailId;
+            // console.log("currentUser is: ", currentUser);
+            var now = Date.now();
+            if(user.booksRented.size>0) {
+                for( var bookId of user.booksRented.keys()) {
+                    var book = user.booksRented.get(bookId)
+                    var due = new Date(book["dueOn"])
+                    let diffTime = due - now;
+                    var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                    if(diffDays>0) {
+                        // console.log("\t DueDate not came yet");
+                        if(dueMap[currentUser] != undefined && dueMap[currentUser].length>0) {
+                            var bookList = dueMap[currentUser];
+                            bookList.push(bookId);
+                            dueMap[currentUser] = bookList;
+                        }
+                        else {
+                            dueMap[currentUser] = [bookId];
+                        }
+                    }
+                    else {
+                        // console.log("\t DueDate Passed");
+                    }
+                }
+            }
+        })
+    })
+    return dueMap;
+}
 
 async function sendEmail(emailId, subject, body) {
     const service_id = 'service_xd6ttln';
@@ -443,6 +536,7 @@ var functions = {
                         userDetails['firstName'] = user.firstName
                         userDetails['lastName'] = user.lastName
                         userDetails['imageURL'] = user.imageURL
+                        userDetails['feedback'] = user.feedback
                         res.json({success: true, msg: 'User Details Retrieved Successfully', userDetails: userDetails})
                     }
                 }
@@ -1418,7 +1512,8 @@ var functions = {
             res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
         }
         else { 
-            rating = parseFloat(rating)
+            rating = parseFloat(rating);
+            var feedMap = {};
             await User.findOne(
                 {
                     emailId: emailId
@@ -1431,9 +1526,9 @@ var functions = {
                     else {
                         try{
                             // feedMap = user.feedback;
-                            var feedMap = {};
                             console.log("user[feedback] ? ",user.hasOwnProperty("feedback"))
-                            if(user.hasOwnProperty("feedback")) {
+                            // if(user.hasOwnProperty("feedback")) {
+                            if(Object.keys(user["feedback"]).length>0) {
                                 feedMap = user["feedback"];
                             }
                             console.log("...before Adding feedback: ");
@@ -1468,7 +1563,9 @@ var functions = {
                 "rating":  rating,
             };
             console.log("BookMap: ", bookMap)
-            await Book.findOne(
+            var ratings = [];
+            var bookFeedMap = {};
+            await Book.findOne( 
                 {
                     id: bookId
                 },
@@ -1480,7 +1577,6 @@ var functions = {
                     else {
                         try{
                             // bookFeedMap = book.feedback;
-                            var bookFeedMap = {};
                             console.log("book[feedback] ? ",book.hasOwnProperty("feedback"))
                             if(Object.keys(book["feedback"]).length>0) {
                                 bookFeedMap = book["feedback"];
@@ -1496,28 +1592,19 @@ var functions = {
                                 // bookFeedMap[emailId.toString()]["userId"] = emailId;
                                 // bookFeedMap[emailId.toString()]["comment"] = comment;
                                 // bookFeedMap[emailId.toString()]["rating"] = rating;
-                                book["feedback"] = bookFeedMap;
+                                // book["feedback"] = bookFeedMap;
                                 console.log("...after Adding book-feedback: ");
                                 console.log(book["feedback"]);
-                                var key = getRatingsKey(rating)
-                                console.log(key,": ",book["ratings"][key])
-                                book["ratings"][key] = book["ratings"][key]+1;
-                                console.log(key,": ",book["ratings"][key])
+                                var key = getRatingsKey(rating);
+                                ratings = book["ratings"];
+                                console.log(key,": ",book["ratings"][key]);
+                                ratings[key] = ratings[key]+1;
+                                console.log(key,": ",ratings[key]);
+                                ratings = book["ratings"];
                             }
                             catch(error){
                                 consol.log("Error Due to map: ", error)
                             }
-                            await book.save(
-                                function(err) {
-                                    if(!err) {
-                                        console.log("... Book-Feeback Added. ");
-                                    }
-                                    else {
-                                        console.log("... Error: could not add book-feedback. ");
-                                        console.log("... Error: ", err);
-                                    }
-                                }
-                            );
                         }
                         catch(err) {  
                             res.status(403).send({success: false, msg: 'Error in adding book-feedback', body:req.body})
@@ -1525,8 +1612,34 @@ var functions = {
                     }
                 }
             ); 
+            console.log(bookFeedMap);
+            console.log(ratings);
+            await Book.updateOne(
+                {
+                    id: bookId
+                },
+                {
+                    "feedback": bookFeedMap,
+                    "ratings": ratings,
+                },
+                function (err, user) {
+                    if (err){
+                        console.log(err)
+                    }
+                    else{
+                        console.log("Updated Feedback");
+                    }
+                }
+            );
             // await addBookFeedback(req, res)
-            res.json({success: true, msg: 'Feedback Added Successfully', body:req.body})
+            res.json(
+                {
+                    success: true,
+                    msg: 'Feedback Added Successfully',
+                    feedback: bookFeedMap,
+                    body:req.body
+                }
+            )
         }
     },
     getinfo: function (req, res) {
