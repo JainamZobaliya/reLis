@@ -31,7 +31,7 @@ class _PDFViewerState extends State<PDFViewer> {
   int _actualPageNumber = _initialPage, _allPagesCount = 0;
   bool isSampleDoc = true;
   int _lastPageRead = _initialPage;
-  double viewportFraction = 1;
+  double viewportFraction = 2.0;
   var file;
   PdfController _pdfController = PdfController(
     document: PdfDocument.openAsset('ReLis.gif'),
@@ -88,13 +88,13 @@ class _PDFViewerState extends State<PDFViewer> {
         //   },
         // ),
         actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.zoom_in),
-            onPressed: () {
-              viewportFraction = viewportFraction * 2;
-              setState(() {});
-            },
-          ),
+          // IconButton(
+          //   icon: Icon(Icons.zoom_in),
+          //   onPressed: () {
+          //     viewportFraction = viewportFraction * 2;
+          //     setState(() {});
+          //   },
+          // ),
           IconButton(
             icon: Icon(Icons.navigate_before),
             onPressed: () {

@@ -162,9 +162,11 @@ class _BookViewState extends State<BookView> {
         }
       });
       print("Book Values Loaded");
-    return Hero(
-      tag: "book: ${book.currentBook["id"]}",
-      child: Scaffold(
+    return 
+    // Hero(
+    //   tag: "book: ${book.currentBook["id"]}",
+    //   child: 
+      Scaffold(
         backgroundColor: appBackgroundColor,
         appBar: AppBar(
           title: Text(book.currentBook["bookName"]),
@@ -183,8 +185,8 @@ class _BookViewState extends State<BookView> {
         //     }
         //   },
         // ),
-      ),
-    );
+      );
+    // );
   }
 
   Widget desktopView(var currentBook) {

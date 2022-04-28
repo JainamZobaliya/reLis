@@ -726,7 +726,7 @@ var functions = {
             res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
         }
         else {
-            imageTypeList = ["signUpImage", "signInImage", "relisGif"];
+            imageTypeList = ["signUpImage", "signInImage", "relisGif", "ReLis"];
             if (imageTypeList.indexOf(imageType) == -1) {
                 return res.status(403).send({success: false, msg: 'Image retrieving error'})
             }

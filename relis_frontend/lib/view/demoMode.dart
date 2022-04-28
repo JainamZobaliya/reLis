@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:relis/globals.dart';
@@ -31,20 +30,32 @@ class _DemoModeState extends State<DemoMode> {
   @override
   void initState() {
     _controller = VideoPlayerController.network(
-      "https://firebasestorage.googleapis.com/v0/b/audiobook-404e3.appspot.com/o/ReLis-UserManual.mp4?alt=media&token=cb935f5e-454e-42cf-a04a-f8ebc42dd5c7",
+      // "https://firebasestorage.googleapis.com/v0/b/audiobook-404e3.appspot.com/o/ReLis-UserManual.mp4?alt=media&token=cb935f5e-454e-42cf-a04a-f8ebc42dd5c7", // With bg-music,
+      "https://firebasestorage.googleapis.com/v0/b/relis-frontend.appspot.com/o/ReLis-UserManual-NoBgMusic.mp4?alt=media&token=95f6edbc-36b5-45ca-bd27-77780ff50506", // Without bg-music,
     )..initialize().then((_) {
       // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
       setState(() {});
     });
-    _initializeVideoPlayerFuture = _controller.initialize();
+    _initializeVideoPlayerFuture =  _controller.initialize();
+    Future.delayed(
+      Duration.zero,
+      () async {
+        await _controller.setVolume(0);
+      },
+    );
     super.initState();
   }
 
   @override
   void dispose() {
-    _controller.pause();
-    _controller.setVolume(0);
-    _controller.dispose();
+    Future.delayed(
+      Duration.zero,
+      () async {
+        await _controller.pause();
+        await _controller.setVolume(0);
+        await _controller.dispose();
+      },
+    );
     super.dispose();
   }
 
@@ -63,7 +74,15 @@ class _DemoModeState extends State<DemoMode> {
           icon: Icon(Icons.arrow_back),
           iconSize: 28,
           onPressed: (){
-            Navigator.of(context).pop();
+            Future.delayed(
+              Duration.zero,
+              () async {
+                await _controller.pause();
+                await _controller.setVolume(0);
+                await _controller.dispose();
+                Navigator.of(context).pop();
+              },
+            );
           },),
         centerTitle: true,
         title: Text(
@@ -73,6 +92,7 @@ class _DemoModeState extends State<DemoMode> {
         ),
         actions: [
           IconButton(
+            alignment: Alignment.center,
             padding: EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 10.0),
             onPressed: (){
               setState(() async {
@@ -80,8 +100,10 @@ class _DemoModeState extends State<DemoMode> {
                   await _controller.pause();
                   await _controller.setVolume(0);
                 } else {
-                  await _controller.play();
-                  await _controller.setVolume(1.0);
+                  if( _controller.value.isInitialized) {
+                    await _controller.play();
+                    await _controller.setVolume(1.0);
+                  }
                 }
               });
             },
@@ -95,8 +117,9 @@ class _DemoModeState extends State<DemoMode> {
             color: mainAppAmber,
             initialValue: _controller.value.playbackSpeed,
             tooltip: 'Playback speed',
-            onSelected: (double speed) {
-              _controller.setPlaybackSpeed(speed);
+            onSelected: (double speed) async {
+              await _controller.setPlaybackSpeed(speed);
+              setState(() {});
             },
             itemBuilder: (BuildContext context) {
               return <PopupMenuItem<double>>[
@@ -140,7 +163,7 @@ class _DemoModeState extends State<DemoMode> {
                 alignment: Alignment.bottomCenter,
                 children: <Widget>[
                   VideoPlayer(_controller),
-                  VideoProgressIndicator(_controller, allowScrubbing: false),
+                  VideoProgressIndicator(_controller, allowScrubbing: true,),
                 ],
               );
             } else {

@@ -507,9 +507,11 @@ class _HomePageState extends State<HomePage> {
     for (var currentBook1 in carouselBooks.values) {
       Map<String, dynamic> currentBook =
           Map<String, dynamic>.from(currentBook1);
-      carouselList.add(Hero(
-        tag: "book: ${currentBook["id"]}",
-        child: Material(
+      carouselList.add(
+        // Hero(
+        // tag: "book: ${currentBook["id"]}",
+        // child: 
+        Material(
           shadowColor: Colors.black,
           elevation: 1.0,
           color: Colors.transparent,
@@ -552,8 +554,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
           ),
-        ),
-      ));
+        ));
+      // ));
     }
     ValueNotifier<int> currentCarousel = ValueNotifier<int>(0);
     return Container(

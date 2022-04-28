@@ -28,7 +28,7 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   loadImages() async {
-    // relisGif = await getImage("relisGif");
+    relisGif = await getImage("ReLis");
     signUpImage = await getImage("signUpImage");
     signInImage = await getImage("signInImage");
     setState(() {});
