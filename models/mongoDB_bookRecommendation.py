@@ -315,7 +315,7 @@ print(all_user_rating_matrix)
 query_index = np.random.choice(all_user_rating_pivot.shape[0]) #Based on ratings given to a bk by user 
 print("\n\nquery_index:") # query_index = Stores random book from all_user_rating_pivot, for now.
 print(query_index)
-distances, indices = model_knn.kneighbors(all_user_rating_pivot.iloc[query_index,:].values.reshape(1, -1), n_neighbors = 2)
+distances, indices = model_knn.kneighbors(all_user_rating_pivot.iloc[query_index,:].values.reshape(1, -1), n_neighbors = 4)
 
 # all_user_rating_pivot.index[query_index]
 result_list = []

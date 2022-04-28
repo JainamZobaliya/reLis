@@ -101,9 +101,9 @@ class _HomePageState extends State<HomePage> {
         child: ListTile(
           // leading: Icon(Icons.person),
           leading: CircleAvatar(
-            backgroundImage: user?["imageURL"] != null
+            backgroundImage: user?["imageURL"] != null && !user?["imageURL"].contains("ReLis")
                 ? NetworkImage(user?["imageURL"])
-                : relisGif,
+                : relisGif.image,
             backgroundColor: Color(0xFF032f4b),
             radius: 20.00,
           ),

@@ -281,15 +281,19 @@ getLoggedIn(BuildContext context, String emailId, String password, String redire
       //   }
       // );
       // print("fetchBook: ${fetchBook.isActive}");
-      if(bookList.length == 0)
+      if(bookList.length == 0 && !stopLoading)
         await getBooks(context);
+      await getBookRecommendation(context);  
       await dailyLogin();
       print('\t Current User: ${user!["firstName"]} ${user!["lastName"]}');
       print('***** Moving to HomePage *****');
       stopLoading = true;
       var date = DateTime.now(); 
       var dateStr = "${date.day.toString().padLeft(2, "0")}/${date.month.toString().padLeft(2, "0")}/${date.year} ";
+      print("Currently dateStr: ${dateStr}");
       totalPageReadToday =  user!["dailyRecords"]["pagesRead"][dateStr] ?? 0;
+      print("Currently totalPageReadToday: ${totalPageReadToday}");
+      print("Currently pagesRead: ${user!["dailyRecords"]["pagesRead"]}");
       // fetchBook.cancel();
       while (Navigator.of(context).canPop())
         Navigator.of(context).pop();
@@ -302,6 +306,18 @@ getLoggedIn(BuildContext context, String emailId, String password, String redire
       // await logOut(context);
     }  
   }); 
+}
+
+getBookRecommendation(BuildContext context) async {
+  await Services().getRecommendBooks().then((val) {
+    if (val != null && val.data['success']) {
+      showMessageSnackBar(context, "Loaded Books Recommended for ${user!["firstName"]} ${user!["lastName"]}", Color.fromARGB(255, 72, 0, 255));
+    } else {
+      print("Exiting getBooks else");
+      showMessageSnackBar(context, "Error, Can't recommend books info from db. Please Log in again", Color(0xFFFF0000));
+      logOut(context);
+    }
+  });  
 }
 
 logOut(BuildContext context) async {
@@ -643,8 +659,6 @@ getBooks(BuildContext context) async {
     await Services().getAllBooks(user!["emailId"]).then((val) {
       if (val != null && val.data['success']) {
         bookList = val.data["books"];
-        print("\n\n\n\n\n");
-        print("\n\n\n\n\n");
         print("Exiting getBooks if");
       } else {
         print("Exiting getBooks else");
@@ -1340,8 +1354,16 @@ changeLastPageRead(String bookId, int lastPageRead) async {
   }
   user!["booksRead"][bookId] = currMap;
   var date = DateTime.now(); // weeks[(today-i-1)%7] + "\n" + 
-  var dateStr = "${date.day.toString().padLeft(2, "0")}/${date.month.toString().padLeft(2, "0")}/${date.year} ";
-  user!["dailyRecords"]["pagesRead"][dateStr] = totalPageReadToday;
+  var dateStr = "${date.day.toString().padLeft(2, "0")}/${date.month.toString().padLeft(2, "0")}/${date.year}";
+  for(var key in user!["dailyRecords"]["pagesRead"].keys){
+    // print("1: ${key==dateStr}");
+    // print("2: ${identical(key,dateStr)}");
+    // print("2: ${key.compareTo(dateStr)}");
+    if(key==dateStr)
+      user!["dailyRecords"]["pagesRead"][dateStr] += totalPageReadToday;
+  }
+  print("Now pagesRead:");
+  print(user!["dailyRecords"]["pagesRead"]);
   await Services().changeLastPageRead(user!["emailId"], user!["booksRead"], user!["dailyRecords"]).then((val) async {
     if (val != null && val.data['success']) {
       print("......pdfViewer dispose 2 ${user!["booksRead"]}");

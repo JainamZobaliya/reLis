@@ -84,6 +84,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   Widget desktopView() {
+    print("Building desktopView");
     return SingleChildScrollView(
       // child: Column(
       child: Wrap(
@@ -105,6 +106,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   Widget Stats1() {
+    print("stats1");
     return pieChartData.length > 0 ? Container(
       height: MediaQuery.of(context).size.height / 2,
       // width: MediaQuery.of(context).size.width,
@@ -120,74 +122,33 @@ class _StatisticsPageState extends State<StatisticsPage> {
         minWidth: MediaQuery.of(context).size.width / 1.5,
       ),
       // child: Row(
-      child: Wrap(
-        alignment: WrapAlignment.center,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        runAlignment: WrapAlignment.spaceEvenly,
-        spacing: 5.00,
-        runSpacing: 15.00,
-        direction: MediaQuery.of(context).size.width > 700 ? Axis.vertical : Axis.horizontal,
+      child: 
+      MediaQuery.of(context).size.width > 700 ?
+        Row(
+        // alignment: WrapAlignment.center,
+        // crossAxisAlignment: WrapCrossAlignment.center,
+        // runAlignment: WrapAlignment.spaceEvenly,
+        // spacing: 5.00,
+        // runSpacing: 15.00,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         verticalDirection: VerticalDirection.down,
-        clipBehavior: Clip.antiAliasWithSaveLayer,
         children: <Widget>[
-          Expanded(
-            flex: 2,
-            child: AspectRatio(
-              aspectRatio: MediaQuery.of(context).size.width > 700 ? 1.5 : 2,
-              child: PieChart(
-                PieChartData(
-                  pieTouchData: PieTouchData(
-                    touchCallback: (FlTouchEvent event, pieTouchResponse) {
-                      setState(() {
-                        if (!event.isInterestedForInteractions || pieTouchResponse == null || pieTouchResponse.touchedSection == null) {
-                          touchedIndexPieChart = -1;
-                          return;
-                        }
-                        touchedIndexPieChart = pieTouchResponse.touchedSection!.touchedSectionIndex;
-                      });
-                    },
-                  ),
-                  borderData: FlBorderData(
-                    show: false,
-                  ),
-                  sectionsSpace: touchedIndexPieChart == -1 ? 0 : 5,
-                  centerSpaceRadius: MediaQuery.of(context).size.width / 30,
-                  sections: showingSections(),
-                ),
-              )
-            )
-          ),
-          Expanded(
-            flex: 1,
-            child: Wrap(
-                alignment: WrapAlignment.start,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                runAlignment: WrapAlignment.spaceAround,
-                spacing: 10.00,
-                runSpacing: 5.00,
-                direction: MediaQuery.of(context).size.width > 700 ? Axis.vertical : Axis.horizontal,
-                verticalDirection: VerticalDirection.down,
-                clipBehavior: Clip.antiAliasWithSaveLayer,
-                children: <Widget>[
-                  for(var key in pieChartData)
-                    category[key]["pagesRead"] > 0 ? MaterialButton(
-                      onPressed: () {
-                        if(touchedIndexPieChart == pieChartData.indexOf(key))
-                          touchedIndexPieChart = -1;
-                        else
-                          touchedIndexPieChart = pieChartData.indexOf(key);
-                        setState(() {});
-                      },
-                      child: Indicator(
-                        color: category[key]["categoryColor"],
-                        text: '${category[key]["categoryName"]}',
-                        isSquare: true,
-                        touchedPieChart: touchedIndexPieChart == -1 ? "-1" : category[pieChartData[touchedIndexPieChart]]["categoryName"],
-                      ),
-                    ) : SizedBox(),
-                ],
-              ),
-          ),
+          pieChartView(),
+          pieChartViewData(),
+        ],
+      ) : Column(
+        // alignment: WrapAlignment.center,
+        // crossAxisAlignment: WrapCrossAlignment.center,
+        // runAlignment: WrapAlignment.spaceEvenly,
+        // spacing: 5.00,
+        // runSpacing: 15.00,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        verticalDirection: VerticalDirection.down,
+        children: <Widget>[
+          pieChartView(),
+          pieChartViewData(),
         ],
       ),
     ) : Container(
@@ -198,6 +159,72 @@ class _StatisticsPageState extends State<StatisticsPage> {
       height: 200,
       decoration: categoryDecoration,
       child: Text("No Books Read Yet!!", style: TextStyle(color: Colors.white, fontSize: 30),),
+    );
+  }
+
+  Widget pieChartView() {
+    return Expanded(
+      flex: 2,
+      child: AspectRatio(
+        aspectRatio: MediaQuery.of(context).size.width > 700 ? 1.5 : 2,
+        child: PieChart(
+          PieChartData(
+            pieTouchData: PieTouchData(
+              touchCallback: (FlTouchEvent event, pieTouchResponse) {
+                setState(() {
+                  if (!event.isInterestedForInteractions || pieTouchResponse == null || pieTouchResponse.touchedSection == null) {
+                    touchedIndexPieChart = -1;
+                    return;
+                  }
+                  touchedIndexPieChart = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                });
+              },
+            ),
+            borderData: FlBorderData(
+              show: false,
+            ),
+            sectionsSpace: touchedIndexPieChart == -1 ? 0 : 5,
+            centerSpaceRadius: MediaQuery.of(context).size.width / 30,
+            sections: showingSections(),
+          ),
+        )
+      )
+    );
+  }
+
+  Widget pieChartViewData() {
+    return 
+    Expanded(
+      flex: 1,
+      child:
+       Wrap(
+          alignment: WrapAlignment.start,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          runAlignment: WrapAlignment.spaceAround,
+          spacing: 10.00,
+          runSpacing: 5.00,
+          direction: MediaQuery.of(context).size.width > 700 ? Axis.vertical : Axis.horizontal,
+          verticalDirection: VerticalDirection.down,
+          clipBehavior: Clip.antiAliasWithSaveLayer,
+          children: <Widget>[
+            for(var key in pieChartData)
+              category[key]["pagesRead"] > 0 ? MaterialButton(
+                onPressed: () {
+                  if(touchedIndexPieChart == pieChartData.indexOf(key))
+                    touchedIndexPieChart = -1;
+                  else
+                    touchedIndexPieChart = pieChartData.indexOf(key);
+                  setState(() {});
+                },
+                child: Indicator(
+                  color: category[key]["categoryColor"],
+                  text: '${category[key]["categoryName"]}',
+                  isSquare: true,
+                  touchedPieChart: touchedIndexPieChart == -1 ? "-1" : category[pieChartData[touchedIndexPieChart]]["categoryName"],
+                ),
+              ) : SizedBox(),
+          ],
+        ),
     );
   }
 
@@ -224,8 +251,9 @@ class _StatisticsPageState extends State<StatisticsPage> {
           color: mainAppAmber,
           borderRadius: BorderRadius.all(Radius.circular(10)),
         ),
-        child: Expanded(
-          child: AspectRatio(
+        // child: Expanded(
+          child: 
+          AspectRatio(
             aspectRatio: MediaQuery.of(context).size.width > 700 ? 1.5 : 1,
             child: Container(
               // margin: EdgeInsets.all(4),
@@ -239,7 +267,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
               ),
             ),
           ),
-        ),
+        // ),
       ),
     );
   }

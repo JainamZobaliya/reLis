@@ -17,10 +17,11 @@ class _SplashPageState extends State<SplashPage> {
     Future.delayed(
       Duration.zero,
       () async {
-        await loadImages();
+        if(!stopLoading)
+          await loadImages();
         // _.cancel();
         isLoading = false;
-        setState(() {});
+        // setState(() {});
         print("Now will call checker!!!");
         _checker();
       },
@@ -31,7 +32,7 @@ class _SplashPageState extends State<SplashPage> {
     relisGif = await getImage("ReLis");
     signUpImage = await getImage("signUpImage");
     signInImage = await getImage("signInImage");
-    setState(() {});
+    // setState(() {});
     print("Images Loaded");
   }
 

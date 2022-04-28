@@ -210,6 +210,22 @@ class Services {
     }
   }
 
+  getRecommendBooks() async {
+    try {
+      return await dio.post('https://relis-nodejs1.herokuapp.com/getRecommendBook',
+          options: Options(contentType: Headers.formUrlEncodedContentType));
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+          msg: e.response?.data['msg'],
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
   updateCart(emailId, cartMap) async {
     try {
       return await dio.post(
