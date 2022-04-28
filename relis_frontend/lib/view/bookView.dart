@@ -122,7 +122,7 @@ class _BookViewState extends State<BookView> {
   }
 
   loadFeedback(var currentBook) async {
-    if(currentBook["feedback"].length > 0)
+    if(currentBook["feedback"]!=null && currentBook["feedback"].length > 0)
     {
       feedbackMap = currentBook["feedback"];
       // print("\tGot feedbackMap.");
@@ -259,7 +259,7 @@ class _BookViewState extends State<BookView> {
                                     Expanded(
                                       flex: 2,
                                       child: Text(
-                                        isBookRented(currentBook["id"]) ? "Rent Again" : "Rent",
+                                        (isBookRented(currentBook["id"]) && !isBookBought(currentBook["id"])) ? "Re-Rent" : "Rent",
                                         style: TextStyle(
                                           fontWeight: FontWeight.w300,
                                           fontSize: 20,
@@ -618,9 +618,9 @@ class _BookViewState extends State<BookView> {
                 ),
             ),
           ), // Book-Image and Options to read/listen, buy/rent, fav./wish-list Book
-          SingleChildScrollView(
-            child: Expanded(
-              flex: 3,
+          Expanded(
+            flex: 3,
+            child: SingleChildScrollView(
               child: Container(
                 width: MediaQuery.of(context).size.width*0.7,
                 padding: EdgeInsets.symmetric(vertical: 10.00, horizontal: 20.00),
@@ -677,6 +677,7 @@ class _BookViewState extends State<BookView> {
   }
   
   Widget showBookAuthorName(String authorName) {
+    print("Loading showBookAuthorName");
     return RichText(
       text: TextSpan(
         text: 'Author: ',
@@ -705,6 +706,7 @@ class _BookViewState extends State<BookView> {
   }
 
   Widget showBookGenre(String genre) {
+    print("Loading showBookGenre");
     return RichText(
       text: TextSpan(
         text: 'Genre:  ',
@@ -732,6 +734,7 @@ class _BookViewState extends State<BookView> {
   }
 
   Widget showBookPrice(String price) {
+    print("Loading showBookPrice");
     return RichText(
       text: TextSpan(
         text: 'Price: ',
@@ -775,6 +778,7 @@ class _BookViewState extends State<BookView> {
   }
 
   Widget showBookDescription(String description) {
+    print("Loading showBookDescription");
     return Container(
       decoration: boxDecoration,
       margin: EdgeInsets.symmetric(vertical: 10.00, horizontal: 20.00),
@@ -809,6 +813,7 @@ class _BookViewState extends State<BookView> {
   }
 
   Widget bookRatingBar(double rating, bool isModifiable) {
+    print("Loading bookRatingBar");
     return RatingBar.builder(
       initialRating: rating,
       minRating: 1,
@@ -833,10 +838,12 @@ class _BookViewState extends State<BookView> {
   }
 
   Widget commentUserRating(String rating) {
+    print("Loading commentUserRating");
     return bookRatingBar(double.parse(rating), false);
   }
 
   Widget showCommentBox(BuildContext context, var currentBook) {
+    print("Loading showCommentBox");
     return ValueListenableBuilder(
       valueListenable: commentLoader, 
       builder: (context, val, child) {
@@ -931,7 +938,7 @@ class _BookViewState extends State<BookView> {
                                   Row(
                                     children: [
                                       CircleAvatar(
-                                        backgroundImage: userCommentInfo[userComment["userId"]]["imageURL"] != null ? NetworkImage(userCommentInfo[userComment["userId"]]["imageURL"]) : relisGif,
+                                        backgroundImage: userCommentInfo[userComment["userId"]]["imageURL"] != null ? NetworkImage(userCommentInfo[userComment["userId"]]["imageURL"]) : relisGif.image,
                                         backgroundColor: Color(0xFF032f4b),
                                         radius: 25.00,
                                       ),
@@ -981,6 +988,7 @@ class _BookViewState extends State<BookView> {
   }
 
   Widget translatorDropdown(String bookId) {
+    print("Loading translatorDropdown");
     return Tooltip(
       message: "Choose Language to Translate Book",
       child: Container(

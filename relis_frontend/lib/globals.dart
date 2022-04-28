@@ -216,11 +216,15 @@ achievedDailyLoginStreakReward() {
 getGenreWiseReadBooksStats() {
   num totalPagesRead = 0;
   if(user!.containsKey("booksRead")) {
+    print("User have read following books: ");
+    print(user!["booksRead"].keys);
     for(var bookId in user!["booksRead"].keys) {
       var key = bookMap[bookId]["category"];
+      print("...0-> ${key}");
       print("...0-> ${key.runtimeType}");
       print("...1-> ${category[key]["pagesRead"].runtimeType}");
       print("...2-> ${user!["booksRead"][bookId]["lastPageRead"].runtimeType}");
+      print("...3-> ${user!["booksRead"][bookId]["lastPageRead"]}");
       int currentCategoryRead = (category[key]["pagesRead"] ?? 0) + user!["booksRead"][bookId]["lastPageRead"] ?? 0;
       category[key]["pagesRead"] = currentCategoryRead;
       print("\t\t ~~~~~ ${category[key]["categoryName"]}: ${category[key]["pagesRead"]}");
@@ -277,8 +281,6 @@ getLoggedIn(BuildContext context, String emailId, String password, String redire
       //   }
       // );
       // print("fetchBook: ${fetchBook.isActive}");
-      print("bookList: ");
-      print(bookList.length);
       if(bookList.length == 0)
         await getBooks(context);
       await dailyLogin();
@@ -642,7 +644,6 @@ getBooks(BuildContext context) async {
       if (val != null && val.data['success']) {
         bookList = val.data["books"];
         print("\n\n\n\n\n");
-        print("bookList: $bookList");
         print("\n\n\n\n\n");
         print("Exiting getBooks if");
       } else {
@@ -665,8 +666,8 @@ getBooks(BuildContext context) async {
 }
 
 getBookImage(String bookId) async {
-  print("In getBookImage - ");
-  print("Book is "+bookId);
+  // print("In getBookImage - ");
+  // print("Book is "+bookId);
   Dio dio = new Dio();
   Response response = await dio.post(
     // "http://localhost:3000/getBookImage"
@@ -1304,7 +1305,7 @@ removeFromCart(BuildContext context, String bookId, String bookName) async {
 createPagesReadMap() async {
   Map<String, int> pagesRead = {};
   var temp2 = user!["dailyRecords"];
-  for(int i=7; i>=0; --i) {
+  for(int i=6; i>=0; --i) {
     var date = DateTime.now().subtract(Duration(days:i));
     pagesRead["${date.day.toString().padLeft(2, "0")}/${date.month.toString().padLeft(2, "0")}/${date.year}"] = 0;
   }

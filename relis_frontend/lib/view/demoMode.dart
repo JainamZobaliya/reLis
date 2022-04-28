@@ -83,7 +83,8 @@ class _DemoModeState extends State<DemoMode> {
                 Navigator.of(context).pop();
               },
             );
-          },),
+          },
+        ),
         centerTitle: true,
         title: Text(
           "Video demonstrating how to use this application",

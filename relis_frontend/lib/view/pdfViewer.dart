@@ -62,7 +62,7 @@ class _PDFViewerState extends State<PDFViewer> {
   @override
   void dispose() {
     _pdfController.dispose();
-    Timer(
+    Future.delayed(
       Duration.zero,
       () async {
         await changeLastPageRead(widget.bookId!, _lastPageRead);
@@ -78,6 +78,24 @@ class _PDFViewerState extends State<PDFViewer> {
     return Scaffold(
       appBar: AppBar(
         title: Text(appTitle),
+        leading: IconButton(
+          color: mainAppAmber,
+          splashColor: Colors.white,
+          icon: Icon(
+            Icons.arrow_back, 
+            color: Colors.white,
+          ),
+          iconSize: 28,
+          onPressed: (){
+            Future.delayed(
+              Duration.zero,
+              () async {
+                await changeLastPageRead(widget.bookId!, _lastPageRead);
+                Navigator.of(context).pop();
+              },
+            );
+          },
+        ),
         // leading: IconButton(
         //   icon: Icon(
         //     Icons.arrow_back_rounded,

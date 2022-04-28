@@ -49,10 +49,14 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   getPieChartData() {
-    for(var key in category.keys)
+    for(var key in category.keys){
+      print("Key: $key,");
+      print("category: ${category[key]},");
       if(category[key].containsKey("pagesRead") && category[key]["pagesRead"] > 0) {
+        print("\tpagesRead: ${category[key]["pagesRead"]},");
         pieChartData.add(key);
       }
+    }
   }
 
   @override
@@ -310,7 +314,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
       return PieChartSectionData(
         color: category[key]["categoryColor"],
         value: readVal,
-        title: '$readPer %',
+        title: '${(readPer).toStringAsFixed(2)} %',
         radius: radius,
         titleStyle: TextStyle(
           fontSize: fontSize,
@@ -355,8 +359,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
   createWeklyValues() {
     if(user!["dailyRecords"].containsKey("pagesRead")) {
       List<double> listy = [];
-      for(var val in user!["dailyRecords"]["pagesRead"].values)
-        listy.add(val);
+      for(var day in user!["dailyRecords"]["pagesRead"].keys) {
+        print("$day - ${user!["dailyRecords"]["pagesRead"][day]}");
+        listy.add(user!["dailyRecords"]["pagesRead"][day]);
+      }
       weeklyVal = listy;
     }
   }

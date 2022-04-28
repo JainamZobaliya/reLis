@@ -43,6 +43,11 @@ class _SplashPageState extends State<SplashPage> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     // User result = FirebaseAuth.instance.currentUser;
     return Scaffold(

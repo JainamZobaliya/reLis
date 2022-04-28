@@ -38,8 +38,16 @@ class _HomePageState extends State<HomePage> {
       PopupMenuItem(
         padding: EdgeInsets.zero,
         child: ListTile(
-          leading: Icon(Icons.shopping_cart),
-          title: Text("Cart"),
+          leading: Icon(
+            Icons.shopping_cart,
+            color: mainAppBlue,
+          ),
+          title: Text(
+            "Cart",
+            style: TextStyle(
+              color: mainAppBlue
+            ),
+          ),
           tileColor: mainAppAmber,
           onTap: () {
             // changePage("Cart");
@@ -51,8 +59,16 @@ class _HomePageState extends State<HomePage> {
       PopupMenuItem(
         padding: EdgeInsets.zero,
         child: ListTile(
-          leading: Icon(Icons.stacked_bar_chart),
-          title: Text("Statistic"),
+          leading: Icon(
+            Icons.stacked_bar_chart,
+            color: mainAppBlue,
+          ),
+          title: Text(
+            "Statistic",
+            style: TextStyle(
+              color: mainAppBlue
+            ),
+          ),
           tileColor: mainAppAmber,
           onTap: () {
             // changePage("Statistic");
@@ -64,8 +80,16 @@ class _HomePageState extends State<HomePage> {
       PopupMenuItem(
         padding: EdgeInsets.zero,
         child: ListTile(
-          leading: Icon(Icons.monetization_on_rounded),
-          title: Text("Credits"),
+          leading: Icon(
+            Icons.monetization_on_rounded,
+            color: mainAppBlue,
+          ),
+          title: Text(
+            "Credits",
+            style: TextStyle(
+              color: mainAppBlue
+            ),
+          ),
           tileColor: mainAppAmber,
           onTap: () {
             Navigator.of(context).popAndPushNamed(CreditsPage.routeName);
@@ -83,7 +107,12 @@ class _HomePageState extends State<HomePage> {
             backgroundColor: Color(0xFF032f4b),
             radius: 20.00,
           ),
-          title: Text("Profile"),
+          title: Text(
+            "Profile",
+            style: TextStyle(
+              color: mainAppBlue
+            ),
+          ),
           tileColor: mainAppAmber,
           onTap: () {
             Navigator.of(context).popAndPushNamed(Profile.routeName);
@@ -93,8 +122,16 @@ class _HomePageState extends State<HomePage> {
       PopupMenuItem(
         padding: EdgeInsets.zero,
         child: ListTile(
-          leading: Icon(Icons.video_collection_rounded),
-          title: Text("Demo"),
+          leading: Icon(
+            Icons.video_collection_rounded,
+            color: mainAppBlue,
+          ),
+          title: Text(
+            "Demo",
+            style: TextStyle(
+              color: mainAppBlue
+            ),
+          ),
           tileColor: mainAppAmber,
           onTap: () {
             // changePage("Demo");
