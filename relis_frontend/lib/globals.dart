@@ -37,12 +37,18 @@ import 'dart:html' as webFile;
 String appTitle = "ReLis - Let the book talk!!!";
 var token;
 int totalPageReadToday = 0;
-var reLis_gif = "https://firebasestorage.googleapis.com/v0/b/audiobook-404e3.appspot.com/o/ReLis.gif?alt=media&token=bbcb7a6e-c7c2-4d27-8ced-5ab58d3e177c";
+var reLis_gif =
+    "https://firebasestorage.googleapis.com/v0/b/audiobook-404e3.appspot.com/o/ReLis.gif?alt=media&token=bbcb7a6e-c7c2-4d27-8ced-5ab58d3e177c";
+int wrongPassword = 0;
+int maxWrongPassword = 3;
 
 imageLoader(ImageChunkEvent? loadingProgress) {
   return Center(
     child: CircularProgressIndicator(
-      value: loadingProgress!.expectedTotalBytes != null ? loadingProgress!.cumulativeBytesLoaded / loadingProgress!.expectedTotalBytes! : null,
+      value: loadingProgress!.expectedTotalBytes != null
+          ? loadingProgress!.cumulativeBytesLoaded /
+              loadingProgress!.expectedTotalBytes!
+          : null,
       color: mainAppAmber,
     ),
   );
@@ -79,25 +85,25 @@ var appRoutes = {
   SearchView.routeName: (BuildContext context) => SearchView(),
   PasswordChange.routeName: (BuildContext context) => PasswordChange(),
   CreditsPage.routeName: (BuildContext context) => CreditsPage(),
-  PaymentPage.routeName: (BuildContext context) => PaymentPage(), 
-  DemoMode.routeName: (BuildContext context) => DemoMode(), 
+  PaymentPage.routeName: (BuildContext context) => PaymentPage(),
+  DemoMode.routeName: (BuildContext context) => DemoMode(),
   StatisticsPage.routeName: (BuildContext context) => StatisticsPage(),
   AudioBook.routeName: (BuildContext context) => AudioBook()
 };
 
 bool changingPassword = false;
 String changingEmailID = "";
-bool loggedIn = false;
+ValueNotifier<bool> loggedIn = ValueNotifier<bool>(false);
 bool stopLoading = false;
 bool bookViewLoaded = false;
 
 Map<String, int> credits = {
-  "dailyLogin" : 1,
-  "dailyRead" : 5,
-  "dailyLoginStreak" : 30,
-  "completeProfile" : 10,
-  "connectFacebook" : 10,
-  "connectInstagram" : 10,
+  "dailyLogin": 1,
+  "dailyRead": 5,
+  "dailyLoginStreak": 30,
+  "completeProfile": 10,
+  "connectFacebook": 10,
+  "connectInstagram": 10,
 };
 
 isLoggedIn(BuildContext context) async {
@@ -110,31 +116,30 @@ isLoggedIn(BuildContext context) async {
   print("\t prefs.: Email-id: $emailId");
   print("\t prefs.: Password: $password");
   print("\t prefs.: sessionOutOn: $sessionOutOnStr");
-  if(sessionOutOnStr!="-") {
+  if (sessionOutOnStr != "-") {
     var sessionOutOn = DateTime.parse(sessionOutOnStr);
     var now = DateTime.now();
     var diff = sessionOutOn.difference(now);
     diffEpoch = diff.inMilliseconds;
   }
-  if(diffEpoch<=0) {
+  if (diffEpoch <= 0) {
     logOutDecision = true;
     sessionOutOnStr = "-";
     prefs.setString("sessionOutOn", "-");
-    loggedIn = false;
-  }
-  else{
+    loggedIn.value = false;
+  } else {
     logOutDecision = false;
-    loggedIn = true;
+    loggedIn.value = true;
   }
-  if(!stopLoading) {
-    if (!loggedIn || logOutDecision) {
+  if (!stopLoading) {
+    if (!loggedIn.value || logOutDecision) {
       print("\tisLoggedIn: going to log out");
       await logOut(context);
-    }
-    else if(loggedIn && currentPage!="Home") {
+    } else if (loggedIn.value && currentPage != "Home") {
       // changePage("Home");
       print("\tisLoggedIn: going to getLoggedIn");
-      await getLoggedIn(context, emailId!, password!, "true", sessionOutOnStr: sessionOutOnStr);
+      await getLoggedIn(context, emailId!, password!, "true",
+          sessionOutOnStr: sessionOutOnStr);
     }
   }
 }
@@ -144,15 +149,20 @@ checkStatus(BuildContext context) async {
   String? emailId = prefs.getString("emailId");
   String? password = prefs.getString("password");
   String? sessionOutOnStr = prefs.getString("sessionOutOn") ?? "-";
-  if(sessionOutOnStr!="-")
-    isLoggedIn(context);
+  if (sessionOutOnStr != "-") isLoggedIn(context);
 }
 
 achievedDailyLoginReward() {
-  String today = "${DateTime.now().day.toString().padLeft(2,'0')}" + "/" + "${DateTime.now().month.toString().padLeft(2,'0')}" + "/" + "${DateTime.now().year}";
+  String today = "${DateTime.now().day.toString().padLeft(2, '0')}" +
+      "/" +
+      "${DateTime.now().month.toString().padLeft(2, '0')}" +
+      "/" +
+      "${DateTime.now().year}";
   print("....${user!["dailyRecords"]["loginRecords"]}");
   print("....${user!["dailyRecords"]["loginRecords"].length}");
-  return (user!["dailyRecords"]["loginRecords"].length > 0 ? user!["dailyRecords"]["loginRecords"].contains(today) : false);
+  return (user!["dailyRecords"]["loginRecords"].length > 0
+      ? user!["dailyRecords"]["loginRecords"].contains(today)
+      : false);
 }
 
 int getStreakLength() {
@@ -160,109 +170,136 @@ int getStreakLength() {
 }
 
 updateCreditsInDB(String today) async {
-  await Services().addReward(user!["emailId"], user!["dailyRecords"], user!["credits"]).then((val) async {
-      if (val != null && val.data['success']) {
-      }
-      else {
-        // if(achievedDailyLoginReward()) {
-        //   user!["dailyRecords"]["loginRecords"].remove(today);
-        // }
-        showMessageFlutterToast(
-          "Error in updating credits!!",
-          Color(0xFFFF0000),
-        );
-      }
-    });
+  await Services()
+      .addReward(user!["emailId"], user!["dailyRecords"], user!["credits"])
+      .then((val) async {
+    if (val != null && val.data['success']) {
+    } else {
+      // if(achievedDailyLoginReward()) {
+      //   user!["dailyRecords"]["loginRecords"].remove(today);
+      // }
+      showMessageFlutterToast(
+        "Error in updating credits!!",
+        Color(0xFFFF0000),
+      );
+    }
+  });
 }
 
 achievedDailyLoginStreakReward() {
-  String today = "${DateTime.now().day.toString().padLeft(2,'0')}" + "/" + "${DateTime.now().month.toString().padLeft(2,'0')}" + "/" + "${DateTime.now().year}";
-  if(!user!["dailyRecords"].containsKey("streak")){
+  String today = "${DateTime.now().day.toString().padLeft(2, '0')}" +
+      "/" +
+      "${DateTime.now().month.toString().padLeft(2, '0')}" +
+      "/" +
+      "${DateTime.now().year}";
+  if (!user!["dailyRecords"].containsKey("streak")) {
     user!["dailyRecords"]["streak"] = [];
   }
   int streakLength = getStreakLength();
-  if(streakLength>=30) {
-    user!["dailyRecords"]["streak"].removeRange(0 ,30);
+  if (streakLength >= 30) {
+    user!["dailyRecords"]["streak"].removeRange(0, 30);
   }
   streakLength = getStreakLength();
-  for(int i=getStreakLength(); i<user!["dailyRecords"]["loginRecords"].length-1; ++i) {
+  for (int i = getStreakLength();
+      i < user!["dailyRecords"]["loginRecords"].length - 1;
+      ++i) {
     streakLength = getStreakLength();
     var day1String = user!["dailyRecords"]["loginRecords"][i];
-    var day2String = user!["dailyRecords"]["loginRecords"][i+1];
+    var day2String = user!["dailyRecords"]["loginRecords"][i + 1];
     DateTime day1 = DateFormat("dd/MM/yyyy").parse(day1String);
     DateTime day2 = DateFormat("dd/MM/yyyy").parse(day2String);
     var diff = day1.difference(day2).inDays.abs();
-    if(streakLength<=0) {
+    if (streakLength <= 0) {
       print("diff is $diff");
       user!["dailyRecords"]["streak"].add(diff);
-    }
-    else if(diff > 1){
+    } else if (diff > 1) {
       user!["dailyRecords"]["streak"].add(0);
-    }
-    else {
-      user!["dailyRecords"]["streak"].add(streakLength != 0 ? user!["dailyRecords"]["streak"][streakLength-1] + diff : diff);
+    } else {
+      user!["dailyRecords"]["streak"].add(streakLength != 0
+          ? user!["dailyRecords"]["streak"][streakLength - 1] + diff
+          : diff);
     }
   }
   streakLength = getStreakLength();
   // print(user!["dailyRecords"]["loginRecords"]);
   // print(user!["dailyRecords"]["streak"]);
-  if(streakLength!= 0 && user!["dailyRecords"]["streak"][streakLength-1] % 30 == 0) {
-    user!["credits"] = (int.parse(user!["credits"]) + credits["dailyLoginStreak"]!).toString();
+  if (streakLength != 0 &&
+      user!["dailyRecords"]["streak"][streakLength - 1] % 30 == 0) {
+    user!["credits"] =
+        (int.parse(user!["credits"]) + credits["dailyLoginStreak"]!).toString();
     // await updateCreditsInDB(today);
   }
-  return streakLength == 0 ? false : user!["dailyRecords"]["streak"][streakLength-1] % 30 == 0 ? true : false;
+  return streakLength == 0
+      ? false
+      : user!["dailyRecords"]["streak"][streakLength - 1] % 30 == 0
+          ? true
+          : false;
 }
 
 getGenreWiseReadBooksStats() {
   num totalPagesRead = 0;
-  if(user!.containsKey("booksRead")) {
+  if (user!.containsKey("booksRead")) {
     print("User have read following books: ");
     print(user!["booksRead"].keys);
-    for(var bookId in user!["booksRead"].keys) {
+    for (var bookId in user!["booksRead"].keys) {
       var key = bookMap[bookId]["category"];
       print("...0-> ${key}");
       print("...0-> ${key.runtimeType}");
       print("...1-> ${category[key]["pagesRead"].runtimeType}");
       print("...2-> ${user!["booksRead"][bookId]["lastPageRead"].runtimeType}");
       print("...3-> ${user!["booksRead"][bookId]["lastPageRead"]}");
-      int currentCategoryRead = (category[key]["pagesRead"] ?? 0) + user!["booksRead"][bookId]["lastPageRead"] ?? 0;
+      int currentCategoryRead = (category[key]["pagesRead"] ?? 0) +
+              user!["booksRead"][bookId]["lastPageRead"] ??
+          0;
       category[key]["pagesRead"] = currentCategoryRead;
-      print("\t\t ~~~~~ ${category[key]["categoryName"]}: ${category[key]["pagesRead"]}");
+      print(
+          "\t\t ~~~~~ ${category[key]["categoryName"]}: ${category[key]["pagesRead"]}");
     }
-    for(var key in category.keys) {
+    for (var key in category.keys) {
       totalPagesRead = totalPagesRead + (category[key]["pagesRead"] ?? 0);
     }
-    for(var key in category.keys) {
+    for (var key in category.keys) {
       category[key]["pagesRead"] = category[key]["pagesRead"] ?? 0;
       category[key]["totalPagesRead"] = totalPagesRead;
-      print("\t\t #### ${category[key]["categoryName"]}: ${category[key]["totalPagesRead"]}");
+      print(
+          "\t\t #### ${category[key]["categoryName"]}: ${category[key]["totalPagesRead"]}");
     }
   }
 }
 
 dailyLogin() async {
-  String today = "${DateTime.now().day.toString().padLeft(2,'0')}" + "/" + "${DateTime.now().month.toString().padLeft(2,'0')}" + "/" + "${DateTime.now().year.toString()}";
-  if(!achievedDailyLoginReward()) {
+  String today = "${DateTime.now().day.toString().padLeft(2, '0')}" +
+      "/" +
+      "${DateTime.now().month.toString().padLeft(2, '0')}" +
+      "/" +
+      "${DateTime.now().year.toString()}";
+  if (!achievedDailyLoginReward()) {
     user!["dailyRecords"]["loginRecords"].add(today);
-    user!["credits"] = (int.parse(user!["credits"]) + credits["dailyLogin"]!).toString();
+    user!["credits"] =
+        (int.parse(user!["credits"]) + credits["dailyLogin"]!).toString();
     await updateCreditsInDB(today);
   }
 }
 
-getLoggedIn(BuildContext context, String emailId, String password, String redirect, {String sessionOutOnStr = "-"}) async {
+getLoggedIn(
+    BuildContext context, String emailId, String password, String redirect,
+    {String sessionOutOnStr = "-"}) async {
   print('***** Login Authentication *****');
   await Services().login(emailId, password, redirect).then((val) async {
-    if (val != null && val.data['success']) {
+    print(val.data['userHasToChangePassword']);
+    if (val != null && val.data['success']!=null && val.data['success']) {
       token = val.data['token'];
       user = val.data['user'];
-      loggedIn = true;
+      loggedIn.value = true;
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      if(sessionOutOnStr=="-") {
+      if (sessionOutOnStr == "-") {
         sessionOutOnStr = DateTime.now().add(Duration(days: 1)).toString();
       }
-      prefs.setString("emailId", user!["emailId"]);
-      prefs.setString("password", user!["password"]);
-      prefs.setString("sessionOutOn", sessionOutOnStr);
+      if(redirect == "false") {
+        prefs.setString("emailId", user!["emailId"]);
+        prefs.setString("password", user!["password"]);
+        prefs.setString("sessionOutOn", sessionOutOnStr);
+      }
       Fluttertoast.showToast(
         msg: "${user!["firstName"]} ${user!["lastName"]} Logged-In",
         toastLength: Toast.LENGTH_SHORT,
@@ -273,7 +310,8 @@ getLoggedIn(BuildContext context, String emailId, String password, String redire
         webBgColor: "linear-gradient(to right, #00b09b, #96c93d)",
         fontSize: 16.0,
       );
-      showMessageSnackBar(context, "Fetching Books, Please Wait!!", Color(0xFF00FF88));
+      showMessageSnackBar(
+          context, "Fetching Books, Please Wait!!", Color(0xFF00FF88));
       // Timer fetchBook = Timer.periodic(
       //   Duration(seconds: 4),
       //   (timer) {
@@ -281,47 +319,65 @@ getLoggedIn(BuildContext context, String emailId, String password, String redire
       //   }
       // );
       // print("fetchBook: ${fetchBook.isActive}");
-      if(bookList.length == 0 && !stopLoading)
-        await getBooks(context);
-      await getBookRecommendation(context);  
+      if (bookList.length == 0 && !stopLoading) await getBooks(context);
+      await getBookRecommendation(context);
       await dailyLogin();
       print('\t Current User: ${user!["firstName"]} ${user!["lastName"]}');
       print('***** Moving to HomePage *****');
       stopLoading = true;
-      var date = DateTime.now(); 
-      var dateStr = "${date.day.toString().padLeft(2, "0")}/${date.month.toString().padLeft(2, "0")}/${date.year} ";
+      var date = DateTime.now();
+      var dateStr =
+          "${date.day.toString().padLeft(2, "0")}/${date.month.toString().padLeft(2, "0")}/${date.year} ";
       print("Currently dateStr: ${dateStr}");
-      totalPageReadToday =  user!["dailyRecords"]["pagesRead"][dateStr] ?? 0;
+      totalPageReadToday = user!["dailyRecords"]["pagesRead"][dateStr] ?? 0;
       print("Currently totalPageReadToday: ${totalPageReadToday}");
       print("Currently pagesRead: ${user!["dailyRecords"]["pagesRead"]}");
       // fetchBook.cancel();
-      while (Navigator.of(context).canPop())
-        Navigator.of(context).pop();
+      while (Navigator.of(context).canPop()) Navigator.of(context).pop();
       Navigator.of(context).pushNamed(HomePage.routeName);
+    } else if(val != null && val.data['userHasToChangePassword']) {
+      wrongPassword = val.data['wrongPasswordCount'];
+      showMessageSnackBar(
+        context, "Maximum Wrong Password Attempted. Now Change Password  !!", Color(0xFFFF0000));
+    }
+    else if(val != null && !val.data['userHasToChangePassword'] && val.data['isWrongPassword']) {
+      wrongPassword = val.data['wrongPasswordCount'];
+      showMessageSnackBar(
+        context, "Wrong Password ${maxWrongPassword-wrongPassword} Attempts Left !!", Color(0xFFFF0000));
+      print(val.data['wrongPasswordCount']);
     }
     else {
       print('***** Login Authentication - Error Occurred!! *****');
       stopLoading = false;
-      showMessageSnackBar(context, "Error Occurred, Log in again!!", Color(0xFFFF0000));
+      showMessageSnackBar(
+          context, "Error Occurred, Log in again!!", Color(0xFFFF0000));
       // await logOut(context);
-    }  
-  }); 
+    }
+  });
 }
 
 getBookRecommendation(BuildContext context) async {
   await Services().getRecommendBooks().then((val) {
     if (val != null && val.data['success']) {
-      showMessageSnackBar(context, "Loaded Books Recommended for ${user!["firstName"]} ${user!["lastName"]}", Color.fromARGB(255, 72, 0, 255));
+      if (user?["recommendedBooks"] != null &&
+          user?["recommendedBooks"].length > 0)
+        showMessageSnackBar(
+            context,
+            "Loaded Books Recommended for ${user!["firstName"]} ${user!["lastName"]}",
+            Color.fromARGB(255, 72, 0, 255));
     } else {
       print("Exiting getBooks else");
-      showMessageSnackBar(context, "Error, Can't recommend books info from db. Please Log in again", Color(0xFFFF0000));
+      showMessageSnackBar(
+          context,
+          "Error, Can't recommend books info from db. Please Log in again",
+          Color(0xFFFF0000));
       logOut(context);
     }
-  });  
+  });
 }
 
 logOut(BuildContext context) async {
-  loggedIn = false;
+  loggedIn.value = false;
   stopLoading = false;
   user = {};
   SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -364,19 +420,23 @@ Map<String, String> Registeration = {};
 
 String currentPage = "SignIn";
 
-void showMessageFlutterToast(String message, Color backgroundColor, {bool showClose = false}) {
+void showMessageFlutterToast(String message, Color backgroundColor,
+    {bool showClose = false}) {
   Fluttertoast.showToast(
     msg: message,
     backgroundColor: backgroundColor,
     // webBgColor: "linear-gradient(to right, #${backgroundColor.red}${backgroundColor.blue}${backgroundColor.green}, #96c93d)",
-    webBgColor: "linear(#${backgroundColor.red}${backgroundColor.blue}${backgroundColor.green})",
+    webBgColor:
+        "linear(#${backgroundColor.red}${backgroundColor.blue}${backgroundColor.green})",
     gravity: ToastGravity.BOTTOM,
     toastLength: Toast.LENGTH_SHORT,
     webShowClose: showClose,
   );
 }
 
-void showMessageSnackBar(BuildContext context, String message, Color backgroundColor, {double snackBarWidth = 0}) {
+void showMessageSnackBar(
+    BuildContext context, String message, Color backgroundColor,
+    {double snackBarWidth = 0}) {
   // snackBarWidth = snackBarWidth == 0 ? MediaQuery.of(context).size.width : snackBarWidth;
   final snackBar = new SnackBar(
     content: new Text('$message'),
@@ -655,28 +715,31 @@ String pageName(pageType type) {
 }
 
 getBooks(BuildContext context) async {
-    await createPagesReadMap();
-    await Services().getAllBooks(user!["emailId"]).then((val) {
-      if (val != null && val.data['success']) {
-        bookList = val.data["books"];
-        print("Exiting getBooks if");
-      } else {
-        print("Exiting getBooks else");
-        showMessageSnackBar(context, "Error, Can't fetch books info from db. Please Log in again", Color(0xFFFF0000));
-        logOut(context);
-      }
-    });    
-    int i = 0;
-    for(var currentBook in bookList){
-      currentBook["image"] = await getBookImage(currentBook["id"]);
-      ++i;
-      showMessageFlutterToast(
-        " $i / ${bookList.length} Book Loaded",
-        Color(0xFF00FF00),
-        showClose: true,
-      );
+  await createPagesReadMap();
+  await Services().getAllBooks(user!["emailId"]).then((val) {
+    if (val != null && val.data['success']) {
+      bookList = val.data["books"];
+      print("Exiting getBooks if");
+    } else {
+      print("Exiting getBooks else");
+      showMessageSnackBar(
+          context,
+          "Error, Can't fetch books info from db. Please Log in again",
+          Color(0xFFFF0000));
+      logOut(context);
     }
-    print("Exited getBooks");
+  });
+  int i = 0;
+  for (var currentBook in bookList) {
+    currentBook["image"] = await getBookImage(currentBook["id"]);
+    ++i;
+    showMessageFlutterToast(
+      " $i / ${bookList.length} Book Loaded",
+      Color(0xFF00FF00),
+      showClose: true,
+    );
+  }
+  print("Exited getBooks");
 }
 
 getBookImage(String bookId) async {
@@ -687,8 +750,8 @@ getBookImage(String bookId) async {
     // "http://localhost:3000/getBookImage"
     "https://relis-nodejs1.herokuapp.com/getBookImage",
     data: {"emailId": user!["emailId"], "bookId": bookId},
-  ); 
-  if(response.data['success']) {
+  );
+  if (response.data['success']) {
     var imageListDynamic = response.data["imagePng"]["data"]["data"];
     var imageList = imageListDynamic.cast<int>();
     var imageData = imageList;
@@ -708,8 +771,8 @@ getImage(String imageType) async {
     // "http://localhost:3000/getImage",
     "https://relis-nodejs1.herokuapp.com/getImage",
     data: {"imageType": imageType},
-  ); 
-  if(response.data['success']) {
+  );
+  if (response.data['success']) {
     var imageListDynamic = response.data["imagePng"]["data"]["data"];
     var imageList = imageListDynamic.cast<int>();
     var imageData = imageList;
@@ -724,22 +787,20 @@ getImage(String imageType) async {
 }
 
 isBookBought(String bookId) {
-  if(user!["booksBought"].containsKey(bookId))
-    return true;
+  if (user!["booksBought"].containsKey(bookId)) return true;
   return false;
 }
 
 isBookRented(String bookId) {
-  if(user!["booksRented"].containsKey(bookId)) {
+  if (user!["booksRented"].containsKey(bookId)) {
     var dueDate = DateTime.parse(user!["booksRented"][bookId]["dueOn"]);
     var daysLeft = dueDate.difference(DateTime.now()).inMilliseconds;
     print("\t dueDate: ${dueDate}");
     print("\t now: ${DateTime.now()}");
     print("\t\t daysLeft: ${daysLeft}");
-    if(daysLeft<=0) {
+    if (daysLeft <= 0) {
       return false;
-    }
-    else{
+    } else {
       return true;
     }
   }
@@ -825,16 +886,16 @@ var categoryList = [
 Map<String, dynamic> category = {};
 
 void addItem(Map<String, dynamic> map, var list) {
-    // print("\n\n\n\n\n");
-    // print("list: $list");
-    // print("\n\n\n\n\n");
+  // print("\n\n\n\n\n");
+  // print("list: $list");
+  // print("\n\n\n\n\n");
   for (var ls in list) {
     map[ls["id"]] = ls;
   }
 }
 
 void loadBooksInCategory() {
-  for(var bookId in bookMap.keys) {
+  for (var bookId in bookMap.keys) {
     var catId = bookMap[bookId]["category"];
     if (category[catId]["bookList"] == null) {
       category[catId]["bookList"] = [];
@@ -845,16 +906,19 @@ void loadBooksInCategory() {
 
 void loadEachHover() {
   loadHoverMap(category, categoryHover);
-  loadHover(user?["recommendedBooks"].length, user?["recommendedBooks"],
-      recommendationHover, "recommendedBooks");
+  loadHover(
+      user?["recommendedBooks"] == null ? 0 : user?["recommendedBooks"].length,
+      user?["recommendedBooks"],
+      recommendationHover,
+      "recommendedBooks");
   loadHover(bookInfo["trendingBook"].length, bookInfo["trendingBook"],
       trendingHover, "trendingBook");
-  loadHover(user?["favouriteBook"].length, user?["favouriteBook"], favouriteHover,
-      "favouriteBook");
+  loadHover(user?["favouriteBook"].length, user?["favouriteBook"],
+      favouriteHover, "favouriteBook");
   loadHover(user?["cart"]["toRent"].length, user?["cart"]["toRent"], cartHover,
-    "cart");
-  loadHover(user?["cart"]["toBuy"].length, user?["cart"]["toBuy"], cartHover,
-    "cart");
+      "cart");
+  loadHover(
+      user?["cart"]["toBuy"].length, user?["cart"]["toBuy"], cartHover, "cart");
   loadHover(user?["wishListBook"].length, user?["wishListBook"], wishListHover,
       "wishListBook");
   loadHover(user?["bookHistory"].length, user?["bookHistory"], historyHover,
@@ -895,7 +959,7 @@ void loadHoverMap(var data, var hover) {
 }
 
 loadCategoryBooks(var bookList, var hover) {
-  for(var id in bookList) {
+  for (var id in bookList) {
     print("${id} is Category Hover.....");
     hover[id] = ValueNotifier<bool>(false);
     print("\t${id}Category Hover: ${hover[id]}");
@@ -913,16 +977,20 @@ void loadHover(var length, var data, var hover, var type) {
   // print("$type: ${hover!.length}");
 }
 
-void favouriteBook(BuildContext context, Map<String, dynamic> user, var currentBook) {
+void favouriteBook(
+    BuildContext context, Map<String, dynamic> user, var currentBook) {
   print("IN favouriteBook");
   if (isFavourite(user, currentBook["id"])) {
-    Services().removeFromFavourites(user["emailId"], currentBook["id"]).then((val) {
+    Services()
+        .removeFromFavourites(user["emailId"], currentBook["id"])
+        .then((val) {
       if (val != null && val.data['success']) {
         favouriteHover.remove(currentBook["id"]);
         favourite[currentBook["id"]] = ValueNotifier<bool>(false);
         user["favouriteBook"] = val.data["favouriteBook"];
       } else {
-        showMessageSnackBar(context, "Error, Can't remove From favourites", Color(0xFFFF0000));
+        showMessageSnackBar(
+            context, "Error, Can't remove From favourites", Color(0xFFFF0000));
       }
     });
   } else {
@@ -932,7 +1000,8 @@ void favouriteBook(BuildContext context, Map<String, dynamic> user, var currentB
         favourite[currentBook["id"]] = ValueNotifier<bool>(true);
         user["favouriteBook"] = val.data["favouriteBook"];
       } else {
-        showMessageSnackBar(context, "Error, Can't add to favourites", Color(0xFFFF0000));
+        showMessageSnackBar(
+            context, "Error, Can't add to favourites", Color(0xFFFF0000));
       }
     });
   }
@@ -943,24 +1012,29 @@ void favouriteBook(BuildContext context, Map<String, dynamic> user, var currentB
   print("OUT favouriteBook");
 }
 
-void wishListBook(BuildContext context, Map<String, dynamic> user, var currentBook) {
+void wishListBook(
+    BuildContext context, Map<String, dynamic> user, var currentBook) {
   print("IN wishListBook");
   if (isWishList(user, currentBook["id"])) {
-    Services().removeFromWishList(user["emailId"], currentBook["id"]).then((val) {
+    Services()
+        .removeFromWishList(user["emailId"], currentBook["id"])
+        .then((val) {
       if (val != null && val.data['success']) {
         wishListHover.remove(currentBook["id"]);
         user["wishListBook"] = val.data["wishListBook"];
       } else {
-        showMessageSnackBar(context, "Error, Can't remove From wishList", Color(0xFFFF0000));
+        showMessageSnackBar(
+            context, "Error, Can't remove From wishList", Color(0xFFFF0000));
       }
     });
   } else {
     Services().addToWishList(user["emailId"], currentBook["id"]).then((val) {
       if (val != null && val.data['success']) {
-      wishListHover[currentBook["id"]] = ValueNotifier<bool>(false);
+        wishListHover[currentBook["id"]] = ValueNotifier<bool>(false);
         user["wishListBook"] = val.data["wishListBook"];
       } else {
-        showMessageSnackBar(context, "Error, Can't add to wishList", Color(0xFFFF0000));
+        showMessageSnackBar(
+            context, "Error, Can't add to wishList", Color(0xFFFF0000));
       }
     });
   }
@@ -968,39 +1042,48 @@ void wishListBook(BuildContext context, Map<String, dynamic> user, var currentBo
   print("OUT wishListBook");
 }
 
-void addToHistory(BuildContext context, Map<String, dynamic> user, var currentBook) {
+void addToHistory(
+    BuildContext context, Map<String, dynamic> user, var currentBook) {
   var historyList = new Queue();
-  if(user.containsKey("bookHistory") && user?["bookHistory"].length>0)
+  if (user.containsKey("bookHistory") && user?["bookHistory"].length > 0)
     historyList.addAll(user?["bookHistory"].toList());
   if (isHistory(user, currentBook)) {
     historyList.remove(currentBook["id"]);
   }
   historyList.addFirst(currentBook["id"]);
   user?["bookHistory"] = historyList.toList();
-  loadHover(user?["bookHistory"].length, user?["bookHistory"], historyHover, "bookHistory");
+  loadHover(user?["bookHistory"].length, user?["bookHistory"], historyHover,
+      "bookHistory");
   changeHistory(context);
 }
 
-void removeFromHistory(BuildContext context, Map<String, dynamic> user, var currentBook) {
+void removeFromHistory(
+    BuildContext context, Map<String, dynamic> user, var currentBook) {
   var historyList = new Queue();
-  if(user.containsKey("bookHistory") && user?["bookHistory"].length>0)
+  if (user.containsKey("bookHistory") && user?["bookHistory"].length > 0)
     historyList.addAll(user?["bookHistory"].toList());
   if (isHistory(user, currentBook)) {
     historyList.remove(currentBook["id"]);
   }
   user?["bookHistory"] = historyList.toList();
-  loadHover(user?["bookHistory"].length, user?["bookHistory"], historyHover, "bookHistory");
+  loadHover(user?["bookHistory"].length, user?["bookHistory"], historyHover,
+      "bookHistory");
   changeHistory(context);
 }
 
 changeHistory(BuildContext context) async {
-  await Services().changeHistory(user!["emailId"], user?["bookHistory"]).then((val) {
+  await Services()
+      .changeHistory(user!["emailId"], user?["bookHistory"])
+      .then((val) {
     if (val != null && val.data['success']) {
     } else {
-      showMessageSnackBar(context, "Error, Can't fetch books info from db. Please Log in again", Color(0xFFFF0000));
+      showMessageSnackBar(
+          context,
+          "Error, Can't fetch books info from db. Please Log in again",
+          Color(0xFFFF0000));
       logOut(context);
     }
-  });    
+  });
 }
 
 bool isFavourite(Map<String, dynamic> user, String bookId) {
@@ -1021,7 +1104,7 @@ bool isWishList(Map<String, dynamic> user, String bookId) {
 
 bool isHistory(Map<String, dynamic> user, var currentBook) {
   var wishList = [];
-  if(user.containsKey("bookHistory") && user?["bookHistory"].length>0)
+  if (user.containsKey("bookHistory") && user?["bookHistory"].length > 0)
     wishList = user?["bookHistory"].toList();
   if (wishList.contains(currentBook["id"])) {
     return true;
@@ -1050,7 +1133,7 @@ dynamic getBooksList(var bookList, {bool isList = false}) {
   return bookData.toList();
 }
 
- Map<String, dynamic> getBooksMap(var bookList, {bool isList = false}) {
+Map<String, dynamic> getBooksMap(var bookList, {bool isList = false}) {
   // print("${bookList.runtimeType}");
   if (bookList == null || bookList.length == 0) {
     return {};
@@ -1103,7 +1186,8 @@ Future<void> uploadImage(BuildContext context, File photo) async {
 Future<void> chooseImage(BuildContext context, bool imageSource) async {
   // File _image;
   dynamic _image;
-  final pickedFile = await ImagePicker().pickImage(source: imageSource ? ImageSource.camera : ImageSource.gallery);
+  final pickedFile = await ImagePicker().pickImage(
+      source: imageSource ? ImageSource.camera : ImageSource.gallery);
   if (pickedFile != null) {
     _image = File(pickedFile.path);
     uploadImage(context, _image);
@@ -1161,15 +1245,16 @@ chooseFile(BuildContext context) async {
 // }
 
 String loadBookTooltip(String id) {
-  if(!(isRented(id) || isPurchased(id)))
-    return  "Not yet Purchased or Rented!!";
+  if (!(isRented(id) || isPurchased(id)))
+    return "Not yet Purchased or Rented!!";
   String userBookDetails = "";
-  if(isRented(id))
-    userBookDetails = "Rented on: ${user?["booksRented"][id]["rentedOn"]}\n\nDue on: ${user?["booksRented"][id]["dueOn"]}";
-  if(isRented(id) && isPurchased(id))
-    userBookDetails += "\n";
-  if(isPurchased(id))
-    userBookDetails += "Purchased on: ${user?["booksBought"][id]["purchasedOn"]}";
+  if (isRented(id))
+    userBookDetails =
+        "Rented on: ${user?["booksRented"][id]["rentedOn"]}\n\nDue on: ${user?["booksRented"][id]["dueOn"]}";
+  if (isRented(id) && isPurchased(id)) userBookDetails += "\n";
+  if (isPurchased(id))
+    userBookDetails +=
+        "Purchased on: ${user?["booksBought"][id]["purchasedOn"]}";
   return userBookDetails;
 }
 
@@ -1186,50 +1271,53 @@ addCartToDb() async {
   dynamic cartTemp = {};
   dynamic booksBoughtTemp = {};
   dynamic booksRentedTemp = {};
-  if(user!.containsKey("cart") && user!["cart"].length>0) {
+  if (user!.containsKey("cart") && user!["cart"].length > 0) {
     print("cart: ${user!["cart"]}");
-    cartTemp = new Map<dynamic,dynamic>.from(user!["cart"]);
+    cartTemp = new Map<dynamic, dynamic>.from(user!["cart"]);
   }
   print("...Reached Here - 1");
-  if(user!.containsKey("booksBought") && user!["booksBought"].length>0) {
+  if (user!.containsKey("booksBought") && user!["booksBought"].length > 0) {
     print("booksBought: ${user!["booksBought"]}");
-    booksBoughtTemp = new Map<dynamic,dynamic>.from(user!["booksBought"]);
+    booksBoughtTemp = new Map<dynamic, dynamic>.from(user!["booksBought"]);
   }
   print("...Reached Here - 2");
-  if(user!.containsKey("booksRented") && user!["booksRented"].length>0) {
+  if (user!.containsKey("booksRented") && user!["booksRented"].length > 0) {
     print("booksRented: ${user!["booksRented"]}");
-    booksRentedTemp = new Map<dynamic,dynamic>.from(user!["booksRented"]);
+    booksRentedTemp = new Map<dynamic, dynamic>.from(user!["booksRented"]);
   }
   print("...Reached Here - 3");
   var now = DateTime.now();
   print("...Reached here - 4");
-  // Emptying Cart and adding books in booksBought and booksRented 
-  for(var bookId in user!["cart"]["toBuy"]) {
-    user!["booksBought"][bookId] = {
-      "id" : bookId,
-      "purchasedOn" : now.toString()
-    };
+  // Emptying Cart and adding books in booksBought and booksRented
+  for (var bookId in user!["cart"]["toBuy"]) {
+    user!["booksBought"]
+        [bookId] = {"id": bookId, "purchasedOn": now.toString()};
     user!["cart"]["toBuy"].remove(bookId);
   }
-  for(var bookId in user!["cart"]["toRent"]) {
-    var due = isBookRented(bookId) ? DateTime.parse(user!["booksRented"][bookId]["dueOn"]).add(Duration(days: 7)) : DateTime.now().add(Duration(days: 7));
+  for (var bookId in user!["cart"]["toRent"]) {
+    var due = isBookRented(bookId)
+        ? DateTime.parse(user!["booksRented"][bookId]["dueOn"])
+            .add(Duration(days: 7))
+        : DateTime.now().add(Duration(days: 7));
     user!["booksRented"][bookId] = {
-      "id" : bookId,
-      "rentedOn" : now.toString(),
-      "dueOn" : due.toString(),
+      "id": bookId,
+      "rentedOn": now.toString(),
+      "dueOn": due.toString(),
     };
     user!["cart"]["toRent"].remove(bookId);
   }
   print("...Reached here - 5");
-  await Services().buyBooks(user!["emailId"], user!["cart"], user!["booksBought"], user!["booksRented"]).then((val){
+  await Services()
+      .buyBooks(user!["emailId"], user!["cart"], user!["booksBought"],
+          user!["booksRented"])
+      .then((val) {
     if (val != null && val.data['success']) {
       print("...Reached here - 6");
       showMessageFlutterToast(
         "Books Bought Successfully!!",
         Colors.green,
       );
-    }
-    else {
+    } else {
       print("...Reached here - 7");
       user!["cart"] = cartTemp;
       user!["booksBought"] = booksBoughtTemp;
@@ -1242,15 +1330,16 @@ addCartToDb() async {
   });
 }
 
-addToCart(BuildContext context, String bookId, String bookName, {bool isRent = false}) async {
-  if(user!["cart"]["toRent"].contains(bookId) || user!["cart"]["toBuy"].contains(bookId)) {
+addToCart(BuildContext context, String bookId, String bookName,
+    {bool isRent = false}) async {
+  if (user!["cart"]["toRent"].contains(bookId) ||
+      user!["cart"]["toBuy"].contains(bookId)) {
     showMessageFlutterToast(
       "$bookName already in cart!!",
       Color(0xFFFF0000),
     );
     return;
-  }
-  else if(isRent) {
+  } else if (isRent) {
     // if(user!["cart"]["toRent"].length > 0)
     //   rentCart.addAll(user!["cart"]["toRent"]);
     user!["cart"]["toRent"].add(bookId);
@@ -1260,23 +1349,22 @@ addToCart(BuildContext context, String bookId, String bookName, {bool isRent = f
     //   "dueDate" : DateTime.now().add(Duration(days: 7)),
     // };
     // user!["cart"]["toRent"] = rentCart;
-  }
-  else {
+  } else {
     user!["cart"]["toBuy"].add(bookId);
     // buyCart.add(bookId);
   }
-  await Services().updateCart(user!["emailId"], user!["cart"]).then((val) async {
+  await Services()
+      .updateCart(user!["emailId"], user!["cart"])
+      .then((val) async {
     if (val != null && val.data['success']) {
       showMessageFlutterToast(
         "$bookName added to your cart!!",
         Colors.green,
       );
-    }
-    else {
-      if(user!["cart"]["toRent"].contains(bookId)) {
+    } else {
+      if (user!["cart"]["toRent"].contains(bookId)) {
         user!["cart"]["toRent"].remove(bookId);
-      }
-      else if(user!["cart"]["toBuy"].contains(bookId)) {
+      } else if (user!["cart"]["toBuy"].contains(bookId)) {
         user!["cart"]["toBuy"].remove(bookId);
       }
       showMessageFlutterToast(
@@ -1294,20 +1382,20 @@ addToCart(BuildContext context, String bookId, String bookName, {bool isRent = f
 }
 
 removeFromCart(BuildContext context, String bookId, String bookName) async {
-  if(user!["cart"]["toRent"].contains(bookId)) {
+  if (user!["cart"]["toRent"].contains(bookId)) {
     user!["cart"]["toRent"].remove(bookId);
-  }
-  else if(user!["cart"]["toBuy"].contains(bookId)) {
+  } else if (user!["cart"]["toBuy"].contains(bookId)) {
     user!["cart"]["toBuy"].remove(bookId);
   }
-  await Services().updateCart(user!["emailId"], user!["cart"]).then((val) async {
+  await Services()
+      .updateCart(user!["emailId"], user!["cart"])
+      .then((val) async {
     if (val != null && val.data['success']) {
       showMessageFlutterToast(
         "$bookName removed from your cart!!",
         Colors.green,
       );
-    }
-    else {
+    } else {
       showMessageFlutterToast(
         "Error in removing $bookName from your cart!!",
         Color(0xFFFF0000),
@@ -1319,19 +1407,20 @@ removeFromCart(BuildContext context, String bookId, String bookName) async {
 createPagesReadMap() async {
   Map<String, int> pagesRead = {};
   var temp2 = user!["dailyRecords"];
-  for(int i=6; i>=0; --i) {
-    var date = DateTime.now().subtract(Duration(days:i));
-    pagesRead["${date.day.toString().padLeft(2, "0")}/${date.month.toString().padLeft(2, "0")}/${date.year}"] = 0;
+  for (int i = 6; i >= 0; --i) {
+    var date = DateTime.now().subtract(Duration(days: i));
+    pagesRead[
+        "${date.day.toString().padLeft(2, "0")}/${date.month.toString().padLeft(2, "0")}/${date.year}"] = 0;
   }
-  for(var keys in pagesRead.keys) {
+  for (var keys in pagesRead.keys) {
     pagesRead[keys] = user!["dailyRecords"]["pagesRead"][keys] ?? 0;
   }
   user!["dailyRecords"]["pagesRead"] = pagesRead;
-  await Services().changeDailyRecords(user!["emailId"], user!["dailyRecords"]).then((val) async {
+  await Services()
+      .changeDailyRecords(user!["emailId"], user!["dailyRecords"])
+      .then((val) async {
     if (val != null && val.data['success']) {
-
-    }
-    else {
+    } else {
       user!["dailyRecords"] = temp2;
       showMessageFlutterToast(
         "Error in updating dailyRecords...",
@@ -1349,26 +1438,29 @@ changeLastPageRead(String bookId, int lastPageRead) async {
     "lastReadAt": DateTime.now().toString(),
     "lastPageRead": lastPageRead,
   };
-  if(!user!.containsKey("booksRead")){
+  if (!user!.containsKey("booksRead")) {
     user!["booksRead"] = {};
   }
   user!["booksRead"][bookId] = currMap;
-  var date = DateTime.now(); // weeks[(today-i-1)%7] + "\n" + 
-  var dateStr = "${date.day.toString().padLeft(2, "0")}/${date.month.toString().padLeft(2, "0")}/${date.year}";
-  for(var key in user!["dailyRecords"]["pagesRead"].keys){
+  var date = DateTime.now(); // weeks[(today-i-1)%7] + "\n" +
+  var dateStr =
+      "${date.day.toString().padLeft(2, "0")}/${date.month.toString().padLeft(2, "0")}/${date.year}";
+  for (var key in user!["dailyRecords"]["pagesRead"].keys) {
     // print("1: ${key==dateStr}");
     // print("2: ${identical(key,dateStr)}");
     // print("2: ${key.compareTo(dateStr)}");
-    if(key==dateStr)
+    if (key == dateStr)
       user!["dailyRecords"]["pagesRead"][dateStr] += totalPageReadToday;
   }
   print("Now pagesRead:");
   print(user!["dailyRecords"]["pagesRead"]);
-  await Services().changeLastPageRead(user!["emailId"], user!["booksRead"], user!["dailyRecords"]).then((val) async {
+  await Services()
+      .changeLastPageRead(
+          user!["emailId"], user!["booksRead"], user!["dailyRecords"])
+      .then((val) async {
     if (val != null && val.data['success']) {
       print("......pdfViewer dispose 2 ${user!["booksRead"]}");
-    }
-    else {
+    } else {
       print("......pdfViewer dispose 2 3 ${user!["booksRead"]}");
       user!["booksRead"] = temp1;
       user!["dailyRecords"] = temp2;
@@ -1378,21 +1470,33 @@ changeLastPageRead(String bookId, int lastPageRead) async {
       );
     }
   });
-
 }
 
 Widget customDivider() {
   return Column(
     children: [
-      Container(color: Color(0xFF032f4b), height: 5,),
-      Container(color: Colors.transparent, height: 2,),
-      Container(color: Color(0xFF032f4b), height: 5,),
+      Container(
+        color: Color(0xFF032f4b),
+        height: 5,
+      ),
+      Container(
+        color: Colors.transparent,
+        height: 2,
+      ),
+      Container(
+        color: Color(0xFF032f4b),
+        height: 5,
+      ),
     ],
   );
 }
 
-sendFeedback(BuildContext context, String bookId, var newCommentInfo, var currentBook) async {
-  await Services().addFeedback(user!["emailId"], bookId, newCommentInfo["comment"], newCommentInfo["rating"]).then((val) async {
+sendFeedback(BuildContext context, String bookId, var newCommentInfo,
+    var currentBook) async {
+  await Services()
+      .addFeedback(user!["emailId"], bookId, newCommentInfo["comment"],
+          newCommentInfo["rating"])
+      .then((val) async {
     if (val != null && val.data['success']) {
       print("Feedback: ");
       print(val.data['feedback']);
@@ -1402,8 +1506,7 @@ sendFeedback(BuildContext context, String bookId, var newCommentInfo, var curren
         Colors.green,
       );
       print("Out of sendFeedback");
-    }
-    else {
+    } else {
       showMessageFlutterToast(
         "Error in adding Feedback!!",
         Color(0xFFFF0000),
@@ -1421,7 +1524,9 @@ sendFeedback(BuildContext context, String bookId, var newCommentInfo, var curren
 
 addPersonalBooks(BuildContext context, var newBook) async {
   print("... in Globals addPersonalBooks");
-  await Services().addPersonalBooks(user!["emailId"], newBook).then((val) async {
+  await Services()
+      .addPersonalBooks(user!["emailId"], newBook)
+      .then((val) async {
     if (val != null && val.data['success']) {
       bookList.add(newBook);
       user?["personalBooks"].addLast(newBook["id"]);
@@ -1429,8 +1534,7 @@ addPersonalBooks(BuildContext context, var newBook) async {
         "New Book added!!",
         Colors.green,
       );
-    }
-    else {
+    } else {
       showMessageFlutterToast(
         "Error in adding new book!!",
         Color(0xFFFF0000),
@@ -1445,24 +1549,21 @@ addPersonalBooks(BuildContext context, var newBook) async {
   // }
 }
 
-
 getUserDetails(String emailId, String userId) async {
   try {
     print("In getUserDetails");
     var val = await Services().getUserDetails(emailId, userId);
     print("val.data['success']: ");
     print(val.data['success']);
-    if(val.data['success']) {
+    if (val.data['success']) {
       print("in if of getUserDetails");
       var feedUser = val.data["userDetails"];
       return feedUser;
-    }
-    else {
+    } else {
       print("in else of getUserDetails");
       return [];
     }
-  }  
-  catch (error) {
+  } catch (error) {
     print("getAudioBook Error: $error");
     return [];
   }
@@ -1474,19 +1575,17 @@ getBookFile(String bookId) async {
     var val = await Services().getBookFile(user!["emailId"], bookId);
     print("val.data['success']: ");
     print(val.data['success']);
-    if(val.data['success']) {
+    if (val.data['success']) {
       print("in if of getBookFile");
       var bookListDynamic = val.data["bookFile"]["data"]["data"];
       var bookBufferList = bookListDynamic.cast<int>();
       var bookData = Uint8List.fromList(bookBufferList);
       return bookData;
-    }
-    else {
+    } else {
       print("in else of getBookFile");
       return [];
     }
-  }  
-  catch (error) {
+  } catch (error) {
     print("getBookFile Error: $error");
     return [];
   }
@@ -1498,17 +1597,15 @@ getAudioBook(String bookId) async {
     var val = await Services().getAudioBook(user!["emailId"], bookId);
     print("val.data['success']: ");
     print(val.data['success']);
-    if(val.data['success']) {
+    if (val.data['success']) {
       print("in if of getAudioBook");
       var audioBooksList = val.data["audioBooks"];
       return audioBooksList;
-    }
-    else {
+    } else {
       print("in else of getAudioBook");
       return [];
     }
-  }  
-  catch (error) {
+  } catch (error) {
     print("getAudioBook Error: $error");
     return [];
   }
@@ -1517,10 +1614,11 @@ getAudioBook(String bookId) async {
 getAudioBookFile(String bookId, String audioId) async {
   try {
     print("In getAudioBookFile");
-    var val = await Services().getAudioBookFile(user!["emailId"], bookId, audioId);
+    var val =
+        await Services().getAudioBookFile(user!["emailId"], bookId, audioId);
     print("val.data['success']: ");
     print(val.data['success']);
-    if(val.data['success']) {
+    if (val.data['success']) {
       print("in if of getAudioBookFile");
       var audioBookFileListDynamic = val.data["audioFile"]["data"]["data"];
       var audioBookFileList = audioBookFileListDynamic.cast<int>();
@@ -1529,22 +1627,22 @@ getAudioBookFile(String bookId, String audioId) async {
       // var audioFile = webFile.File(audioBookFileData, "$bookId/$audioId.mp3",);
       // print("relativePath: ${audioFile.relativePath}");
       return audioBookFileData;
-    }
-    else {
+    } else {
       print("in else of getAudioBookFile");
       return [];
     }
-  }  
-  catch (error) {
+  } catch (error) {
     print("getAudioBookFile Error: $error");
     return [];
   }
 }
 
 String getDuration(String seconds) {
-  Duration duration = new Duration(seconds: int. parse(seconds));
+  Duration duration = new Duration(seconds: int.parse(seconds));
   String twoDigits(int n) => n.toString().padLeft(2, "0");
   String twoDigitMinutes = twoDigits(duration.inMinutes.remainder(60));
   String twoDigitSeconds = twoDigits(duration.inSeconds.remainder(60));
-  return duration.inHours == 0 ? "$twoDigitMinutes:$twoDigitSeconds" : "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+  return duration.inHours == 0
+      ? "$twoDigitMinutes:$twoDigitSeconds"
+      : "${twoDigits(duration.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
 }

@@ -14,10 +14,7 @@ class Services {
     print("EmailId: $emailId");
     print("password: $password");
     try {
-      await dio.post('https://relis-nodejs1.herokuapp.com/getRecommendBook', // http://localhost:3000/authenticate
-          data: {"emailId": emailId, "password": password, "redirect": redirect},
-          options: Options(contentType: Headers.formUrlEncodedContentType));
-      return await dio.post('https://relis-nodejs1.herokuapp.com/authenticate', // http://localhost:3000/authenticate
+      return await dio.post('https://relis-nodejs1.herokuapp.com/authenticate', // "http://localhost:3000/authenticate",
           data: {"emailId": emailId, "password": password, "redirect": redirect},
           options: Options(contentType: Headers.formUrlEncodedContentType));
     } on DioError catch (e) {

@@ -102,158 +102,174 @@ class _SignInPageState extends State<SignInPage> {
             color: Colors.white,
           ),
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(10.00),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      text: 'Sign-In to your ',
-                      style: TextStyle(
-                        color: Colors.black,
-                        height: 2,
-                        fontSize: 20,
+            child: ValueListenableBuilder(
+              valueListenable: loggedIn,
+              builder: (BuildContext context, dynamic value, Widget? child) {
+                if (loggedIn.value)
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: new AlwaysStoppedAnimation<Color>(mainAppAmber),
                       ),
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: 'ReLis',
-                          style: TextStyle(
-                            color: Colors.black,
-                            height: 2,
-                            fontSize: 30,
-                            fontWeight: FontWeight.bold,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' account',
-                          style: TextStyle(
-                            color: Colors.black,
-                            fontSize: 20,
-                            height: 2,
-                          ),
-                          // style: TextStyle(color: Colors.blueAccent,),
-                          // recognizer: TapGestureRecognizer()..onTap = () {
-                          //   // navigate to desired screen
-                          // }
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  TextFormField(
-                    onChanged: (val) {
-                      emailId = val;
-                    },
-                    textInputAction: TextInputAction.done,
-                    autofocus: false,
-                    maxLines: 1,
-                    keyboardType: TextInputType.emailAddress,
-                    cursorColor: Colors.white,
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                    validator: MultiValidator([
-                      RequiredValidator(errorText: "* Required"),
-                      EmailValidator(errorText: "Invalid Email!"),
-                    ]),
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.all(20),
-                      hintText: 'Ex.: johndoe@example.com',
-                      hintStyle: TextStyle(
-                        height: 0.7,
-                        color: Colors.white,
-                      ),
-                      labelText: 'Email Id.',
-                      labelStyle: TextStyle(
-                        color: Colors.white,
-                        height: 1,
-                      ),
-                      prefixIcon:
-                          Icon(Icons.email_outlined, color: Colors.white),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 20,
-                  ),
-                  TextFormField(
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                    cursorColor: Colors.white,
-                    validator: validatePwd,
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle: TextStyle(color: Colors.white),
-                      prefixIcon: Icon(Icons.lock_outline, color: Colors.white),
-                      suffixIcon: IconButton(
-                        tooltip: _passwordVisible
-                            ? "Hide Password"
-                            : " Show Password",
-                        color: Colors.white,
-                        icon: Icon(
-                          _passwordVisible
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.white.withOpacity(0.5),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _passwordVisible = !_passwordVisible;
-                          });
-                        },
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                    ),
-                    obscureText: !_passwordVisible,
-                    keyboardType: TextInputType.text,
-                    onChanged: (value) {
-                      password = value;
-                    },
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  ForgotPasswordButton(),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Text("Redirecting to ReLis-Homepage..."),
+                    ]
+                  );
+                return Padding(
+                  padding: EdgeInsets.all(10.00),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     mainAxisSize: MainAxisSize.max,
                     children: [
-                      Expanded(
-                        child: signInButton(),
+                      RichText(
+                        text: TextSpan(
+                          text: 'Sign-In to your ',
+                          style: TextStyle(
+                            color: Colors.black,
+                            height: 2,
+                            fontSize: 20,
+                          ),
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: 'ReLis',
+                              style: TextStyle(
+                                color: Colors.black,
+                                height: 2,
+                                fontSize: 30,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' account',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 20,
+                                height: 2,
+                              ),
+                              // style: TextStyle(color: Colors.blueAccent,),
+                              // recognizer: TapGestureRecognizer()..onTap = () {
+                              //   // navigate to desired screen
+                              // }
+                            ),
+                          ],
+                        ),
                       ),
                       SizedBox(
-                        width: 20,
+                        height: 20,
                       ),
-                      Expanded(
-                        child: goToSignUpPageButton(),
+                      TextFormField(
+                        onChanged: (val) {
+                          emailId = val;
+                        },
+                        textInputAction: TextInputAction.done,
+                        autofocus: false,
+                        maxLines: 1,
+                        keyboardType: TextInputType.emailAddress,
+                        cursorColor: Colors.white,
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                        validator: MultiValidator([
+                          RequiredValidator(errorText: "* Required"),
+                          EmailValidator(errorText: "Invalid Email!"),
+                        ]),
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.all(20),
+                          hintText: 'Ex.: johndoe@example.com',
+                          hintStyle: TextStyle(
+                            height: 0.7,
+                            color: Colors.white,
+                          ),
+                          labelText: 'Email Id.',
+                          labelStyle: TextStyle(
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                          prefixIcon:
+                              Icon(Icons.email_outlined, color: Colors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                        ),
+                      ),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      TextFormField(
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                        cursorColor: Colors.white,
+                        validator: validatePwd,
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          labelStyle: TextStyle(color: Colors.white),
+                          prefixIcon: Icon(Icons.lock_outline, color: Colors.white),
+                          suffixIcon: IconButton(
+                            tooltip: _passwordVisible
+                                ? "Hide Password"
+                                : " Show Password",
+                            color: Colors.white,
+                            icon: Icon(
+                              _passwordVisible
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _passwordVisible = !_passwordVisible;
+                              });
+                            },
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                        ),
+                        obscureText: !_passwordVisible,
+                        keyboardType: TextInputType.text,
+                        onChanged: (value) {
+                          password = value;
+                        },
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      ForgotPasswordButton(),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisSize: MainAxisSize.max,
+                        children: [
+                          Expanded(
+                            child: signInButton(),
+                          ),
+                          SizedBox(
+                            width: 20,
+                          ),
+                          Expanded(
+                            child: goToSignUpPageButton(),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
           ),
         ],
@@ -298,136 +314,152 @@ class _SignInPageState extends State<SignInPage> {
             SizedBox(
               height: 10,
             ),
-            Padding(
-              padding: EdgeInsets.all(10.00),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.max,
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      text: 'Sign in to your ',
-                      style: TextStyle(
-                        color: Colors.black,
-                        height: 0.6,
-                        fontSize: 15,
+            ValueListenableBuilder(
+              valueListenable: loggedIn,
+              builder: (BuildContext context, dynamic value, Widget? child) {
+                if (loggedIn.value)
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(
+                        valueColor: new AlwaysStoppedAnimation<Color>(mainAppAmber),
                       ),
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: 'ReLis',
+                      Text("Redirecting to ReLis-Homepage..."),
+                    ]
+                  );
+                return Padding(
+                  padding: EdgeInsets.all(10.00),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      RichText(
+                        text: TextSpan(
+                          text: 'Sign in to your ',
                           style: TextStyle(
                             color: Colors.black,
                             height: 0.6,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' account',
-                          style: TextStyle(
-                            color: Colors.black,
                             fontSize: 15,
-                            height: 0.6,
                           ),
-                          // style: TextStyle(color: Colors.blueAccent,),
-                          // recognizer: TapGestureRecognizer()..onTap = () {
-                          //   // navigate to desired screen
-                          // }
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: 'ReLis',
+                              style: TextStyle(
+                                color: Colors.black,
+                                height: 0.6,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' account',
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 15,
+                                height: 0.6,
+                              ),
+                              // style: TextStyle(color: Colors.blueAccent,),
+                              // recognizer: TapGestureRecognizer()..onTap = () {
+                              //   // navigate to desired screen
+                              // }
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  TextFormField(
-                    onChanged: (val) {
-                      emailId = val;
-                    },
-                    textInputAction: TextInputAction.done,
-                    autofocus: false,
-                    maxLines: 1,
-                    keyboardType: TextInputType.emailAddress,
-                    cursorColor: Colors.white,
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                    decoration: InputDecoration(
-                      contentPadding: EdgeInsets.all(20),
-                      hintText: 'Ex.: johndoe@example.com',
-                      hintStyle: TextStyle(
-                        height: 0.7,
-                        color: Colors.white,
                       ),
-                      labelText: 'Email Id.',
-                      labelStyle: TextStyle(
-                        color: Colors.white,
-                        height: 1,
+                      SizedBox(
+                        height: 10,
                       ),
-                      prefixIcon:
-                          Icon(Icons.email_outlined, color: Colors.white),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(18.0),
-                      ),
-                    ),
-                  ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  TextFormField(
-                    style: TextStyle(
-                      color: Colors.white,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: 'Password',
-                      labelStyle: TextStyle(color: Colors.white),
-                      prefixIcon: Icon(Icons.lock_outline, color: Colors.white),
-                      suffixIcon: IconButton(
-                        tooltip: _passwordVisible
-                            ? "Hide Password"
-                            : " Show Password",
-                        color: Colors.white,
-                        icon: Icon(
-                          _passwordVisible
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.white.withOpacity(0.5),
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _passwordVisible = !_passwordVisible;
-                          });
+                      TextFormField(
+                        onChanged: (val) {
+                          emailId = val;
                         },
+                        textInputAction: TextInputAction.done,
+                        autofocus: false,
+                        maxLines: 1,
+                        keyboardType: TextInputType.emailAddress,
+                        cursorColor: Colors.white,
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.all(20),
+                          hintText: 'Ex.: johndoe@example.com',
+                          hintStyle: TextStyle(
+                            height: 0.7,
+                            color: Colors.white,
+                          ),
+                          labelText: 'Email Id.',
+                          labelStyle: TextStyle(
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                          prefixIcon:
+                              Icon(Icons.email_outlined, color: Colors.white),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                        ),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(18.0),
+                      SizedBox(
+                        height: 10,
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderSide: BorderSide(color: Colors.white),
-                        borderRadius: BorderRadius.circular(18.0),
+                      TextFormField(
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                        decoration: InputDecoration(
+                          labelText: 'Password',
+                          labelStyle: TextStyle(color: Colors.white),
+                          prefixIcon: Icon(Icons.lock_outline, color: Colors.white),
+                          suffixIcon: IconButton(
+                            tooltip: _passwordVisible
+                                ? "Hide Password"
+                                : " Show Password",
+                            color: Colors.white,
+                            icon: Icon(
+                              _passwordVisible
+                                  ? Icons.visibility_off
+                                  : Icons.visibility,
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _passwordVisible = !_passwordVisible;
+                              });
+                            },
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                        ),
+                        controller: _password,
+                        obscureText: !_passwordVisible,
+                        keyboardType: TextInputType.text,
                       ),
-                    ),
-                    controller: _password,
-                    obscureText: !_passwordVisible,
-                    keyboardType: TextInputType.text,
+                      SizedBox(
+                        height: 10,
+                      ),
+                      signInButton(),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      goToSignUpPageButton(),
+                    ],
                   ),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  signInButton(),
-                  SizedBox(
-                    height: 10,
-                  ),
-                  goToSignUpPageButton(),
-                ],
-              ),
+                );
+              },
             ),
           ],
         ),

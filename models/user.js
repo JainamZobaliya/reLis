@@ -32,6 +32,14 @@ var userSchema = new Schema({
         type: String,
         require: true
     },
+    userHasToChangePassword: {
+        type: Boolean,
+        default: false
+    },
+    lastPasswordChangedOn: {
+        type: String,
+        default: ""
+    },
     password: {
         type: String,
         require: true
@@ -146,6 +154,10 @@ var userSchema = new Schema({
             //     default: [0,0,0,0,0,0,0], // store pageRead Day-wise: Mon to Sun
             // },
         },
+    },
+    wrongPassword: {
+        type: Number ,
+        default: 0,
     },
     feedback: {
         type: Map,

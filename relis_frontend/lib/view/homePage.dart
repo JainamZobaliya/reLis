@@ -44,9 +44,7 @@ class _HomePageState extends State<HomePage> {
           ),
           title: Text(
             "Cart",
-            style: TextStyle(
-              color: mainAppBlue
-            ),
+            style: TextStyle(color: mainAppBlue),
           ),
           tileColor: mainAppAmber,
           onTap: () {
@@ -65,9 +63,7 @@ class _HomePageState extends State<HomePage> {
           ),
           title: Text(
             "Statistic",
-            style: TextStyle(
-              color: mainAppBlue
-            ),
+            style: TextStyle(color: mainAppBlue),
           ),
           tileColor: mainAppAmber,
           onTap: () {
@@ -86,9 +82,7 @@ class _HomePageState extends State<HomePage> {
           ),
           title: Text(
             "Credits",
-            style: TextStyle(
-              color: mainAppBlue
-            ),
+            style: TextStyle(color: mainAppBlue),
           ),
           tileColor: mainAppAmber,
           onTap: () {
@@ -101,7 +95,8 @@ class _HomePageState extends State<HomePage> {
         child: ListTile(
           // leading: Icon(Icons.person),
           leading: CircleAvatar(
-            backgroundImage: user?["imageURL"] != null && !user?["imageURL"].contains("ReLis")
+            backgroundImage: user?["imageURL"] != null &&
+                    !user?["imageURL"].contains("ReLis")
                 ? NetworkImage(user?["imageURL"])
                 : relisGif.image,
             backgroundColor: Color(0xFF032f4b),
@@ -109,9 +104,7 @@ class _HomePageState extends State<HomePage> {
           ),
           title: Text(
             "Profile",
-            style: TextStyle(
-              color: mainAppBlue
-            ),
+            style: TextStyle(color: mainAppBlue),
           ),
           tileColor: mainAppAmber,
           onTap: () {
@@ -128,9 +121,7 @@ class _HomePageState extends State<HomePage> {
           ),
           title: Text(
             "Demo",
-            style: TextStyle(
-              color: mainAppBlue
-            ),
+            style: TextStyle(color: mainAppBlue),
           ),
           tileColor: mainAppAmber,
           onTap: () {
@@ -196,7 +187,7 @@ class _HomePageState extends State<HomePage> {
         automaticallyImplyLeading: false,
         title: Text(appTitle),
         backgroundColor: appBarBackgroundColor,
-        shadowColor: appBarShadowColor,   
+        shadowColor: appBarShadowColor,
         elevation: 2.0,
         actions: [
           Tooltip(
@@ -250,7 +241,7 @@ class _HomePageState extends State<HomePage> {
       // ),
       // drawer: AppDrawer(), //DrawerPage(),
       body: SingleChildScrollView(
-        padding: EdgeInsets.fromLTRB(0, 0,0, 10),
+        padding: EdgeInsets.fromLTRB(0, 0, 0, 10),
         child: desktopView(),
       ),
       //   LayoutBuilder(
@@ -279,17 +270,22 @@ class _HomePageState extends State<HomePage> {
                 trendingController, trendingHover, "No Current-Trends"),
           ),
         customDivider(),
-        if (user?["recommendedBooks"].length > 0)
-          viewButton(
-            "Recommended For You",
-            "recommendation",
-            bookScrollList(
-                getBooksMap(user?["recommendedBooks"], isList: true),
-                recommendationController,
-                recommendationHover,
-                "No Recommended Books"),
-          ),
-        if (user?["recommendedBooks"].length > 0) customDivider(),
+        //if (user?["recommendedBooks"].length > 0)
+        viewButton(
+          "Recommended For You",
+          "recommendation",
+          bookScrollList(
+              getBooksMap(
+                  user?["recommendedBooks"] == null
+                      ? null
+                      : user?["recommendedBooks"],
+                  isList: true),
+              recommendationController,
+              recommendationHover,
+              "No Recommended Books"),
+        ),
+        // if (user?["recommendedBooks"].length > 0)
+        customDivider(),
         viewButton(
           "Genre",
           "categories",
@@ -545,53 +541,53 @@ class _HomePageState extends State<HomePage> {
       Map<String, dynamic> currentBook =
           Map<String, dynamic>.from(currentBook1);
       carouselList.add(
-        // Hero(
-        // tag: "book: ${currentBook["id"]}",
-        // child: 
-        Material(
-          shadowColor: Colors.black,
-          elevation: 1.0,
-          color: Colors.transparent,
+          // Hero(
+          // tag: "book: ${currentBook["id"]}",
+          // child:
+          Material(
+        shadowColor: Colors.black,
+        elevation: 1.0,
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(25.00),
+        type: MaterialType.card,
+        child: InkWell(
+          enableFeedback: true,
+          hoverColor: Colors.tealAccent.withOpacity(0.6),
+          splashColor: Colors.red.withOpacity(0.8),
           borderRadius: BorderRadius.circular(25.00),
-          type: MaterialType.card,
-          child: InkWell(
-            enableFeedback: true,
-            hoverColor: Colors.tealAccent.withOpacity(0.6),
-            splashColor: Colors.red.withOpacity(0.8),
-            borderRadius: BorderRadius.circular(25.00),
-            onTap: () {
-              print("Going to BookView");
-              // var booky = jsonDecode(currentBook);
-              print("Type: ${currentBook.runtimeType}");
-              // print("Type: ${booky.runtimeType}");
-              Navigator.of(context).pushNamed(BookView.routeName,
-                  arguments: BookArguments(currentBook: currentBook));
-            },
-            child: Container(
-              width: MediaQuery.of(context).size.width / 2,
-              margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
-              decoration: boxDecoration,
-              alignment: Alignment.center,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(25.00),
-                child: currentBook["image"],
-                // child: currentBook["image"].contains("ReLis") ?
-                // Image.asset(
-                //   currentBook["image"],
-                //   fit: BoxFit.fill,
-                //   width: double.infinity,
-                //   repeat: ImageRepeat.noRepeat,
-                // ) :
-                // Image.file(
-                //   currentBook["image"],
-                //   fit: BoxFit.fill,
-                //   width: double.infinity,
-                //   repeat: ImageRepeat.noRepeat,
-                // ),
-              ),
+          onTap: () {
+            print("Going to BookView");
+            // var booky = jsonDecode(currentBook);
+            print("Type: ${currentBook.runtimeType}");
+            // print("Type: ${booky.runtimeType}");
+            Navigator.of(context).pushNamed(BookView.routeName,
+                arguments: BookArguments(currentBook: currentBook));
+          },
+          child: Container(
+            width: MediaQuery.of(context).size.width / 2,
+            margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+            decoration: boxDecoration,
+            alignment: Alignment.center,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(25.00),
+              child: currentBook["image"],
+              // child: currentBook["image"].contains("ReLis") ?
+              // Image.asset(
+              //   currentBook["image"],
+              //   fit: BoxFit.fill,
+              //   width: double.infinity,
+              //   repeat: ImageRepeat.noRepeat,
+              // ) :
+              // Image.file(
+              //   currentBook["image"],
+              //   fit: BoxFit.fill,
+              //   width: double.infinity,
+              //   repeat: ImageRepeat.noRepeat,
+              // ),
             ),
           ),
-        ));
+        ),
+      ));
       // ));
     }
     ValueNotifier<int> currentCarousel = ValueNotifier<int>(0);
@@ -645,11 +641,12 @@ class _HomePageState extends State<HomePage> {
                 },
                 child: ValueListenableBuilder(
                   valueListenable: currentCarousel,
-                  builder: (BuildContext, val, child){
+                  builder: (BuildContext, val, child) {
                     return Container(
                       width: 12.0,
                       height: 12.0,
-                      margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
+                      margin:
+                          EdgeInsets.symmetric(vertical: 8.0, horizontal: 4.0),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: mainAppBlue.withOpacity(

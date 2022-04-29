@@ -1,4 +1,5 @@
 var User = require('../models/user');
+var bcrypt = require('bcrypt')
 var Book = require('../models/books');
 var AudioBook = require('../models/audioBooks');
 var BookImage = require('../models/images');
@@ -16,13 +17,13 @@ const { PDFNet } = require('@pdftron/pdfnet-node');
 const axios = require('axios');
 // const fetch = require('node-fetch');
 const schedule = require('node-schedule');
-const rule = new schedule.RecurrenceRule();
-rule.dayOfWeek = [0, 4];
-rule.second = new schedule.Range(0, 59, 5);
-rule.hour = 8;
-rule.minute = 0;
+const reRentNotifyRule = new schedule.RecurrenceRule();
+reRentNotifyRule.dayOfWeek = [0, 4];
+reRentNotifyRule.second = 0;
+reRentNotifyRule.hour = 8;
+reRentNotifyRule.minute = 0;
  // Sunday and Thursday at 8 am
-const job = schedule.scheduleJob(rule, async function(){
+const reRentNotifyJob = schedule.scheduleJob(reRentNotifyRule, async function(){
   var dueMap = await getRentInfo();
 //   console.log("dueMap: ");
 //   console.log(dueMap);
@@ -47,8 +48,58 @@ const job = schedule.scheduleJob(rule, async function(){
     // console.log(bookNameBody);
     await sendEmail(userId, "Book Due Soon!!!", "Dear user - "+userId+",\nThe following books"+bookNameBody+" rented by you are going to expire soon!! Visit ReLis App and buy the book to continue your reading experience.");
   });
-
 });
+
+
+const changePasswordRule = new schedule.RecurrenceRule();
+changePasswordRule.dayOfWeek = new schedule.Range(0,7);
+changePasswordRule.second = 0;
+changePasswordRule.hour = 7;
+changePasswordRule.minute = 0;
+ // Everyday at 7 AM
+const changePasswordJob = schedule.scheduleJob(changePasswordRule, async function(){
+//   var dueMap = await getUserInfo();
+//   console.log("dueMap: ");
+//   console.log(dueMap);
+//   var bookNameList = [];
+//   var bookNameBody = "";
+//   Object.keys(dueMap).map(async function(userId, index) {
+//     // console.log(dueMap[userId].length);
+//     // console.log(userId);
+//     bookList = dueMap[userId];
+//     for(var bookId of bookList) {
+//         bookName = await getBookName(bookId);
+//         console.log(bookName);
+//         if(bookName!="")
+//             bookNameList.push(bookName);
+//         if(bookNameList.length > 0){
+//             bookNameBody = bookNameBody+ ",\n" + bookName;
+//         }
+//         else
+//             bookNameBody = bookName;
+            
+//     }
+//     // console.log(bookNameBody);
+//     await sendEmail(userId, "Book Due Soon!!!", "Dear user - "+userId+",\nThe following books"+bookNameBody+" rented by you are going to expire soon!! Visit ReLis App and buy the book to continue your reading experience.");
+//   });
+});
+
+
+function getDate() {
+    let date_ob = new Date();
+    // current date
+    // adjust 0 before single digit date
+    let date = ("0" + date_ob.getDate()).slice(-2);
+    let month = ("0" + (date_ob.getMonth() + 1)).slice(-2); // current month
+    let year = date_ob.getFullYear();   // current year
+    let hours = date_ob.getHours(); // current hours
+    let minutes = date_ob.getMinutes(); // current minutes
+    let seconds = date_ob.getSeconds(); // current seconds
+    // console.log(year + "-" + month + "-" + date);   // prints date in YYYY-MM-DD format
+    // prints date & time in YYYY-MM-DD HH:MM:SS format
+    let now = "" + year + "-" + month + "-" + date + " " + hours + ":" + minutes + ":" + seconds;
+    return now;
+}
 
 async function getBookName(bookId) {
     var bookName = "";
@@ -109,6 +160,57 @@ async function getRentInfo() {
     return dueMap;
 }
 
+async function getUserInfo() {
+    var dueMap = {};
+    var now = getDate();
+    await User.find({} , async (err, users) => {
+        if(err)
+            console.log("getRentInfo Error: ", err);
+        users.map( async (user) => {
+            var currentUser = user.emailId;
+            // console.log("currentUser is: ", currentUser);
+            var now = Date.now();
+            if(user.lastPasswordChangedOn != null && user.lastPasswordChangedOn != now) {
+                await forcePasswordChange();
+            }
+        })
+    })
+    return dueMap;
+}
+
+async function forcePasswordChange() {
+    await bcrypt.genSalt(10, async function (err, salt) {
+        if (err) {
+            return next(err)
+        }
+        console.log("salt: ", salt);
+        bcrypt.hash("", salt, async function (err, hash) {
+            if (err) {
+                return next(err)
+            }
+            newPassword = hash;
+            await User.updateOne(
+                {
+                    emailId: req.body.emailId
+                },
+                {
+                    "wrongPassword": 0,
+                    "password": newPassword,
+                    "userHasToChangePassword": true,
+                },
+                function (err, user) {
+                    if (err){
+                        console.log(err)
+                    }
+                    else{
+                        console.log("Updated wrongPassword-User");
+                    }
+                }
+            );
+        })
+    });
+}
+
 async function sendEmail(emailId, subject, body) {
     const service_id = 'service_xd6ttln';
     const template_id = 'template_w7cy5tq';
@@ -143,7 +245,7 @@ async function sendEmail(emailId, subject, body) {
     }).catch(error => {
         console.error("sendEmail error: ", error)
     });
-  }
+}
 
 async function sleep(ms) {
     return new Promise((resolve) => this.setTimeout(resolve, ms));
@@ -449,6 +551,8 @@ var functions = {
                 password: req.body.password,
                 isAdmin: false,
             });
+            newUser.lastPasswordChangedOn = getDate();
+            newUser.wrongPasswordCount = 0;
             newUser.save(function (err, newUser) {
                 if (err) {
                     res.json({success: false, msg: 'Failed to save'})
@@ -465,7 +569,7 @@ var functions = {
             {
                 emailId: req.body.emailId
             }, 
-            function (err, user) {
+            async function (err, user) {
                 if (err) throw err
                 if (!user) {
                     res.status(403).send({success: false, msg: 'Authentication Failed, User not found'})
@@ -479,15 +583,63 @@ var functions = {
                         redirect = req.body.redirect
                     }
                     console.log("redirect: ", redirect)
-                    user.comparePassword(
+                    await user.comparePassword(
                         req.body.password,
-                        function (err, isMatch) {
-                            if (isMatch && !err) {
+                        async function (err, isMatch) {
+                            if (isMatch && !err && !user.userHasToChangePassword) {
+                                wrongPassword = 0;
+                                await User.updateOne(
+                                    {
+                                        emailId: req.body.emailId
+                                    },
+                                    {
+                                        "wrongPassword": wrongPassword,
+                                    },
+                                    function (err, user) {
+                                        if (err){
+                                            console.log(err)
+                                        }
+                                        else{
+                                            console.log("Updated wrongPassword-User");
+                                        }
+                                    }
+                                );
                                 var token = jwt.encode(user, config.secret)
                                 res.json({success: true, token: token, user: user})
                             }
+                            else if(!isMatch) {
+                                wrongPassword =  user.wrongPassword != null ? user.wrongPassword + 1 : 1;
+                                if(wrongPassword != 3 && !user.userHasToChangePassword) {
+                                    await User.updateOne(
+                                        {
+                                            emailId: req.body.emailId
+                                        },
+                                        {
+                                            "wrongPassword": wrongPassword,
+                                        },
+                                        function (err, user) {
+                                            if (err){
+                                                console.log(err)
+                                            }
+                                            else{
+                                                console.log("Updated wrongPassword-User");
+                                            }
+                                        }
+                                    );
+                                    return res.json({isWrongPassword: true, userHasToChangePassword: false, wrongPasswordCount: wrongPassword, msg: 'Authentication Failed, Wrong Password'})
+                                }
+                                else {
+                                    newPassword = "";
+                                    wrongPassword = 0;
+                                    await forcePasswordChange();
+                                    return res.json({isWrongPassword: true, userHasToChangePassword: true, wrongPasswordCount: wrongPassword, msg: 'Authentication Failed, Change Password'})
+                                }
+                            }
+                            else if(user.userHasToChangePassword) {
+                                return res.json({isWrongPassword: true, userHasToChangePassword: true, wrongPasswordCount: 0, msg: 'Authentication Failed, Change Password'})
+                            }
                             else {
-                                return res.status(403).send({success: false, msg: 'Authentication Failed, Wrong Password'})
+                                return res.status(403).send({success: false, msg: 'Authentication Failed'})
                             }
                         },
                         redirect,
@@ -496,19 +648,22 @@ var functions = {
         }
         )
     },
-    changePassword: function (req, res) {
+    changePassword: async function (req, res) {
         User.findOne(
             {
                 emailId: req.body.emailId
             },
-            function (err, user) {
+            async function (err, user) {
                 if (err) throw err
                 if (!user) {
                     res.status(403).send({success: false, msg: 'Password Changing Failed, User not found', body:req.body})
                 }
                 else {
                     user.password = req.body.password;
-                    user.save();
+                    user.userHasToChangePassword = false;
+                    user.wrongPassword = 0;
+                    user.lastPasswordChangedOn = getDate();
+                    await user.save();
                     res.json({success: true, msg: 'Password Changed Successfully', body:req.body})
                 }
             }
