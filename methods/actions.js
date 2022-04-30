@@ -148,6 +148,7 @@ async function getUserInfo() {
             var now = Date.now();
             if(user.lastPasswordChangedOn != null && user.lastPasswordChangedOn != now) {
                 await forcePasswordChange();
+                await sendEmail(user.emailId, "Change Your Password!!!", "Dear user - "+user.emailId+",\nPlease Change Your Password inorder to secure your account.");
             }
         })
     })
