@@ -36,6 +36,14 @@ var userSchema = new Schema({
         type: Boolean,
         default: false
     },
+    isUserBlocked: {
+        type: Boolean,
+        default: false
+    },
+    blockedBy: {
+        type: String,
+        default: ""
+    },
     lastPasswordChangedOn: {
         type: String,
         default: ""

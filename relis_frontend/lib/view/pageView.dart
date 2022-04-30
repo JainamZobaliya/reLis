@@ -385,9 +385,11 @@ class _PageTypeViewState extends State<PageTypeView> {
         // loadHover(user?["booksRented"].keys.length, user?["booksRented"], rentedHover, "booksRented");
         // setState(() {});
         bookHover = {};
-        if (pageData.currentCategory != null) {
-          print("pageData.currentCategory: ${pageData.currentCategory}");
-          currentBook = getBooksMap(pageData.currentCategory, isList: true);
+        // print("pageData.currentCategory: ${pageData.currentCategory}");
+        if (pageData.currentCategory != null && pageData.currentCategory.length > 0) {
+          var keys = pageData.currentCategory.keys;
+          print("pageData.currentCategory: ${keys}");
+          currentBook = getBooksMap(keys, isList: true);
           loadHoverMap(
             currentBook,
             adminBookHover,

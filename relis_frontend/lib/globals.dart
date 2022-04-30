@@ -287,7 +287,12 @@ getLoggedIn(
   print('***** Login Authentication *****');
   await Services().login(emailId, password, redirect).then((val) async {
     print(val.data['userHasToChangePassword']);
-    if (val != null && val.data['success']!=null && val.data['success']) {
+    if(val != null && val.data['success']!=null && val.data['user']['isUserBlocked'] != null && val.data['user']['isUserBlocked']) {
+      user = val.data['user'];
+      showMessageSnackBar(
+          context, "Dear ${user!["firstName"]} ${user!["lastName"]}, You are Blocked by Admins!! \nContact ReLis Team to UnBlock your account!!", Color(0xFF00FF88));
+    }
+    else if (val != null && val.data['success']!=null && val.data['success']) {
       token = val.data['token'];
       user = val.data['user'];
       loggedIn.value = true;

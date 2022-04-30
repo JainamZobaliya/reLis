@@ -58,30 +58,7 @@ changePasswordRule.hour = 7;
 changePasswordRule.minute = 0;
  // Everyday at 7 AM
 const changePasswordJob = schedule.scheduleJob(changePasswordRule, async function(){
-//   var dueMap = await getUserInfo();
-//   console.log("dueMap: ");
-//   console.log(dueMap);
-//   var bookNameList = [];
-//   var bookNameBody = "";
-//   Object.keys(dueMap).map(async function(userId, index) {
-//     // console.log(dueMap[userId].length);
-//     // console.log(userId);
-//     bookList = dueMap[userId];
-//     for(var bookId of bookList) {
-//         bookName = await getBookName(bookId);
-//         console.log(bookName);
-//         if(bookName!="")
-//             bookNameList.push(bookName);
-//         if(bookNameList.length > 0){
-//             bookNameBody = bookNameBody+ ",\n" + bookName;
-//         }
-//         else
-//             bookNameBody = bookName;
-            
-//     }
-//     // console.log(bookNameBody);
-//     await sendEmail(userId, "Book Due Soon!!!", "Dear user - "+userId+",\nThe following books"+bookNameBody+" rented by you are going to expire soon!! Visit ReLis App and buy the book to continue your reading experience.");
-//   });
+    await getUserInfo();
 });
 
 
@@ -161,7 +138,6 @@ async function getRentInfo() {
 }
 
 async function getUserInfo() {
-    var dueMap = {};
     var now = getDate();
     await User.find({} , async (err, users) => {
         if(err)
@@ -175,7 +151,6 @@ async function getUserInfo() {
             }
         })
     })
-    return dueMap;
 }
 
 async function forcePasswordChange() {
@@ -696,6 +671,49 @@ var functions = {
                     }
                 }
             )
+        }
+    },
+    getAllUserDetails: async function (req, res) {
+        var emailId = req.body['emailId'];
+        var userList = [];
+        if (!emailId) {
+            res.status(404).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else {
+            await User.find({} , async (err, user) => {
+                if(err)
+                    console.log("getAllUserDetails Error: ", err);
+                userList.push(user);
+            });
+            res.json({success: true, msg: 'User List Retrieved Successfully', userList: userList});  
+        }
+    },
+    blockUnblockUser: async function (req, res) {
+        var emailId = req.body.emailId
+        var userId = req.body.userId
+        if((!emailId) || (!userId)) {
+            res.status(404).send({
+                success: false,
+                msg: 'Enter all fields',
+                body: req.body
+            })
+        }
+        else {
+            var blockStatus = false;
+            await User.findOne(
+                {
+                    emailId: userId
+                },
+                async (err, user) => {
+                    if(err)
+                        console.log("blockUnblockUser Error: ", err);
+                    user.blockedBy = userId;
+                    user.isUserBlocked = user.isUserBlocked != null ? !user.isUserBlocked : true;
+                    blockStatus = user.isUserBlocked;
+                    await user.save();
+                    
+                });
+                res.json({success: true, msg: 'User Block / UnBlock Successfully', isUserBlocked: blockStatus});  
         }
     },
     addBook: function (req, res) {

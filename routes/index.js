@@ -135,6 +135,14 @@ router.post('/addPersonalBooks', uploadPersonalBookImage.single('image'), action
 //@route POST /getBookDetails
 router.post('/getBookDetails', actions.getBookDetails)
 
+//@desc Get All User Details
+//@route POST /getAllUserDetails
+router.post('/getAllUserDetails', actions.getAllUserDetails)
+
+//@desc Block / UnBlock a User
+//@route POST /blockUnblockUser
+router.post('/blockUnblockUser', actions.blockUnblockUser)
+
 //@desc Get Recommended Book
 //@route POST /getRecommendBook
 router.post('/getRecommendBook', actions.getRecommendBook)

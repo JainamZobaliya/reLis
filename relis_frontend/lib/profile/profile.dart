@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:relis/arguments/pagearguments.dart';
 import 'package:relis/arguments/photoArguments.dart';
+import 'package:relis/authentication/services.dart';
 import 'package:relis/authentication/user.dart';
 import 'package:relis/authentication/user.dart';
 import 'package:relis/globals.dart';
@@ -756,6 +757,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
   }
 
   Widget bookCell(String bookType, var data, String personName) {
+    print("Data: ${data}");
     return TextButton(
       child: textCell("$bookType (${data.length})", isButton: true),
       onPressed: () {
@@ -763,6 +765,40 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
           PageTypeView.routeName,
           arguments: PageArguments(pageType.adminBookView, currentCategory: data, type: bookType, personName: personName),
         );
+      },
+    );
+  }
+
+  Widget blockCell(bool blockStatus, var index) {
+    return TextButton(
+      child: textCell(blockStatus ? "Unblock" : "Block", isButton: false),
+      style: ButtonStyle(backgroundColor: blockStatus ? MaterialStateProperty.all(Colors.green) : MaterialStateProperty.all(Colors.red)),
+      onPressed: () async {
+        await Services().blockUnblockUser(user?["emailId"], globalUser[index]["emailId"]).then(
+          (val) {
+            if (val != null && val.data['success']) {
+              blockStatus = val.data["isUserBlocked"];
+              globalUser[index]["isUserBlocked"] = blockStatus;
+              showMessageSnackBar(
+                context,
+                "User - ${globalUser[index]["emailId"]} ${blockStatus ? "Blocked" : "Unblocked"} Successfully!!",
+                Colors.green,
+              );
+            }
+            else {
+              showMessageSnackBar(
+                context,
+                "${blockStatus ? "Unblocking" : "Blocking"} User - ${globalUser[index]["emailId"]} Failed!!",
+                Colors.red,
+              );
+            }
+          }
+        );
+        // Navigator.of(context).pushNamed(
+        //   PageTypeView.routeName,
+        //   arguments: PageArguments(pageType.adminBookView, currentCategory: data, type: bookType, personName: personName),
+        // );
+        setState(() { });
       },
     );
   }
@@ -882,7 +918,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               itemCount: searchUserTextController.text.isNotEmpty ? finalSearchUserResult.length : globalUser.length,
               itemBuilder: (context, index) {
                 String userType, name, emailId, imageURL;
-                var booksBought, booksRented, personalBooks;
+                var booksBought, booksRented, personalBooks, blockStatus;
                 if(searchUserTextController.text.isNotEmpty && finalSearchUserResult.length > 0) {
                   // String userId = getData(globaluser?[index]["id"]);
                   userType = getData(finalSearchUserResult[index]["userType"]);
@@ -893,6 +929,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                   booksBought = finalSearchUserResult[index]["booksBought"];
                   booksRented = finalSearchUserResult[index]["booksRented"];
                   personalBooks = finalSearchUserResult[index]["personalBooks"];
+                  blockStatus = globalUser[index]["isUserBlocked"] == null ? false : globalUser[index]["isUserBlocked"];
                 } else {
                   // String userId = getData(globaluser?[index]["id"]);
                   userType = getData(globalUser[index]["userType"]);
@@ -903,6 +940,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                   booksBought = globalUser[index]["booksBought"];
                   booksRented = globalUser[index]["booksRented"];
                   personalBooks = globalUser[index]["personalBooks"];
+                  blockStatus = globalUser[index]["isUserBlocked"] == null ? false : globalUser[index]["isUserBlocked"];
                 }
                 if(finalSearchUserResult.length > 0 || globalUser.length>0) {
                   return Table(
@@ -918,11 +956,12 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                       // 1: FlexColumnWidth(1),
                       1: FlexColumnWidth(1),
                       2: FlexColumnWidth(1.5),
-                      3: FlexColumnWidth(2),
-                      4: FlexColumnWidth(3),
+                      3: FlexColumnWidth(3),
+                      4: FlexColumnWidth(2),
                       5: FlexColumnWidth(2.5),
                       6: FlexColumnWidth(2.5),
                       7: FlexColumnWidth(2.5),
+                      8: FlexColumnWidth(1.5),
                     },
                     children: [
                       if(index == 0)
@@ -937,6 +976,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                             textHeading("Books Bought"),
                             textHeading("Books Rented"),
                             textHeading("Personal Books"),
+                            textHeading("Block/UnBlock"),
                           ],
                         ),
                       TableRow(
@@ -950,6 +990,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                           bookCell("Books Bought", booksBought, name),
                           bookCell("Books Rented", booksRented, name),
                           bookCell("Personal Books", personalBooks, name),
+                          blockCell(blockStatus, index),
                         ],
                       ),
                     ],
@@ -1359,14 +1400,15 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
     }
   }
 
-  void loadUserSearchingData() {
+  loadUserSearchingData() async {
     searchUserList = {};
-    loadGlobalUserMap();
+    await loadGlobalUserMap(context);
     for(var key in globalUserMap.keys) {
       var userDetailsList = [];
       userDetailsList.add(globalUserMap[key]["emailId"].toLowerCase());
       userDetailsList.add(globalUserMap[key]["firstName"].toLowerCase());
       userDetailsList.add(globalUserMap[key]["lastName"].toLowerCase());
+      userDetailsList.add(globalUserMap[key]["userType"].toLowerCase());
       if(userType!=null && userType.length > 0) {
         for(var type in userType){
           userDetailsList.add(type.toLowerCase());

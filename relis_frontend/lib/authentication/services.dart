@@ -105,6 +105,52 @@ class Services {
     }
   }
 
+  getAllUserDetails(emailId) async {
+    try {
+      print("...Sending Request");
+      var response =  await dio.post('https://relis-nodejs1.herokuapp.com/getAllUserDetails', //"http://localhost:3000/getAllUserDetails",
+          data: {"emailId": emailId},
+          options: Options(
+            contentType: Headers.formUrlEncodedContentType,
+          )).whenComplete(() => print("Got Response data ..."));
+      print("...Received response");
+      return response;
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+        msg: e.response?.data['msg'],
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+
+  blockUnblockUser(emailId, userId) async {
+    try {
+      print("...Sending Request");
+      var response =  await dio.post('https://relis-nodejs1.herokuapp.com/blockUnblockUser', // "http://localhost:3000/blockUnblockUser",
+          data: {"emailId": emailId, "userId": userId},
+          options: Options(
+            contentType: Headers.formUrlEncodedContentType,
+          )).whenComplete(() => print("Got Response data ..."));
+      print("...Received response");
+      return response;
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+        msg: e.response?.data['msg'],
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+
   addToFavourites(emailId, bookId) async {
     try {
       return await dio.post('https://relis-nodejs1.herokuapp.com/addToFavourites',
