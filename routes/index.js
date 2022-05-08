@@ -110,6 +110,10 @@ router.get('/dashboard', (req, res) => {
 //@route POST /adduser
 router.post('/adduser', actions.addNew)
 
+//@desc Adding new user - Admin Feature
+//@route POST /addNewUser
+router.post('/addNewUser', actions.addNewUser)
+
 //@desc Authenticate a user
 //@route POST /authenticate
 router.post('/authenticate', actions.authenticate)
@@ -142,6 +146,10 @@ router.post('/getAllUserDetails', actions.getAllUserDetails)
 //@desc Block / UnBlock a User
 //@route POST /blockUnblockUser
 router.post('/blockUnblockUser', actions.blockUnblockUser)
+
+//@desc Block / UnBlock a Book
+//@route POST /blockUnblockBook
+router.post('/blockUnblockBook', actions.blockUnblockBook)
 
 //@desc Get Recommended Book
 //@route POST /getRecommendBook

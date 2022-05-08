@@ -919,14 +919,6 @@ class _SignUpPageState extends State<SignUpPage> {
         } else {
           showMessageSnackBar("Please fill the valid Details!!");
         }
-        // Center(
-        //   child: CircularProgressIndicator(),
-        // );
-        // if (_key.currentState.validate()) {
-        //   _signInWithEmailAndPassword();
-        // } else {
-        //   showMessageSnackBar("Please fill the valid Details!!");
-        // }
       },
     );
   }

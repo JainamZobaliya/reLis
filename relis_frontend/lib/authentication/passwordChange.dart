@@ -288,7 +288,14 @@ class _PasswordChangeState extends State<PasswordChange> {
           widget.takeEmail = false;
           changingPassword = true;
           changingEmailID = emailId;
-          Navigator.of(context).pushNamed(OTPPage.routeName);
+          // Navigator.of(context).pushNamed(OTPPage.routeName);          
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => OTPPage(
+                emailId: changingEmailID,
+              )
+            ),
+          );
         }
         else {
           widget.takeEmail = false;

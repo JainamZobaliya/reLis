@@ -52,11 +52,11 @@ const reRentNotifyJob = schedule.scheduleJob(reRentNotifyRule, async function(){
 
 
 const changePasswordRule = new schedule.RecurrenceRule();
-changePasswordRule.dayOfWeek = new schedule.Range(0,7);
+changePasswordRule.dayOfWeek = [1,5];
 changePasswordRule.second = 0;
 changePasswordRule.hour = 7;
 changePasswordRule.minute = 0;
- // Everyday at 7 AM
+ // Mon, Fri at 7 AM
 const changePasswordJob = schedule.scheduleJob(changePasswordRule, async function(){
     await getUserInfo();
 });
@@ -74,7 +74,7 @@ function getDate() {
     let seconds = date_ob.getSeconds(); // current seconds
     // console.log(year + "-" + month + "-" + date);   // prints date in YYYY-MM-DD format
     // prints date & time in YYYY-MM-DD HH:MM:SS format
-    let now = "" + year + "-" + month + "-" + date + " " + hours + ":" + minutes + ":" + seconds;
+    let now = "" + year + "-" + month + "-" + date; // + " " + hours + ":" + minutes + ":" + seconds;
     return now;
 }
 
@@ -145,16 +145,15 @@ async function getUserInfo() {
         users.map( async (user) => {
             var currentUser = user.emailId;
             // console.log("currentUser is: ", currentUser);
-            var now = Date.now();
             if(user.lastPasswordChangedOn != null && user.lastPasswordChangedOn != now) {
-                await forcePasswordChange();
+                await forcePasswordChange(user.emailId);
                 await sendEmail(user.emailId, "Change Your Password!!!", "Dear user - "+user.emailId+",\nPlease Change Your Password inorder to secure your account.");
             }
         })
     })
 }
 
-async function forcePasswordChange() {
+async function forcePasswordChange(emailId) {
     await bcrypt.genSalt(10, async function (err, salt) {
         if (err) {
             return next(err)
@@ -167,7 +166,7 @@ async function forcePasswordChange() {
             newPassword = hash;
             await User.updateOne(
                 {
-                    emailId: req.body.emailId
+                    emailId: emailId
                 },
                 {
                     "wrongPassword": 0,
@@ -515,6 +514,35 @@ async function addBookFeedback(req, res) {
 }
 
 var functions = {
+    addNewUser: async function (req, res) {
+        if ((!req.body['firstName']) || (!req.body['lastName']) || (!req.body['emailId']) || (!req.body['userType'])) {
+            res.status(403).send({success: false, msg: 'Enter all fields', body:req.body})
+        }
+        else {
+            var defaultPassword = "";
+            var getNowDate = getDate();
+            var newUser = User({
+                firstName: req.body.firstName,
+                lastName: req.body.lastName,
+                emailId: req.body.emailId,
+                password: defaultPassword,
+                userType: req.body.userType,
+                isAdmin: req.body.userType == "admin" ? true : false,
+                userHasToChangePassword: true,
+            });
+            console.log("NewUser: ", newUser);
+            await newUser.save(async function (err, user) {
+                if (err) {
+                    res.json({success: false, msg: 'Failed to save'})
+                }
+                else {
+                    console.log("NewUser2: ", newUser);
+                    await sendEmail(newUser.emailId, "Account Created!!!", "Dear - "+newUser.firstName+",\nYou are now a part of our ReLis Family!!!\n\n Please Change Password to secure your account.\n\nEnjoy ReLis App.");
+                    res.json({success: true, msg: 'Successfully saved'})
+                }
+            })
+        }
+    },
     addNew: function (req, res) {
         if ((!req.body['firstName']) || (!req.body['lastName']) || (!req.body['emailId']) || (!req.body['password'])) {
             res.status(403).send({success: false, msg: 'Enter all fields', body:req.body})
@@ -607,7 +635,7 @@ var functions = {
                                 else {
                                     newPassword = "";
                                     wrongPassword = 0;
-                                    await forcePasswordChange();
+                                    await forcePasswordChange(req.body.emailId);
                                     return res.json({isWrongPassword: true, userHasToChangePassword: true, wrongPasswordCount: wrongPassword, msg: 'Authentication Failed, Change Password'})
                                 }
                             }
@@ -715,6 +743,33 @@ var functions = {
                     
                 });
                 res.json({success: true, msg: 'User Block / UnBlock Successfully', isUserBlocked: blockStatus});  
+        }
+    },
+    blockUnblockBook: async function (req, res) {
+        var emailId = req.body.emailId
+        var bookId = req.body.bookId
+        if((!emailId) || (!bookId)) {
+            res.status(404).send({
+                success: false,
+                msg: 'Enter all fields',
+                body: req.body
+            })
+        }
+        else {
+            var blockStatus = false;
+            await Book.findOne(
+                {
+                    id: bookId,
+                },
+                async (err, book) => {
+                    if(err)
+                        console.log("blockUnblockBook Error: ", err);
+                    book.blockedBy = emailId;
+                    book.isBookBlocked = book.isBookBlocked != null ? !book.isBookBlocked : true;
+                    blockStatus = book.isBookBlocked;
+                    await book.save();
+                });
+                res.json({success: true, msg: 'Book Blocked / UnBlocked Successfully', isBookBlocked: blockStatus});  
         }
     },
     addBook: function (req, res) {
@@ -841,22 +896,35 @@ var functions = {
         }
     },
     getAllBooks: async function (req, res) {
-        var books = []
-        await Book.find().then(
-            book => {
-                if (!book) {
-                    return res.status(403).send({success: false, msg: 'Book retrieving error'})
-                }
-                else {
-                    console.log("book.toString: "+book);
-                    books = book
-                }
-            }
-        ).catch(error => {
-            console.log(error);
+        var bookList = []
+        
+        await Book.find({} , async (err, books) => {
+            if(err)
+                console.log("getAllBooks Error: ", err);
+            if(!books)
+                return res.status(403).send({success: false, msg: 'Book retrieving error'})
+            books.map( async (book) => {
+                bookList.push(book);
+            })
         })
-        if(books.length>0) {
-            return res.json({success: true, books: books})
+        // await Book.find().then(
+        //     book => {
+        //         if (!book) {
+        //             return res.status(403).send({success: false, msg: 'Book retrieving error'})
+        //         }
+        //         else {
+        //             if(book.id == "bk-005")
+        //                 console.log("book.toString: "+book);
+        //             if(book.isBookBlocked == null || book.isBookBlocked == false)
+        //                 books.push(book);
+        //             // books = book
+        //         }
+        //     }
+        // ).catch(error => {
+        //     console.log(error);
+        // })
+        if(bookList.length>0) {
+            return res.json({success: true, books: bookList})
         }
         return res.status(403).send({success: false, msg: 'Book not found'})
     },

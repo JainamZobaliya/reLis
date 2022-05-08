@@ -14,6 +14,14 @@ var bookSchema = new Schema({
         type: String,
         require: true
     },
+    isBookBlocked: {
+        type: Boolean,
+        default: false
+    },
+    blockedBy: {
+        type: String,
+        default: ""
+    },
     url: {
         type: String,
         require: true

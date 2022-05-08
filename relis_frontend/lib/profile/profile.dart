@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:form_field_validator/form_field_validator.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:relis/arguments/pagearguments.dart';
@@ -53,7 +54,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
     if(user?["userType"] == "normal"){
       profileVisibility["userType"] = true;
     }
-    adminTabController = new TabController(length: 2, vsync: this);
+    adminTabController = new TabController(length: 3, vsync: this);
 
     adminTabController.addListener(() {
       setState(() {
@@ -80,20 +81,11 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
         shadowColor: appBarShadowColor,
         elevation: 2.0,
       ),
-      body: desktopView(),
-      // LayoutBuilder(
-      //   builder: (BuildContext context, BoxConstraints constraints) {
-      //     if (constraints.maxWidth > 700) {
-      //       return desktopView();
-      //     } else {
-      //       return mobileView();
-      //     }
-      //   },
-      // ),
+      body: desktopView(context),
     );
   }
 
-  Widget desktopView() {
+  Widget desktopView(BuildContext context) {
     String newStatus = "";
     return Container(
       padding: EdgeInsets.all(10.00),
@@ -351,7 +343,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                       viewButton("User", "normal", normalUser()),
                       // user?["userType"] == "normal" ? SizedBox(width: 0,) : viewButton("Admin", "admin", adminUser()),
                       // SizedBox(height: 50,),
-                      user?["isAdmin"] ? viewButton("Admin", "admin", adminUser()) : SizedBox(width: 0,),
+                      user?["isAdmin"] ? viewButton("Admin", "admin", adminUser(context)) : SizedBox(width: 0,),
                       SizedBox(height: 50,),
                     ],
                   ),
@@ -621,7 +613,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
     );
   }
 
-  Widget adminUser() {
+  Widget adminUser(BuildContext context) {
     print("\t\t In adminUser");
     // adminTabController.addListener(() {
     //   adminTabIndex = adminTabController.index;
@@ -638,7 +630,12 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
           children: [
             Container(
               decoration: BoxDecoration(
-                border: Border(bottom: BorderSide(color: Colors.grey, width: 0.8)),
+                border: Border(
+                  bottom: BorderSide(
+                    color: Colors.grey,
+                    width: 0.8
+                  )
+                ),
               ),
               child: TabBar(
                 isScrollable: true,
@@ -657,11 +654,16 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                     icon: const Icon(Icons.menu_book_rounded),
                     text: 'Books',
                   ),
+                  Tab(
+                    icon: const Icon(Icons.person_add_rounded),
+                    text: 'Add User',
+                  ),
                 ],
               ),
             ),
             Container(
               height: MediaQuery.of(context).size.height*0.6,
+              width: MediaQuery.of(context).size.width,
               padding: EdgeInsets.all(20.00),
               child: TabBarView(
                 controller: adminTabController,
@@ -685,6 +687,17 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                       borderRadius: BorderRadius.circular(20.00),
                     ),
                     child: bookTable(),
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width,
+                    decoration: new BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(
+                        width: 8,
+                      ),
+                      borderRadius: BorderRadius.circular(20.00),
+                    ),
+                    child: addUserForm(context),
                   ),
                 ],
               ),
@@ -769,31 +782,60 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
     );
   }
 
-  Widget blockCell(bool blockStatus, var index) {
+  Widget blockCell(bool blockStatus, var index, {var isBookCell = false}) {
     return TextButton(
       child: textCell(blockStatus ? "Unblock" : "Block", isButton: false),
       style: ButtonStyle(backgroundColor: blockStatus ? MaterialStateProperty.all(Colors.green) : MaterialStateProperty.all(Colors.red)),
       onPressed: () async {
-        await Services().blockUnblockUser(user?["emailId"], globalUser[index]["emailId"]).then(
-          (val) {
-            if (val != null && val.data['success']) {
-              blockStatus = val.data["isUserBlocked"];
-              globalUser[index]["isUserBlocked"] = blockStatus;
-              showMessageSnackBar(
-                context,
-                "User - ${globalUser[index]["emailId"]} ${blockStatus ? "Blocked" : "Unblocked"} Successfully!!",
-                Colors.green,
-              );
+        // print("index: ${index}");
+        // print("isBookCell: ${isBookCell}");
+        if(isBookCell) {
+          await Services().blockUnblockBook(user?["emailId"], bookList[index]["id"]).then(
+            (val) {
+              if (val != null && val.data['success']) {
+                blockStatus = val.data["isBookBlocked"];
+                bookList[index]["isBookBlocked"] = blockStatus;
+                blockedBooks.add(bookList[index]["id"]);
+                showMessageSnackBar(
+                  context,
+                  "Book - ${bookList[index]["bookName"]} ${blockStatus ? "Blocked" : "Unblocked"} Successfully!!",
+                  Colors.green,
+                );
+              }
+              else {
+                bookList[index]["isBookBlocked"] = bookList[index]["isBookBlocked"] == null ? false : !bookList[index]["isBookBlocked"];
+                blockedBooks.remove(bookList[index]["id"]);
+                showMessageSnackBar(
+                  context,
+                  "${blockStatus ? "Unblocking" : "Blocking"} Book - ${bookList[index]["bookName"]} Failed!!",
+                  Colors.red,
+                );
+              }
             }
-            else {
-              showMessageSnackBar(
-                context,
-                "${blockStatus ? "Unblocking" : "Blocking"} User - ${globalUser[index]["emailId"]} Failed!!",
-                Colors.red,
-              );
+          );
+        }
+        else {
+          await Services().blockUnblockUser(user?["emailId"], globalUser[index]["emailId"]).then(
+            (val) {
+              if (val != null && val.data['success']) {
+                blockStatus = val.data["isUserBlocked"];
+                globalUser[index]["isUserBlocked"] = blockStatus;
+                showMessageSnackBar(
+                  context,
+                  "User - ${globalUser[index]["emailId"]} ${blockStatus ? "Blocked" : "Unblocked"} Successfully!!",
+                  Colors.green,
+                );
+              }
+              else {
+                showMessageSnackBar(
+                  context,
+                  "${blockStatus ? "Unblocking" : "Blocking"} User - ${globalUser[index]["emailId"]} Failed!!",
+                  Colors.red,
+                );
+              }
             }
-          }
-        );
+          );
+        }
         // Navigator.of(context).pushNamed(
         //   PageTypeView.routeName,
         //   arguments: PageArguments(pageType.adminBookView, currentCategory: data, type: bookType, personName: personName),
@@ -813,6 +855,10 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
         );
       },
     );
+  }
+
+  Widget bookImage(var image) {
+    return image;
   }
 
   Widget tp(String value) {
@@ -929,7 +975,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                   booksBought = finalSearchUserResult[index]["booksBought"];
                   booksRented = finalSearchUserResult[index]["booksRented"];
                   personalBooks = finalSearchUserResult[index]["personalBooks"];
-                  blockStatus = globalUser[index]["isUserBlocked"] == null ? false : globalUser[index]["isUserBlocked"];
+                  blockStatus = finalSearchUserResult[index]["isUserBlocked"] == null ? false : finalSearchUserResult[index]["isUserBlocked"];
                 } else {
                   // String userId = getData(globaluser?[index]["id"]);
                   userType = getData(globalUser[index]["userType"]);
@@ -1031,26 +1077,31 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
               itemCount: searchBookTextController.text.isNotEmpty ? finalSearchBookResult.length : bookList.length,
               itemBuilder: (context, index) {
                 String bookId, bookName, category, author, price, imageURL, description, publication, ratings;
+                var image, blockStatus;
                 if(searchBookTextController.text.isNotEmpty && finalSearchBookResult.length > 0) {
                   bookId = getData(finalSearchBookResult[index]["id"]);
                   bookName = getData(finalSearchBookResult[index]["bookName"]);
                   category = getCategoryName(getData(finalSearchBookResult[index]["category"]));
                   author = getData(finalSearchBookResult[index]["authorName"]);
                   price = getData(finalSearchBookResult[index]["price"]);
-                  imageURL = getData(finalSearchBookResult[index]["image"]);
+                  // imageURL = getData(finalSearchBookResult[index]["image"]);
+                  image = finalSearchBookResult[index]["image"];
                   description = getData(finalSearchBookResult[index]["description"]);
                   publication = getData(finalSearchBookResult[index]["publication"]);
                   ratings = getRatings(finalSearchBookResult[index]["ratings"]);
+                  blockStatus = finalSearchBookResult[index]["isBookBlocked"] == null ? false : finalSearchBookResult[index]["isBookBlocked"];
                 } else {
                   bookId = getData(bookList[index]["id"]);
                   bookName = getData(bookList[index]["bookName"]);
                   category = getCategoryName(getData(bookList[index]["category"]));
                   author = getData(bookList[index]["authorName"]);
                   price = getData(bookList[index]["price"]);
-                  imageURL = getData(bookList[index]["image"]);
+                  // imageURL = getData(bookList[index]["image"]);
+                  image = bookList[index]["image"];
                   description = getData(bookList[index]["description"]);
                   publication = getData(bookList[index]["publication"]);
                   ratings = getRatings(bookList[index]["ratings"]);
+                  blockStatus = bookList[index]["isBookBlocked"] == null ? false : bookList[index]["isBookBlocked"];
                 }
                 return Table(
                   defaultVerticalAlignment: TableCellVerticalAlignment.middle,
@@ -1071,7 +1122,8 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                     7: FlexColumnWidth(2.5),
                     8: FlexColumnWidth(1.5),
                     9: FlexColumnWidth(1),
-                    10: FlexColumnWidth(1),
+                    10: FlexColumnWidth(1.5),
+                    // 10: FlexColumnWidth(1),
                   },
                   children: [
                     if(index == 0)
@@ -1087,7 +1139,8 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                           textHeading("Description"),
                           textHeading("Publication"),
                           textHeading("Ratings"),
-                          textHeading("Editable"),
+                          textHeading("Block/UnBlock"),
+                          // textHeading("Editable"),
                         ],
                       ),
                     TableRow(
@@ -1098,11 +1151,13 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
                         textCell(category),
                         textCell(author),
                         textCell("\u{20B9} $price/-"),
-                        imageCell(imageURL, bookName),
+                        image,
+                        // imageCell(imageURL, bookName),
                         textCell(description),
                         textCell(publication),
                         textCell(ratings),
-                        editCell(index),
+                        blockCell(blockStatus, index, isBookCell: true),
+                        // editCell(index),
                       ],
                     ),
                   ],
@@ -1368,14 +1423,14 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
     searchBookResult.clear();
     finalSearchBookResult.clear();
     if (_isSearching) {
-      print("...adminTabController.index: ${adminTabController.index}");
-      print("...adminTabIndex: $adminTabIndex");
+      // print("...adminTabController.index: ${adminTabController.index}");
+      // print("...adminTabIndex: $adminTabIndex");
       if(adminTabController.index == 1) {
         for(var id in searchBookList.keys) {
           for(var value in searchBookList[id]) {
-            print("searchText: $searchText .... value: $value");
+            // print("searchText: $searchText .... value: $value");
             if(value.contains(searchText.toLowerCase())) {
-              print("searchBookResult: $searchBookResult");
+              // print("searchBookResult: $searchBookResult");
               searchBookResult.add(bookMap[id]);
               break;
             }
@@ -1384,7 +1439,7 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
       }
       if(searchBookResult.length>0) {
         finalSearchBookResult = searchBookResult;
-        print("finalSearchBookResult: $finalSearchBookResult");
+        // print("finalSearchBookResult: $finalSearchBookResult");
         setState(() {});
       }
     }
@@ -1464,6 +1519,339 @@ class _ProfileState extends State<Profile> with TickerProviderStateMixin {
     searchTextController.clear();
     Navigator.of(context).pop();
     setState(() {});
+  }
+
+  userTypes? userTypeOption = userTypes.nonAdmin;
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailId = TextEditingController();
+  final TextEditingController _firstName = TextEditingController();
+  final TextEditingController _lastName = TextEditingController();
+  String firstName = "", lastName = "", emailId = "";
+  Widget addUserForm(BuildContext context) {
+    return Form(
+      autovalidateMode: AutovalidateMode.onUserInteraction,
+      key: _formKey,
+      child: SingleChildScrollView(
+        child: Container(
+          margin: EdgeInsets.all(10),
+          padding: EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: mainAppBlue.withOpacity(0.5),
+            shape: BoxShape.rectangle,
+            // border: Border.all(width: 2),
+            borderRadius: BorderRadius.all(
+              const Radius.circular(8),
+            ),
+            boxShadow: <BoxShadow>[
+              new BoxShadow(
+                color: Color(0xFF2C3E50).withOpacity(0.9),
+                blurRadius: 3.0,
+                spreadRadius: 1.0,
+                // offset: new Offset(5.0, 5.0),
+              ),
+            ],
+          ),
+          width: MediaQuery.of(context).size.width * 0.8,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              RichText(
+                text: TextSpan(
+                  text: 'Create a new ',
+                  style: TextStyle(
+                    color: Colors.white,
+                    height: 2,
+                    fontSize: 20,
+                  ),
+                  children: <TextSpan>[
+                    TextSpan(
+                      text: 'ReLis',
+                      style: TextStyle(
+                        color: Colors.white,
+                        height: 2,
+                        fontSize: 30,
+                        fontWeight: FontWeight.bold,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    TextSpan(
+                      text: ' account !!',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        height: 2,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                child: Row(  
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[  
+                    Container(
+                      width: MediaQuery.of(context).size.width / 4,
+                      child: ListTile(  
+                        title: const Text(
+                          'Admin',
+                          style: TextStyle(
+                            color: Colors.white
+                          ),
+                        ),  
+                        leading: Radio(  
+                          value: userTypes.admin,  
+                          groupValue: userTypeOption,  
+                          toggleable: true,
+                          activeColor: Colors.white,
+                          onChanged: (value) {  
+                            setState(() {  
+                              userTypeOption = value as userTypes?;  
+                            });  
+                          },  
+                        ),  
+                      ),
+                    ),  
+                    Container(
+                      width: MediaQuery.of(context).size.width / 4,
+                      child: ListTile(  
+                        title: const Text(
+                          'Non-Admin',
+                          style: TextStyle(
+                            color: Colors.white
+                          ),
+                        ),  
+                        leading: Radio(  
+                          value: userTypes.nonAdmin,  
+                          groupValue: userTypeOption,  
+                          toggleable: true,
+                          activeColor: Colors.white,
+                          onChanged: (value) {  
+                            setState(() {  
+                              userTypeOption = value as userTypes?;  
+                            });  
+                          },  
+                        ),  
+                      ),
+                    ),  
+                  ],  
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width / 4,
+                      child: TextFormField(
+                        controller: _firstName,
+                        onChanged: (text) {
+                          firstName = text;
+                        },
+                        textInputAction: TextInputAction.done,
+                        autofocus: false,
+                        maxLines: 1,
+                        keyboardType: TextInputType.name,
+                        cursorColor: Colors.white,
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                        validator: validateName,
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.all(20),
+                          hintText: '',
+                          hintStyle: TextStyle(
+                            height: 0.7,
+                            color: Colors.white,
+                          ),
+                          labelText: 'First Name',
+                          labelStyle: TextStyle(
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(
+                      width: 20,
+                    ),
+                    Container(
+                      width: MediaQuery.of(context).size.width / 4,
+                      child: TextFormField(
+                        controller: _lastName,
+                        onChanged: (text) {
+                          lastName = text;
+                        },
+                        textInputAction: TextInputAction.done,
+                        autofocus: false,
+                        maxLines: 1,
+                        keyboardType: TextInputType.name,
+                        cursorColor: Colors.white,
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                        validator: validateName,
+                        decoration: InputDecoration(
+                          contentPadding: EdgeInsets.all(20),
+                          hintText: '',
+                          hintStyle: TextStyle(
+                            height: 0.7,
+                            color: Colors.white,
+                          ),
+                          labelText: 'Last Name',
+                          labelStyle: TextStyle(
+                            color: Colors.white,
+                            height: 1,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(color: Colors.white),
+                            borderRadius: BorderRadius.circular(18.0),
+                          ),
+                        )
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              Container(
+                width: MediaQuery.of(context).size.width / 2,
+                child: TextFormField(
+                  controller: _emailId,
+                  onChanged: (text) {
+                    emailId = text;
+                  },
+                  textInputAction: TextInputAction.done,
+                  autofocus: false,
+                  maxLines: 1,
+                  keyboardType: TextInputType.emailAddress,
+                  cursorColor: Colors.white,
+                  style: TextStyle(
+                    color: Colors.white,
+                  ),
+                  validator: MultiValidator([
+                    RequiredValidator(errorText: "* Required"),
+                    EmailValidator(errorText: "Invalid Email!"),
+                  ]),
+                  decoration: InputDecoration(
+                    contentPadding: EdgeInsets.all(20),
+                    hintText: 'Ex.: johndoe@example.com',
+                    hintStyle: TextStyle(
+                      height: 0.7,
+                      color: Colors.white,
+                    ),
+                    labelText: 'Email Id.',
+                    labelStyle: TextStyle(
+                      color: Colors.white,
+                      height: 1,
+                    ),
+                    prefixIcon:
+                        Icon(Icons.email_outlined, color: Colors.white),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(18.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white),
+                      borderRadius: BorderRadius.circular(18.0),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
+              addUserButton(context),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String? validateName(String? value) {
+    if (value!.isEmpty) {
+      return "* Required";
+    } else if (RegExp(r'[!@#<>?":_`~;[\]/\\|=+){}(*&^%0-9-]').hasMatch(value)) {
+      return "Name must have Alphabetic characters.";
+    }
+  }
+
+  Widget addUserButton(BuildContext context) {
+    print("loadedButton");
+    var userInfo = {};
+    return MaterialButton(
+      elevation: 0.0,
+      padding: EdgeInsets.symmetric(
+          vertical: MediaQuery.of(context).size.height / 60,
+          horizontal: MediaQuery.of(context).size.width / 30 + 10),
+      shape: RoundedRectangleBorder(
+        borderRadius: new BorderRadius.circular(15.0),
+      ),
+      focusElevation: 0.0,
+      hoverElevation: 0.0,
+      highlightElevation: 0.0,
+      hoverColor: Colors.transparent,
+      autofocus: false,
+      textColor: Color(0xFF1E8BC3),
+      color: Colors.white,
+      splashColor: Color(0xFF2C3E50).withOpacity(0.3),
+      child: Text(
+        "Add User",
+        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 20),
+      ),
+      onPressed: () async {
+        if (_formKey.currentState!.validate()) {
+          userInfo['firstName'] = firstName;
+          userInfo['lastName'] = lastName;
+          userInfo['emailId'] = emailId;
+          userInfo['userType'] = userTypeOption == userTypes.admin ? "admin" : "non-admin";
+          print("userInfo is ");
+          print(userInfo);
+          await Services().addNewUser(userInfo).then((val) {
+            print("val is: ");
+            print(val);
+            if (val != null && val.data['success']) {
+              showMessageSnackBar(context, 'New User Added', Color(0xFF00FF88));
+            } else {
+              showMessageSnackBar(context, 'Error', Color(0xFFFF0000));
+            }
+          });
+        } else {
+          showMessageSnackBar(context, "Please fill the valid Details!!", Color(0xFFFF0000));
+        }
+        firstName = "";
+        lastName = "";
+        emailId = "";
+        _emailId.clear();
+        _firstName.clear();
+        _lastName.clear();
+        setState(() { });
+      },
+    );
   }
 
 }

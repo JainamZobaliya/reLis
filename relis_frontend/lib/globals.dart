@@ -42,6 +42,8 @@ var reLis_gif =
 int wrongPassword = 0;
 int maxWrongPassword = 3;
 
+enum userTypes { admin, nonAdmin }  
+
 imageLoader(ImageChunkEvent? loadingProgress) {
   return Center(
     child: CircularProgressIndicator(
@@ -735,11 +737,16 @@ getBooks(BuildContext context) async {
     }
   });
   int i = 0;
+  // bookList = bookList[0];
+  // print("bookList... ${bookList}");
   for (var currentBook in bookList) {
     currentBook["image"] = await getBookImage(currentBook["id"]);
+    if(currentBook["isBookBlocked"] != null && currentBook["isBookBlocked"] == true) {
+      blockedBooks.add(currentBook["id"]);
+    }
     ++i;
     showMessageFlutterToast(
-      " $i / ${bookList.length} Book Loaded",
+      " ${i} / ${bookList.length} Book Loaded",
       Color(0xFF00FF00),
       showClose: true,
     );
@@ -791,6 +798,12 @@ getImage(String imageType) async {
   }
 }
 
+isBookBlocked(String bookId) {
+  if (blockedBooks.contains(bookId))
+    return true;
+  return false;
+}
+
 isBookBought(String bookId) {
   if (user!["booksBought"].containsKey(bookId)) return true;
   return false;
@@ -813,6 +826,7 @@ isBookRented(String bookId) {
 }
 
 var bookList = [];
+var blockedBooks = [];
 
 Map<String, dynamic> bookMap = {};
 

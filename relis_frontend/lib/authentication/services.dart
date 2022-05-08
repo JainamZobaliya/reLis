@@ -29,6 +29,56 @@ class Services {
     }
   }
 
+  blockUnblockBook(emailId, bookId) async {
+    try {
+      print("...Sending Request");
+      var response =  await dio.post(
+        'https://relis-nodejs1.herokuapp.com/blockUnblockBook',
+      // "http://localhost:3000/blockUnblockBook",
+          data: {"emailId": emailId, "bookId": bookId},
+          options: Options(
+            contentType: Headers.formUrlEncodedContentType,
+          )).whenComplete(() => print("Got Response data ..."));
+      print("...Received response");
+      return response;
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+        msg: e.response?.data['msg'],
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        webBgColor: "linear-gradient(to right, #FF0000, #FF0000)",
+        textColor: Colors.white,
+        fontSize: 16.0,
+      );
+    }
+  }
+
+  addNewUser(var Mappy) async {
+    if (Mappy != null) {
+      try {
+        return await dio.post( 'https://relis-nodejs1.herokuapp.com/addNewUser', //"http://localhost:3000/addNewUser",
+            data: {
+              "firstName": Mappy['firstName'],
+              "lastName": Mappy['lastName'],
+              "emailId": Mappy['emailId'],
+              "userType": Mappy['userType']
+            },
+            options: Options(contentType: Headers.formUrlEncodedContentType));
+      } on DioError catch (e) {
+        Fluttertoast.showToast(
+            msg: e.response?.data['msg'],
+            toastLength: Toast.LENGTH_SHORT,
+            gravity: ToastGravity.BOTTOM,
+            backgroundColor: appBackgroundColor,
+            textColor: Colors.white,
+            fontSize: 16.0);
+      }
+    } else {
+      print('Did not receive User Data');
+    }
+  }
+ 
   signUp(var Mappy) async {
     print('Comes from OTP');
     if (Mappy != null) {
@@ -221,7 +271,9 @@ class Services {
 
   getAllBooks(emailId) async {
     try {
-      return await dio.post('https://relis-nodejs1.herokuapp.com/getAllBooks',
+      return await dio.post(
+        'https://relis-nodejs1.herokuapp.com/getAllBooks',
+        // "http://localhost:3000/getAllBooks",
           data: {"emailId": emailId},
           options: Options(contentType: Headers.formUrlEncodedContentType));
     } on DioError catch (e) {

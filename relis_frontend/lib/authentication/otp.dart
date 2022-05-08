@@ -8,8 +8,9 @@ import 'package:relis/authentication/signIn.dart';
 import 'package:relis/globals.dart';
 
 class OTPPage extends StatefulWidget {
-  const OTPPage({Key? key}) : super(key: key);
+  const OTPPage({ this.emailId});
   static const routeName = '/OTPPage';
+  final String? emailId;
 
   @override
   _OTPPageState createState() => _OTPPageState();
@@ -62,7 +63,7 @@ class _OTPPageState extends State<OTPPage> {
         Thanks And Regards,\n $from_name.''';
     else
       body =
-        '''Hello ${Registeration["firstName"]} ${Registeration["lastName"]};
+        '''Hello ${widget.emailId};
         This is your otp $realOTP, to change password.
 
         Thanks And Regards,\n $from_name.''';

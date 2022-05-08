@@ -220,8 +220,16 @@ class _BookViewState extends State<BookView> {
                         ),
                       ), //Book-Image
                       SizedBox(height: 20,),
+                      if(isBookBlocked(currentBook["id"])) 
+                        Text(
+                          "Currently Book is BLOCKED !!",
+                          style: TextStyle(
+                            color: mainAppBlue,
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
                       // For Rent / Buy Button
-                      if(!addedToCart)// || (isBookBought(currentBook["id"]) && isBookRented(currentBook["id"])))
+                      if(!isBookBlocked(currentBook["id"]) && !addedToCart)// || (isBookBought(currentBook["id"]) && isBookRented(currentBook["id"])))
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -336,7 +344,7 @@ class _BookViewState extends State<BookView> {
                           ],
                         ),
                       // Added To Cart Button
-                      if(!(isBookBought(currentBook["id"]) || isBookRented(currentBook["id"])) && addedToCart)
+                      if(!isBookBlocked(currentBook["id"]) && !(isBookBought(currentBook["id"]) || isBookRented(currentBook["id"])) && addedToCart)
                         MaterialButton(
                           elevation: 2.0,
                           padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 50),
@@ -389,7 +397,7 @@ class _BookViewState extends State<BookView> {
                         ), 
                       if(!isBookBought(currentBook["id"]) || !isBookRented(currentBook["id"]))
                         SizedBox(height: 20,),
-                      if(isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]))
+                      if(!isBookBlocked(currentBook["id"]) && (isBookBought(currentBook["id"]) || isBookRented(currentBook["id"])))
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.center,
@@ -516,7 +524,7 @@ class _BookViewState extends State<BookView> {
                                 ),
                               ),
                             ), //Favourite Button
-                            if(isBookBought(currentBook["id"]) || isBookRented(currentBook["id"]))
+                            if(!isBookBlocked(currentBook["id"]) && (isBookBought(currentBook["id"]) || isBookRented(currentBook["id"])))
                               Expanded(
                                 child: Tooltip(
                                   message: "Listen to AudioBook",
